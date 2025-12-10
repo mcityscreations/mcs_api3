@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+	Inject,
+	Injectable,
+	InternalServerErrorException,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import {
@@ -11,13 +15,19 @@ import {
 	OpenWeatherExcludeArraySchema,
 	OpenWeatherMapRawResponseSchema,
 } from '../../weather.validators';
+import { WINSTON_LOGGER } from '../../../system/logger/logger-factory/winston-logger.factory';
+import { Logger } from 'winston';
+import { getErrorMessage } from '../../../common/types/error.types';
 
 @Injectable()
 export class OpenWeatherProvider extends WeatherProvider {
 	private apiKey: string;
 	private baseUrl: string = 'https://api.openweathermap.org/data/3.0/onecall';
 
-	constructor(private readonly httpService: HttpService) {
+	constructor(
+		private readonly httpService: HttpService,
+		@Inject(WINSTON_LOGGER) private readonly logger: Logger,
+	) {
 		super();
 	}
 
@@ -75,10 +85,9 @@ export class OpenWeatherProvider extends WeatherProvider {
 				OpenWeatherMapRawResponseSchema.safeParse(rawData);
 
 			if (!validationResult.success) {
-				console.error(
-					'Unable to parse results from OpenWeatherAPI:',
-					validationResult.error,
-				);
+				this.logger.error('Unable to parse results from OpenWeatherAPI:', {
+					error: validationResult.error,
+				});
 				throw new InternalServerErrorException(
 					'Unable to parse results from OpenWeatherAPI.',
 				);
@@ -98,7 +107,10 @@ export class OpenWeatherProvider extends WeatherProvider {
 
 			return unifiedData;
 		} catch (error) {
-			console.error('Error while retrieving data from OpenWeatherMap:', error);
+			const errorMessage = getErrorMessage(error);
+			this.logger.error('Error while retrieving data from OpenWeatherMap:', {
+				error: errorMessage,
+			});
 			throw new InternalServerErrorException(
 				`Impossible de récupérer la météo pour Marseille via OpenWeatherMap.`,
 			);

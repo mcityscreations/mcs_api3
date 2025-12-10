@@ -7,9 +7,10 @@ import { WeatherController } from './weather.controller';
 import { WeatherProviderConfigService } from './providers/weather.config';
 import { OpenWeatherProvider } from './providers/open-weather/open-weather.service';
 import { WeatherRepository } from './weather.repository';
+import { SystemModule } from 'src/system/system.module';
 
 @Module({
-	imports: [ConfigModule, HttpModule, CommonModule],
+	imports: [ConfigModule, HttpModule, CommonModule, SystemModule],
 	controllers: [WeatherController],
 	providers: [
 		{

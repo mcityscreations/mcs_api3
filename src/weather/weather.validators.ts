@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// 1. Définir le schéma d'un élément 'weather'
+// 1. Defining WeatherItemSchema
 const WeatherItemSchema = z.object({
 	id: z.number(),
 	main: z.string(),
@@ -8,7 +8,7 @@ const WeatherItemSchema = z.object({
 	icon: z.string(),
 });
 
-// 2. Définir le schéma du bloc 'current'
+// 2. Defining Weather Schema
 const CurrentWeatherSchema = z.object({
 	dt: z.number(), // timestamp
 	temp: z.number(),
@@ -17,16 +17,15 @@ const CurrentWeatherSchema = z.object({
 	weather: z
 		.array(WeatherItemSchema)
 		.min(1, "Le tableau 'weather' ne doit pas être vide"),
-	// Note: z.object().partial() permet de rendre les propriétés optionnelles
+	// Note: z.object().partial() allows making properties optional
 });
 
-// 3. Définir le schéma de la réponse complète (si vous utilisez l'API One Call)
+// 3. DDefining the complete response schema (if using the One Call API)
 export const OpenWeatherMapRawResponseSchema = z.object({
 	lat: z.number(),
 	lon: z.number(),
 	timezone: z.string(),
-	current: CurrentWeatherSchema, // Le bloc qui nous intéresse
-	// On peut ignorer les autres blocs (minutely, hourly) si on les 'exclude'
+	current: CurrentWeatherSchema,
 });
 
 /** OpenWeather Options */
@@ -41,7 +40,7 @@ const OpenWeatherExcludeBlockSchema = z.enum([
 ]);
 export const OpenWeatherExcludeArraySchema = z
 	.array(OpenWeatherExcludeBlockSchema)
-	// Permet au champ d'être undefined ou null
+	// Allows the field to be undefined or null
 	.nullable()
 	.optional();
 
@@ -67,15 +66,15 @@ export type IOpenWeatherOptions = z.infer<typeof OpenWeatherOptionsSchema>;
 
 // WeatherScorePayload Schema
 export const WeatherScorePayloadSchema = z.object({
-	// Utilise z.coerce.number() :
-	// Tente de convertir la valeur en nombre si c'est une chaîne (ex: "1012.5" -> 1012.5)
-	// Ne change rien si c'est déjà un nombre.
-	// Échoue si la conversion n'est pas possible (ex: "abc" -> NaN).
+	// Uses z.coerce.number():
+	// Attempts to convert the value to a number if it's a string (e.g., "1012.5" -> 1012.5)
+	// Does nothing if it's already a number.
+	// Fails if the conversion is not possible (e.g., "abc" -> NaN).
 	pressure: z.coerce
 		.number()
 		.positive('La pression doit être une valeur positive.'),
 
-	// S'assure que le résultat de la conversion est entre 0 et 100
+	// Ensures the conversion result is between 0 and 100
 	humidity: z.coerce
 		.number()
 		.min(0, "L'humidité doit être au minimum 0.")

@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { MariaDBService } from 'src/database/maria-db/maria-db.service';
 import { IWeatherDataRaw } from './weather.interface';
 import { RedisService } from 'src/database/redis/redis.service';
+import { WINSTON_LOGGER } from '../system/logger/logger-factory/winston-logger.factory';
+import { Logger } from 'winston';
 
 @Injectable()
 export class WeatherRepository {
@@ -10,6 +12,7 @@ export class WeatherRepository {
 	constructor(
 		private readonly _mariaDBService: MariaDBService,
 		private readonly _redisService: RedisService,
+		@Inject(WINSTON_LOGGER) private readonly _logger: Logger,
 	) {}
 
 	/**
@@ -32,11 +35,8 @@ export class WeatherRepository {
 			// Parsing data
 			return JSON.parse(jsonString) as IWeatherDataRaw;
 		} catch (e) {
-			console.error(
-				`Erreur de parsing des données Redis pour la clé ${key}:`,
-				e,
-			);
-			// Optionnel : supprimer la clé corrompue
+			this._logger.error('Error parsing Redis data for key ' + key, e);
+			// Deleting corrupted key
 			await this._redisService.del(key);
 			return null;
 		}

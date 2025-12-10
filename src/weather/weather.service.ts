@@ -121,14 +121,14 @@ export class WeatherService {
 		}
 
 		// === 2. Calculating humidity score (h) ===
-		// Note : L'humidité est indépendante de la pression pour son calcul de base,
-		// mais le contexte du temps est donné par la pression.
+		// Note : Humidity is independent of pressure for its basic calculation,
+		// but the weather context is given by the pressure.
 
-		// Cas 1 : Low humidity (Clear sky)
+		// Case 1 : Low humidity (Clear sky)
 		if (humidity < 65) {
 			h = 0;
 		}
-		// Cas 2 :Moderate (cloudy)
+		// Case 2 : Moderate (cloudy)
 		else if (humidity >= 65 && humidity <= 70) {
 			h = 1;
 
