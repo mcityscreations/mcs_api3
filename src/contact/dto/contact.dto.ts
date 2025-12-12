@@ -27,9 +27,8 @@ export class BaseMessageDto {
 
 export class SendEmailDto extends BaseMessageDto {
 	@IsEmail({}, { each: true })
-	declare destinations: string[]; // Rétablit le typage strict pour les emails
+	declare destinations: string[];
 
-	// 💡 Surcharge de 'subject' pour le rendre OBLIGATOIRE et MAX_LENGTH
 	@IsNotEmpty({ message: 'Le sujet est obligatoire pour un e-mail.' })
 	@MaxLength(255)
 	declare subject: string;
