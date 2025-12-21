@@ -1,3 +1,4 @@
+// src/weather/weather.service.ts
 import {
 	Injectable,
 	Inject,
@@ -10,7 +11,7 @@ import {
 	IWeatherScorePayload,
 	WeatherScorePayloadSchema,
 } from './weather.validators';
-import { DateService } from 'src/common/dates/datesService';
+import { DateService } from '../common/dates/datesService';
 
 @Injectable()
 export class WeatherService {

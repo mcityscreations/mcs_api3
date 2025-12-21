@@ -1,7 +1,8 @@
+// src/weather/weather.repository.ts
 import { Injectable, Inject } from '@nestjs/common';
-import { MariaDBService } from 'src/database/maria-db/maria-db.service';
+import { MariaDBService } from '../database/maria-db/maria-db.service';
 import { IWeatherDataRaw } from './weather.interface';
-import { RedisService } from 'src/database/redis/redis.service';
+import { RedisService } from '../database/redis/redis.service';
 import { WINSTON_LOGGER } from '../system/logger/logger-factory/winston-logger.factory';
 import { Logger } from 'winston';
 

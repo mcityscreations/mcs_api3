@@ -1,3 +1,4 @@
+// src/weather/weather.validators.ts
 import { z } from 'zod';
 
 // 1. Defining WeatherItemSchema

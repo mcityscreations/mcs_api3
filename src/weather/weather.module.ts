@@ -1,14 +1,18 @@
+// src/weather/weather.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { CommonModule } from 'src/common/common.module';
+
+// Common modules and services
+import { CommonModule } from '../common/common.module';
+import { SystemModule } from '../system/system.module';
+
+// Weather services, controllers, and providers
 import { WeatherService } from './weather.service';
 import { WeatherController } from './weather.controller';
 import { WeatherProviderConfigService } from './providers/weather.config';
 import { OpenWeatherProvider } from './providers/open-weather/open-weather.service';
 import { WeatherRepository } from './weather.repository';
-import { SystemModule } from 'src/system/system.module';
-
 @Module({
 	imports: [ConfigModule, HttpModule, CommonModule, SystemModule],
 	controllers: [WeatherController],
