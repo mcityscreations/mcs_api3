@@ -1,18 +1,27 @@
+// src/database/maria-db/maria-db-config/maria-db-config.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { MariaDbConfigService } from './maria-db-config.service';
+import { ConfigService } from '@nestjs/config';
+
+const mockConfigService = () => ({
+	get: jest.fn(),
+});
 
 describe('MariaDbConfigService', () => {
-  let service: MariaDbConfigService;
+	let service: MariaDbConfigService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [MariaDbConfigService],
-    }).compile();
+	beforeEach(async () => {
+		const module: TestingModule = await Test.createTestingModule({
+			providers: [
+				MariaDbConfigService,
+				{ provide: ConfigService, useFactory: mockConfigService },
+			],
+		}).compile();
 
-    service = module.get<MariaDbConfigService>(MariaDbConfigService);
-  });
+		service = module.get<MariaDbConfigService>(MariaDbConfigService);
+	});
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+	it('should be defined', () => {
+		expect(service).toBeDefined();
+	});
 });

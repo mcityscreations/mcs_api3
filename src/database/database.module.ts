@@ -1,19 +1,39 @@
+// src/database/database.module.ts
+
+// NestJS and other module imports
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+
+// Database engines
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { RedisService } from './redis/redis.service';
 import { MariaDBService } from './maria-db/maria-db.service';
+
+// Configuration services and interfaces
 import { MariaDbConfigService } from './maria-db/maria-db-config/maria-db-config.service';
-import type { IMariaDBConfig } from './database.interfaces';
+import type { ISQLDatabaseConfig } from './database.interfaces';
 import {
 	IRedisConfig,
 	RedisConfigService,
 } from './redis/redis-config/redis-config.service';
-import { KnexService } from './knex/knex.service';
-import { SystemModule } from 'src/system/system.module';
+import { TypeormConfigService } from './typeorm/typeorm-config/typeorm-config.service';
+import { SystemModule } from '../system/system.module';
+
+// Logging
 import { Logger } from 'winston';
-import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.factory';
+import { WINSTON_LOGGER } from '../system/logger/logger-factory/winston-logger.factory';
 
 @Module({
-	imports: [SystemModule],
+	imports: [
+		SystemModule,
+		ConfigModule,
+		// TypeORM module with asynchronous configuration
+		TypeOrmModule.forRootAsync({
+			inject: [TypeormConfigService],
+			useFactory: (service: TypeormConfigService) =>
+				service.getPostgresCoreConfig(),
+		}),
+	],
 	providers: [
 		RedisService,
 		MariaDBService,
@@ -37,8 +57,8 @@ import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.
 		{
 			provide: MariaDBService,
 			useFactory: (
-				standardConfig: IMariaDBConfig,
-				oauthConfig: IMariaDBConfig,
+				standardConfig: ISQLDatabaseConfig,
+				oauthConfig: ISQLDatabaseConfig,
 				logger: Logger,
 			) => {
 				// Factory function that creates the MariaDBService instance
@@ -64,9 +84,9 @@ import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.
 			// Injecting the config object
 			inject: ['REDIS_CONFIG', WINSTON_LOGGER],
 		},
-		KnexService,
+		TypeormConfigService,
 	],
 	// Exporting services for use in other modules
-	exports: [RedisService, MariaDBService, MariaDbConfigService],
+	exports: [RedisService, MariaDBService, MariaDbConfigService, TypeOrmModule],
 })
 export class DatabaseModule {}

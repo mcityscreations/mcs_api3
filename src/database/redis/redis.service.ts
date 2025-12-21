@@ -1,3 +1,4 @@
+// src/database/redis/redis.service.ts
 import {
 	Injectable,
 	InternalServerErrorException,
@@ -7,7 +8,7 @@ import {
 } from '@nestjs/common';
 import Redis, { Redis as RedisClient } from 'ioredis';
 import type { IRedisConfig } from './redis-config/redis-config.service';
-import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.factory';
+import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
 import { Logger } from 'winston';
 
 @Injectable()

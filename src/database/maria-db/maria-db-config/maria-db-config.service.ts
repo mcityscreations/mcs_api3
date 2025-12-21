@@ -1,12 +1,13 @@
+// src/database/maria-db/maria-db-config/maria-db-config.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IMariaDBConfig } from '../../database.interfaces';
+import { ISQLDatabaseConfig } from '../../database.interfaces';
 
 @Injectable()
 export class MariaDbConfigService {
 	constructor(private readonly configService: ConfigService) {}
 
-	public getStandardConfig(): IMariaDBConfig {
+	public getStandardConfig(): ISQLDatabaseConfig {
 		// Retrieving config data stored in .env file
 		const host = this.configService.get<string>(
 			'MARIADB_MAIN_HOST',
@@ -35,7 +36,7 @@ export class MariaDbConfigService {
 			database: database,
 		};
 	}
-	public getSecurityConfig(): IMariaDBConfig {
+	public getSecurityConfig(): ISQLDatabaseConfig {
 		// Retrieving config data stored in .env file
 		const host = this.configService.get<string>(
 			'MARIADB_SECURITY_HOST',

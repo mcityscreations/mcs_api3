@@ -9,10 +9,10 @@ import {
 } from '@nestjs/common';
 import * as mariadb from 'mariadb';
 import { Pool, PoolConnection } from 'mariadb';
-import type { IMariaDBConfig, MariaDbError } from '../database.interfaces';
+import type { ISQLDatabaseConfig, IMariaDbError } from '../database.interfaces';
 import { Logger } from 'winston';
 import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
-import { isErrorWithMessage } from 'src/common/types/error.types';
+import { isErrorWithMessage } from '../../common/types/error.types';
 
 // --- Types ---
 
@@ -30,9 +30,9 @@ export class MariaDBService implements OnModuleInit {
 	// Injecting configuration service to get credentials
 	constructor(
 		@Inject('STANDARD_DB_CONFIG')
-		private readonly standardConfig: IMariaDBConfig,
+		private readonly standardConfig: ISQLDatabaseConfig,
 		@Inject('OAUTH_DB_CONFIG')
-		private readonly securityConfig: IMariaDBConfig,
+		private readonly securityConfig: ISQLDatabaseConfig,
 		@Inject(WINSTON_LOGGER)
 		private readonly logger: Logger,
 	) {
@@ -251,12 +251,12 @@ export class MariaDBService implements OnModuleInit {
 // --- Types Guards ---
 
 /** Type guard function for MariaDB errors */
-function isMariaDbError(error: any): error is MariaDbError {
+function isMariaDbError(error: any): error is IMariaDbError {
 	return (
 		typeof error === 'object' &&
 		error !== null &&
-		typeof (error as MariaDbError).code === 'string' &&
-		typeof (error as MariaDbError).errno === 'number'
+		typeof (error as IMariaDbError).code === 'string' &&
+		typeof (error as IMariaDbError).errno === 'number'
 	);
 }
 

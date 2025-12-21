@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { KnexService } from './knex.service';
+import { TypeormConfigService } from './typeorm-config.service';
 
-describe('KnexService', () => {
-  let service: KnexService;
+describe('TypeormConfigService', () => {
+  let service: TypeormConfigService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [KnexService],
+      providers: [TypeormConfigService],
     }).compile();
 
-    service = module.get<KnexService>(KnexService);
+    service = module.get<TypeormConfigService>(TypeormConfigService);
   });
 
   it('should be defined', () => {
