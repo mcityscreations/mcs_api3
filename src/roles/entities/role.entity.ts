@@ -1,9 +1,5 @@
-import {
-	Entity,
-	PrimaryGeneratedColumn, // Changement ici !
-	Column,
-	OneToMany,
-} from 'typeorm';
+// src/roles/entities/role.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('users_roles_index')
