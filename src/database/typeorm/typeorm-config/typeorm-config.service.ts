@@ -11,7 +11,6 @@ import { ConfigService } from '@nestjs/config';
 
 // Logging
 import { WINSTON_LOGGER } from '../../../system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
 
 // TypeORM
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
@@ -19,13 +18,14 @@ import { TypeOrmWinstonLogger } from '../../../system/logger/logger-typeorm/logg
 
 // Asynchronous Local Storage
 import { AlsService } from '../../../system/als/als.service';
+import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
 
 @Injectable()
 export class TypeormConfigService {
 	constructor(
 		private readonly configService: ConfigService,
 		private readonly alsService: AlsService,
-		@Inject(WINSTON_LOGGER) private readonly winston: Logger,
+		@Inject(WINSTON_LOGGER) private readonly winston: WinstonLoggerService,
 	) {}
 
 	public getPostgresCoreConfig(): TypeOrmModuleOptions {
@@ -56,7 +56,7 @@ export class TypeormConfigService {
 			autoLoadEntities: true,
 			synchronize: false,
 			logging: ['query', 'error', 'warn', 'schema'],
-			logger: new TypeOrmWinstonLogger(this.winston, this.alsService),
+			logger: new TypeOrmWinstonLogger(this.winston),
 		};
 	}
 }

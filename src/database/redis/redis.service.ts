@@ -93,4 +93,25 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 			throw new InternalServerErrorException('Redis service is unavailable.');
 		}
 	}
+
+	/**
+	 * Tries to set a key if it does not already exist.
+	 * Returns true if the key was set, false otherwise.
+	 */
+	public async setNX(
+		key: string,
+		value: string,
+		ttlSeconds: number,
+	): Promise<boolean> {
+		try {
+			// 'NX' = Only set if not exist
+			// 'EX' = Expire in seconds
+			const result = await this.client.set(key, value, 'EX', ttlSeconds, 'NX');
+			return result === 'OK';
+		} catch (error) {
+			this.logger.error(`Redis SETNX error for key ${key}:`, error);
+			// If Redis is down or there's an error, we let it pass by default to not block the user
+			return true;
+		}
+	}
 }
