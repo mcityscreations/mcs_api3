@@ -1,6 +1,5 @@
 import {
 	Injectable,
-	Inject,
 	UnauthorizedException,
 	BadRequestException,
 } from '@nestjs/common';
@@ -23,8 +22,7 @@ import { isUserRole } from '../../roles/helpers/roles.helpers';
 
 // Logging and error handling
 import { getErrorMessage } from '../../common/types/error.types';
-import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
+import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
 
 /** LOGIN SERVICE */
 
@@ -41,7 +39,7 @@ export class LoginService {
 		private readonly _jwtService: JwtService,
 		@InjectRepository(User)
 		private readonly _userRepository: Repository<User>,
-		@Inject(WINSTON_LOGGER) private readonly _winstonLogger: Logger,
+		private readonly _winstonLogger: WinstonLoggerService,
 	) {}
 
 	public async authenticateUser(

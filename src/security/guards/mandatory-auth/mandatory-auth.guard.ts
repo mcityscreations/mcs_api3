@@ -4,21 +4,18 @@ import {
 	CanActivate,
 	ExecutionContext,
 	Injectable,
-	Inject,
 	UnauthorizedException,
 	InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtService } from '../../jwt/jwt.service';
 import { Request } from 'express';
-import { Logger } from 'winston';
-import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.factory';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service';
 
 @Injectable()
 export class MandatoryAuthGuard implements CanActivate {
 	constructor(
 		private readonly jwtService: JwtService,
-		@Inject(WINSTON_LOGGER)
-		private readonly logger: Logger,
+		private readonly logger: WinstonLoggerService,
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {

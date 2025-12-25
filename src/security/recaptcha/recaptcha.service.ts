@@ -11,8 +11,7 @@ import { RecaptchaEnterpriseServiceClient } from '@google-cloud/recaptcha-enterp
 import { ISecurityEvaluationResult } from '../security.interfaces';
 import type { IRecaptchaConfig } from './recaptcha-config/recaptcha-config.service';
 import { getErrorMessage } from '../../common/types/error.types';
-import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
 
 @Injectable()
 export class RecaptchaService implements OnModuleInit {
@@ -27,7 +26,7 @@ export class RecaptchaService implements OnModuleInit {
 
 	constructor(
 		@Inject('RECAPTCHA_CONFIG_TOKEN') config: IRecaptchaConfig,
-		@Inject(WINSTON_LOGGER) private readonly logger: Logger,
+		private readonly logger: WinstonLoggerService,
 	) {
 		this.RECAPTCHA_PROJECT_ID = config.projectId;
 		this.RECAPTCHA_KEY = config.recaptchaSiteKey;
@@ -47,15 +46,17 @@ export class RecaptchaService implements OnModuleInit {
 			}
 			this.client = new RecaptchaEnterpriseServiceClient();
 
-			this.logger.info('reCAPTCHA Client initialisé.', {
+			this.logger.log('reCAPTCHA Client initialisé.', {
 				context: 'RecaptchaService',
 			});
 
 			await Promise.resolve();
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
+			const errorStack = error instanceof Error ? error.stack : '';
 			this.logger.error(
 				"Erreur critique: Échec de l'initialisation du client reCAPTCHA.",
+				errorStack,
 				{
 					details: errorMessage,
 					context: 'RecaptchaService',
@@ -135,10 +136,15 @@ export class RecaptchaService implements OnModuleInit {
 			}
 
 			// Error 503 - Service Unavailable
-			this.logger.error("Erreur de communication avec l'API reCAPTCHA.", {
-				errorMessage: getErrorMessage(error),
-				context: 'RecaptchaService',
-			});
+			const errorStack = error instanceof Error ? error.stack : '';
+			this.logger.error(
+				"Erreur de communication avec l'API reCAPTCHA.",
+				errorStack,
+				{
+					errorMessage: getErrorMessage(error),
+					context: 'RecaptchaService',
+				},
+			);
 			throw new ServiceUnavailableException(
 				'Le service de vérification des risques est temporairement indisponible.',
 			);

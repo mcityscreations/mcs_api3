@@ -1,17 +1,16 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { IMfaSessionData, IOTPPayload } from '../security.interfaces';
 import { MfaSessionRepository } from './mfa.repository';
 import { OtpService } from '../otp/otp.service';
-import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
+import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
 
 @Injectable()
 export class MfaSessionService {
 	constructor(
 		private readonly _MFArepository: MfaSessionRepository,
 		private readonly _otpService: OtpService,
-		@Inject(WINSTON_LOGGER) private readonly _winstonLogger: Logger,
+		private readonly _winstonLogger: WinstonLoggerService,
 	) {}
 
 	/** -- SESSIONS HANDLING -- */
@@ -65,9 +64,10 @@ export class MfaSessionService {
 			return data;
 		} catch (error) {
 			// Unable to parse JSON (Redis data is corrupted)
+			const errorStack = error instanceof Error ? error.stack : '';
 			this._winstonLogger.error(
 				`MfaSessionService: Error while parsing the token ${token}.`,
-				error,
+				errorStack,
 			);
 			return null;
 		}

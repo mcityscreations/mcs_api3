@@ -5,20 +5,17 @@ import {
 	ExecutionContext,
 	Injectable,
 	InternalServerErrorException,
-	Inject,
 } from '@nestjs/common';
 import { JwtService } from '../../jwt/jwt.service';
 import { Request } from 'express';
 import { isErrorWithMessage } from '../../../common/types/error.types';
-import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service';
 
 @Injectable()
 export class OptionalAuthGuard implements CanActivate {
 	constructor(
 		private readonly jwtService: JwtService,
-		@Inject(WINSTON_LOGGER)
-		private readonly logger: Logger,
+		private readonly logger: WinstonLoggerService,
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {

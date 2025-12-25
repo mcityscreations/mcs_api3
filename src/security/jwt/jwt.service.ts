@@ -1,6 +1,5 @@
 import {
 	Injectable,
-	Inject,
 	InternalServerErrorException,
 	UnauthorizedException,
 } from '@nestjs/common';
@@ -13,12 +12,8 @@ import {
 } from 'jsonwebtoken';
 import { JwtRepository } from './jwt.repository';
 import { UserRole } from 'src/roles/interfaces/roles.interface';
-import {
-	getErrorMessage,
-	isErrorWithMessage,
-} from '../../common/types/error.types';
-import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
+import { isErrorWithMessage } from '../../common/types/error.types';
+import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
 
 export interface IJwtPayload {
 	username: string;
@@ -39,7 +34,7 @@ export class JwtService {
 
 	constructor(
 		private readonly _jwtRepository: JwtRepository,
-		@Inject(WINSTON_LOGGER) private readonly _winstonLogger: Logger,
+		private readonly _winstonLogger: WinstonLoggerService,
 	) {
 		// 1. Loading private JWT private key
 		const PRIVATE_KEY_CONTENT = process.env.JWT_PRIVATE_KEY;
@@ -99,9 +94,7 @@ export class JwtService {
 			return { token: token };
 		} catch (error) {
 			// 4. Error handling
-			this._winstonLogger.error('JWT token generation failed', {
-				error: getErrorMessage(error),
-			});
+			this._winstonLogger.error(error as Error);
 			throw new InternalServerErrorException(
 				'An unexpected error occurred during token generation',
 			);
@@ -141,10 +134,7 @@ export class JwtService {
 				}
 			}
 			// Handle unexpected errors
-			this._winstonLogger.error(
-				'Unexpected error during JWT verification:',
-				getErrorMessage(error),
-			);
+			this._winstonLogger.error(error as Error);
 			throw new InternalServerErrorException(
 				'An unexpected error occurred during token verification',
 			);
@@ -209,9 +199,7 @@ export class JwtService {
 			// If the token is invalid or has no jti or is already expired, do nothing
 		} catch (error) {
 			// In case of error decoding or revoking, ignore the revocation to avoid crash.
-			this._winstonLogger.error('Failed to decode or revoke token:', {
-				error: getErrorMessage(error),
-			});
+			this._winstonLogger.error(error as Error);
 		}
 	}
 }
