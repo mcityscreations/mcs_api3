@@ -7,12 +7,14 @@ import {
 	Headers,
 	Ip,
 	InternalServerErrorException,
+	UseInterceptors,
 } from '@nestjs/common';
 import { AuthenticationFlowService } from './authentication-flow/authentication-flow.service';
 
 // DTOs
 import { LoginDto } from './dto/login.dto';
 import { VerifyMFADto } from './dto/verify-mfa.dto';
+import { ThrottlerInterceptor } from './interceptors/throttler/throttler.interceptor';
 
 // api3.mcitys.com/security
 @Controller('security')
@@ -24,6 +26,7 @@ export class SecurityController {
 	// ---------------------------------------------------------------------
 	// POST /security/login
 	// ---------------------------------------------------------------------
+	@UseInterceptors(ThrottlerInterceptor)
 	@Post('login')
 	async login(
 		@Body() body: LoginDto, // Contains username, password, recaptchaToken)
@@ -51,6 +54,7 @@ export class SecurityController {
 	// ---------------------------------------------------------------------
 	// POST /security/mfa/send
 	// ---------------------------------------------------------------------
+	@UseInterceptors(ThrottlerInterceptor)
 	@Post('mfa/send')
 	async sendMfaCode(
 		@Body('authSessionToken') authSessionToken: string,
@@ -67,6 +71,7 @@ export class SecurityController {
 	// ---------------------------------------------------------------------
 	// POST /security/mfa/verify
 	// ---------------------------------------------------------------------
+	@UseInterceptors(ThrottlerInterceptor)
 	@Post('mfa/verify')
 	async verifyMfaCode(
 		@Body() body: VerifyMFADto,

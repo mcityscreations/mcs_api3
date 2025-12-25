@@ -2,7 +2,6 @@ import {
 	ConflictException,
 	ForbiddenException,
 	Injectable,
-	Inject,
 	InternalServerErrorException,
 	UnauthorizedException,
 } from '@nestjs/common';
@@ -12,8 +11,7 @@ import { RecaptchaService } from '../recaptcha/recaptcha.service';
 import { MfaSessionService } from '../mfa/mfa.service';
 import { IJWTResponse } from '../security.interfaces';
 import { getErrorMessage } from '../../common/types/error.types';
-import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
 
 export interface IMFAChallengeResponse {
 	status: string;
@@ -29,7 +27,7 @@ export class AuthenticationFlowService {
 		private readonly _rateLimiterService: RateLimiterService, // Applies limits to IP addresses
 		private readonly _recaptchaService: RecaptchaService, // reCAPTCHA risk evaluation
 		private readonly _mfaSessionService: MfaSessionService, // MFA session handler (Redis)
-		@Inject(WINSTON_LOGGER) private readonly _winstonLogger: Logger, // Winston logger instance
+		private readonly _winstonLogger: WinstonLoggerService, // Winston logger instance
 	) {}
 
 	// Login hanling with reCAPTCHA, Rate Limiting, and MFA
@@ -56,12 +54,12 @@ export class AuthenticationFlowService {
 			// A. BLOCK (Low reCAPTCHA score)
 			if (evaluationResult.requiredAction === 'BLOCK') {
 				await this._rateLimiterService.recordFailure(ipAddress);
-				this._winstonLogger.warn(`Login failure: User blocked by reCAPTCHA.`, {
-					reason: 'BLOCKED_BY_RECAPTCHA',
-					username: username,
-					ipAddress: ipAddress,
-					userAgent: userAgent,
-				});
+				this._winstonLogger.warn(
+					`Login failure: User blocked by reCAPTCHA.`,
+					this.getAuthContext(username, ipAddress, userAgent, {
+						recaptchaScore: recaptchaScore,
+					}),
+				);
 				throw new ForbiddenException('Utilisateur ou mot de passe erronés.'); // Response recommended by Google
 			}
 		}
@@ -76,12 +74,12 @@ export class AuthenticationFlowService {
 		if (!authResult) {
 			// Log et Rate Limit if invalid credentials
 			await this._rateLimiterService.recordFailure(ipAddress);
-			this._winstonLogger.warn(`Login failure`, {
-				reason: 'Invalid credentials',
-				username: username,
-				ipAddress: ipAddress,
-				userAgent: userAgent,
-			});
+			this._winstonLogger.warn(
+				`Login failure, invalid credentials`,
+				this.getAuthContext(username, ipAddress, userAgent, {
+					reason: 'Invalid credentials',
+				}),
+			);
 			throw new UnauthorizedException('Identifiants invalides.');
 		}
 
@@ -96,18 +94,15 @@ export class AuthenticationFlowService {
 				authResult.role,
 			); // Start a login session for MFA
 
-			this._winstonLogger.info(`Login success: MFA required for user.`, {
-				// The status of the login process
-				status: 'MFA_REQUIRED',
-
-				// Audit data
-				username: username,
-				ipAddress: ipAddress,
-				userAgent: userAgent,
-
-				// Auth session token for security audit
-				authSessionToken: authSessionToken,
-			});
+			this._winstonLogger.log(
+				`Login success: MFA required for user.`,
+				this.getAuthContext(username, ipAddress, userAgent, {
+					// The status of the login process
+					status: 'MFA_REQUIRED',
+					// Auth session token for security audit
+					authSessionToken: authSessionToken,
+				}),
+			);
 
 			throw new UnauthorizedException({
 				status: 'CHALLENGE_REQUIRED',
@@ -122,14 +117,12 @@ export class AuthenticationFlowService {
 				authResult.role,
 			);
 
-			this._winstonLogger.info(`Login success: User authenticated.`, {
-				// The status of the login process
-				status: 'SUCCESS',
-				// Audit data
-				username: username,
-				ipAddress: ipAddress,
-				userAgent: userAgent,
-			});
+			this._winstonLogger.log(
+				`Login success: User authenticated.`,
+				this.getAuthContext(username, ipAddress, userAgent, {
+					status: 'SUCCESS',
+				}),
+			);
 
 			return finalResponse;
 		}
@@ -148,17 +141,15 @@ export class AuthenticationFlowService {
 		// 1. Retrieving the MFA session from Redis
 		const sessionData =
 			await this._mfaSessionService.getSession(authSessionToken);
-
+		const username: string = sessionData?.username ?? 'unknown';
 		if (!sessionData) {
 			// Invalid, expired or unknown session
 			this._winstonLogger.warn(
 				`MFA code send failure: Invalid or expired MFA session.`,
-				{
+				this.getAuthContext(username, ipAddress, userAgent, {
 					reason: 'INVALID_OR_EXPIRED_MFA_SESSION',
 					authSessionToken: authSessionToken,
-					ipAddress: ipAddress,
-					userAgent: userAgent,
-				},
+				}),
 			);
 			throw new UnauthorizedException(
 				'Session MFA invalide ou expirée. Veuillez vous reconnecter.',
@@ -174,29 +165,24 @@ export class AuthenticationFlowService {
 				sessionData,
 			);
 		} catch (error) {
+			const errorStack = error instanceof Error ? error.stack : '';
 			this._winstonLogger.error(
 				`MFA code send failure: Error sending OTP code.`,
-				{
+				errorStack,
+				this.getAuthContext(username, ipAddress, userAgent, {
 					reason: 'OTP_SEND_ERROR',
 					authSessionToken: authSessionToken,
-					ipAddress: ipAddress,
-					userAgent: userAgent,
 					error: getErrorMessage(error),
-				},
+				}),
 			);
-			const errorMessage = getErrorMessage(error);
-			this._winstonLogger.error(
-				`Error while sending OTP to ${sessionData.username}: ${errorMessage}`,
-			);
+
 			throw new InternalServerErrorException(
 				"Échec de l'envoi du code OTP. Veuillez réessayer.",
 			);
 		}
-		this._winstonLogger.info(`MFA code sent successfully.`, {
+		this._winstonLogger.log(`MFA code sent successfully.`, {
 			authSessionToken: authSessionToken,
 			username: sessionData.username,
-			ipAddress: ipAddress,
-			userAgent: userAgent,
 		});
 
 		return { message: 'Code OTP envoyé avec succès.' };
@@ -216,17 +202,15 @@ export class AuthenticationFlowService {
 		// 1. Retrieve Redis MFA Session
 		const sessionData =
 			await this._mfaSessionService.getSession(authSessionToken);
-
+		const username: string = sessionData?.username ?? 'unknown';
 		if (!sessionData) {
 			// Logging failure
 			this._winstonLogger.warn(
 				`MFA verification failure: Invalid or expired MFA session.`,
-				{
+				this.getAuthContext(username, ipAddress, userAgent, {
 					reason: 'INVALID_OR_EXPIRED_MFA_SESSION',
 					authSessionToken: authSessionToken,
-					ipAddress: ipAddress,
-					userAgent: userAgent,
-				},
+				}),
 			);
 
 			throw new UnauthorizedException(
@@ -245,13 +229,13 @@ export class AuthenticationFlowService {
 			// Applying rate limiting on failed MFA attempts
 			await this._rateLimiterService.recordFailure(ipAddress);
 			// Logging failure
-			this._winstonLogger.warn(`MFA verification failure: Invalid OTP code.`, {
-				reason: 'INVALID_OTP_CODE',
-				authSessionToken: authSessionToken,
-				ipAddress: ipAddress,
-				userAgent: userAgent,
-				username: sessionData.username,
-			});
+			this._winstonLogger.warn(
+				`MFA verification failure: Invalid OTP code.`,
+				this.getAuthContext(username, ipAddress, userAgent, {
+					reason: 'INVALID_OTP_CODE',
+					authSessionToken: authSessionToken,
+				}),
+			);
 			throw new UnauthorizedException('Code OTP invalide.');
 		}
 
@@ -261,12 +245,12 @@ export class AuthenticationFlowService {
 		await this._mfaSessionService.deleteSession(authSessionToken);
 
 		// B. Logging success
-		this._winstonLogger.info(`MFA verification success: OTP code verified.`, {
-			authSessionToken: authSessionToken,
-			username: sessionData.username,
-			ipAddress: ipAddress,
-			userAgent: userAgent,
-		});
+		this._winstonLogger.log(
+			`MFA verification success: OTP code verified.`,
+			this.getAuthContext(username, ipAddress, userAgent, {
+				authSessionToken: authSessionToken,
+			}),
+		);
 
 		// C. Generating the final JWT token
 		const finalResponse = this._loginService.generateFinalToken(
@@ -275,5 +259,20 @@ export class AuthenticationFlowService {
 		);
 
 		return finalResponse;
+	}
+
+	// Helper to build auth context for logging
+	private getAuthContext(
+		username: string,
+		ipAddress: string,
+		userAgent: string,
+		extra = {},
+	) {
+		return {
+			username,
+			ipAddress,
+			userAgent,
+			...extra,
+		};
 	}
 }
