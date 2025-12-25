@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ContactService } from '../../contact/contact.service';
 import { IOTPPayload } from '../security.interfaces';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../../users/users.service';
 
 // TTL (Time To Live) for OTP in minutes
 const OTP_TTL_SECONDS = 5 * 60; // 5 minutes

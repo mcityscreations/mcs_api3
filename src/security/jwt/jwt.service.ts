@@ -13,7 +13,7 @@ import {
 import { JwtRepository } from './jwt.repository';
 import { UserRole } from 'src/roles/interfaces/roles.interface';
 import { isErrorWithMessage } from '../../common/types/error.types';
-import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
 
 export interface IJwtPayload {
 	username: string;

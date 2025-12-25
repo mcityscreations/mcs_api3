@@ -22,7 +22,7 @@ import { isUserRole } from '../../roles/helpers/roles.helpers';
 
 // Logging and error handling
 import { getErrorMessage } from '../../common/types/error.types';
-import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
 
 /** LOGIN SERVICE */
 
