@@ -13,8 +13,6 @@ type ContextOrMetadata = string | object;
 
 @Injectable()
 export class WinstonLoggerService implements LoggerService {
-	// The method 'log' accepts a message and optionally a context
-	// The signature is: log(message: string, context?: string)
 	constructor(
 		@Inject(WINSTON_LOGGER) private readonly logger: Logger,
 		private readonly alsService: AlsService,
@@ -48,30 +46,49 @@ export class WinstonLoggerService implements LoggerService {
 		return meta;
 	}
 
+	/** Helper to convert any message type to string */
+	private messageToString(message: any): string {
+		if (typeof message === 'string') {
+			return message;
+		} else if (message instanceof Error) {
+			return message.message;
+		} else {
+			try {
+				return JSON.stringify(message);
+			} catch {
+				return `[Serialization-Error]: ${String(message)}`;
+			}
+		}
+	}
+
 	// --- Implementing LoggerService ---
 
-	log(message: string, context?: ContextOrMetadata) {
-		// Calls Winston with 'info' level
-		this.logger.info(message, this.getEnhancedMeta(context));
+	log(message: any, context?: ContextOrMetadata) {
+		const formattedMessage = this.messageToString(message);
+		this.logger.info(formattedMessage, this.getEnhancedMeta(context));
 	}
 
-	error(message: string, trace?: string, context?: ContextOrMetadata) {
+	error(message: any, trace?: string, context?: ContextOrMetadata) {
 		const meta = this.getEnhancedMeta(context);
-		// Adding the trace to the metadata
-		this.logger.error(message, { ...meta, trace });
+		const formattedTrace =
+			trace || (message instanceof Error ? message.stack : undefined);
+		const formattedMessage = this.messageToString(message);
+		this.logger.error(formattedMessage, { ...meta, trace: formattedTrace });
 	}
 
-	warn(message: string, context?: ContextOrMetadata) {
-		// Calls Winston with 'warn' level
-		this.logger.warn(message, this.getEnhancedMeta(context));
+	warn(message: any, context?: ContextOrMetadata) {
+		const formattedMessage = this.messageToString(message);
+		this.logger.warn(formattedMessage, this.getEnhancedMeta(context));
 	}
 
 	// NestJS LoggerService also supports these methods
-	debug?(message: string, context?: ContextOrMetadata) {
-		this.logger.debug(message, this.getEnhancedMeta(context));
+	debug?(message: any, context?: ContextOrMetadata) {
+		const formattedMessage = this.messageToString(message);
+		this.logger.debug(formattedMessage, this.getEnhancedMeta(context));
 	}
 
-	verbose?(message: string, context?: ContextOrMetadata) {
-		this.logger.verbose(message, this.getEnhancedMeta(context));
+	verbose?(message: any, context?: ContextOrMetadata) {
+		const formattedMessage = this.messageToString(message);
+		this.logger.verbose(formattedMessage, this.getEnhancedMeta(context));
 	}
 }

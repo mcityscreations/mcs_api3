@@ -91,7 +91,7 @@ export class LoggingInterceptor implements NestInterceptor {
 			stack = error.stack;
 		} else if (error instanceof Error) {
 			statusCode = 500;
-			errorMessage = 'Internal Server Error';
+			errorMessage = error.message;
 			stack = error.stack;
 		} else {
 			statusCode = 500;

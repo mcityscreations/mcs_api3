@@ -6,6 +6,7 @@ import { LoggerConfigService } from '../logger-config/logger-config.service';
 import { InternalServerErrorException } from '@nestjs/common';
 import { AlsService } from '../../als/als.service';
 import { MongoDBConnectionOptions } from 'winston-mongodb';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 // MongoDB transport interface
 interface WinstonMongoDBOptions extends MongoDBConnectionOptions {
@@ -35,8 +36,9 @@ export const winstonLoggerFactory = {
 			options: {
 				useUnifiedTopology: true,
 			},
-			// Logs of 'info' level and superior will be saved
-			level: 'info',
+			level: 'warn',
+			capped: true, // Creates a limited size collection
+			cappedSize: 20000000, // 20 MB
 			format: format.combine(format.timestamp(), format.json()),
 		} as WinstonMongoDBOptions);
 
@@ -69,6 +71,13 @@ export const winstonLoggerFactory = {
 							return `[Nest] ${finalTimestamp} ${level}: ${msg}`;
 						}),
 					),
+				}),
+				new DailyRotateFile({
+					filename: 'logs/app-%DATE%.log',
+					zippedArchive: true,
+					maxSize: '10m',
+					maxFiles: '5d',
+					level: 'info',
 				}),
 				// 2. MongoDB transport for production mode.
 				// Logs 'info', 'warn' and 'error' messages

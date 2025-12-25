@@ -12,7 +12,6 @@ import { LoggingInterceptor } from './interceptors/logging/logging.interceptor';
 import { WinstonLoggerService } from './logger/logger-service/winston-logger.service';
 import { TypeOrmWinstonLogger } from './logger/logger-typeorm/logger-typeorm.service';
 
-// Winston Factory was moved to a dedicated file as it was too long.
 @Global()
 @Module({
 	imports: [ConfigModule, ScheduleModule.forRoot()],
@@ -29,6 +28,6 @@ import { TypeOrmWinstonLogger } from './logger/logger-typeorm/logger-typeorm.ser
 		// Interceptors
 		LoggingInterceptor,
 	],
-	exports: [WINSTON_LOGGER, AlsService],
+	exports: [WINSTON_LOGGER, AlsService, WinstonLoggerService],
 })
 export class SystemModule {}
