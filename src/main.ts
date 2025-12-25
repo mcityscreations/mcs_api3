@@ -2,29 +2,20 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import { WinstonLoggerService } from './system/logger/logger-service/winston-logger.service';
-import { WINSTON_LOGGER } from './system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
-import { AlsService } from './system/als/als.service';
 
 async function bootstrap() {
 	// 1. Starting application
-	const app = await NestFactory.create(AppModule);
+	const app = await NestFactory.create(AppModule, {
+		bufferLogs: true, // Keeps logs in buffer until a logger is set
+	});
 
 	// 2. Applying security middleware
 	app.use(helmet());
 
-	const alsService = app.get(AlsService);
-
 	// 3. Retrieving Winston Logger instance
-	const winstonLoggerInstance = app.get<Logger>(WINSTON_LOGGER);
+	const winstonLoggerService = app.get(WinstonLoggerService);
 
-	// 4. Creating the service wrapper with the Winston Logger instance
-	const winstonLoggerService = new WinstonLoggerService(
-		winstonLoggerInstance,
-		alsService,
-	);
-
-	// 5. Replacing the default Logger with the custom Winston logger
+	// 4. Replacing the default Logger with the custom Winston logger
 	app.useLogger(winstonLoggerService);
 	await app.listen(process.env.PORT ?? 3000);
 }
