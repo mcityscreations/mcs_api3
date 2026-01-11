@@ -17,13 +17,13 @@ import {
 } from './communicators/sms.communicator';
 
 // Importing system module and entities
-import { SystemModule } from 'src/system/system.module';
-import { PersonContactEntity } from './entities/person-contact.entity';
+import { SystemModule } from '../system/system.module';
+import { PersonContact } from './entities/person-contact.entity';
 import { Logger } from 'winston';
-import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.factory';
+import { WINSTON_LOGGER } from '../system/logger/logger-factory/winston-logger.factory';
 
 @Module({
-	imports: [SystemModule, TypeOrmModule.forFeature([PersonContactEntity])],
+	imports: [SystemModule, TypeOrmModule.forFeature([PersonContact])],
 	providers: [
 		ContactService,
 		EmailConfigService,
@@ -64,7 +64,7 @@ import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.
 		},
 	],
 	exports: [
-		TypeOrmModule.forFeature([PersonContactEntity]),
+		TypeOrmModule.forFeature([PersonContact]),
 		EMAIL_COMMUNICATOR_NOREPLY,
 		EMAIL_COMMUNICATOR_SUPPORT,
 		EMAIL_COMMUNICATOR_NEWSLETTER,

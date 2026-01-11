@@ -11,53 +11,61 @@ import {
 	UpdateDateColumn,
 } from 'typeorm';
 import { Person } from '../../people/entities/person.entity';
-import { ContactCategoryEntity } from './contact-category.entity';
+import { ContactCategory } from './contact-category.entity';
 
-@Entity('mcs_people_contact_index')
-export class PersonContactEntity extends BaseEntity {
-	@PrimaryGeneratedColumn('increment', { name: 'id_contact_index' })
-	id: number;
+@Entity('content.contact')
+export class PersonContact extends BaseEntity {
+	@PrimaryGeneratedColumn('increment', { name: 'id_contact' })
+	idContact: number;
 
 	// --- Relations (Foreign Keys) ---
 
 	// Relation to Person
-	@Column({ name: 'id_person', length: 25 })
-	idPerson: string;
+	@Column({ name: 'id_person', type: 'bigint' })
+	idPerson: number;
 
 	@ManyToOne(() => Person, (person) => person.contacts)
 	@JoinColumn({ name: 'id_person' })
 	person: Person;
 
 	// Relation to ContactCategoryEntity (EMAIL, PHONE, etc.)
-	@Column({ name: 'id_contact_category', length: 25 })
-	idContactCategory: string;
+	@Column({ name: 'id_contact_category', type: 'smallint' })
+	idContactCategory: number;
 
-	@ManyToOne(() => ContactCategoryEntity, (category) => category.id)
+	@ManyToOne(() => ContactCategory, (category) => category.id)
 	@JoinColumn({ name: 'id_contact_category' })
-	category: ContactCategoryEntity;
+	category: ContactCategory;
 
 	// --- Data Columns ---
 
-	@Column({ name: 'is_primary', type: 'tinyint' })
+	@Column({ name: 'is_primary', type: 'boolean' })
 	isPrimary: boolean;
 
-	@Column({ name: 'is_professional', type: 'tinyint' })
+	@Column({ name: 'is_professional', type: 'boolean' })
 	isProfessional: boolean;
 
-	@Column({ name: 'title', length: 250 })
+	@Column({ name: 'title', type: 'character varying', length: 50 })
 	title: string;
 
-	@Column({ name: 'value', length: 250 })
+	@Column({ name: 'value', type: 'character varying', length: 80 })
 	value: string; // e.g., email address or phone number
 
-	@Column({ name: 'is_verified', type: 'tinyint' })
+	@Column({ name: 'is_verified', type: 'boolean' })
 	isVerified: boolean;
 
 	// --- Dates ---
 
-	@CreateDateColumn({ name: 'creation_date', type: 'datetime' })
-	creationDate: Date;
+	@CreateDateColumn({
+		name: 'created_at',
+		type: 'timestamp',
+		default: () => 'CURRENT_TIMESTAMP',
+	})
+	createdAt: Date;
 
-	@UpdateDateColumn({ name: 'last_update', type: 'datetime' })
-	lastUpdate: Date;
+	@UpdateDateColumn({
+		name: 'updated_at',
+		type: 'timestamp',
+		default: () => 'CURRENT_TIMESTAMP',
+	})
+	updatedAt: Date;
 }

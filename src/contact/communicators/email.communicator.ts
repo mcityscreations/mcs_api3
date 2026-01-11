@@ -8,7 +8,7 @@ import {
 	EmailConfigService,
 	IEmailAccountConfig,
 } from '../contact-config/email-config/email-config.service';
-import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.factory';
+import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
 import { Logger } from 'winston';
 
 // Tokens for Email communicator injections

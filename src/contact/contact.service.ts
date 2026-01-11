@@ -7,7 +7,7 @@ import { SmsCommunicator } from './communicators/sms.communicator';
 import { EmailCommunicator } from './communicators/email.communicator';
 import { SendEmailDto, SendSmsDto } from './dto/contact.dto';
 import { Logger } from 'winston';
-import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.factory';
+import { WINSTON_LOGGER } from '../system/logger/logger-factory/winston-logger.factory';
 
 @Injectable()
 export class ContactService {

@@ -11,9 +11,9 @@ import {
 	SmsConfigService,
 	IOvhConfig,
 } from '../contact-config/sms-config/sms-config.service';
-import { WINSTON_LOGGER } from 'src/system/logger/logger-factory/winston-logger.factory';
+import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
 import { Logger } from 'winston';
-import { getErrorMessage } from 'src/common/types/error.types';
+import { getErrorMessage } from '../../common/types/error.types';
 import { SendSmsDto } from '../dto/contact.dto';
 
 // Token for SMS communicator injection
