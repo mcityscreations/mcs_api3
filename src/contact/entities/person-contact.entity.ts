@@ -15,8 +15,13 @@ import { ContactCategory } from './contact-category.entity';
 
 @Entity('content.contact')
 export class PersonContact extends BaseEntity {
+	// --- Primary Key ---
+
 	@PrimaryGeneratedColumn('increment', { name: 'id_contact' })
 	idContact: number;
+
+	@Column({ name: 'id_public', type: 'uuid', unique: true, insert: false })
+	idPublic: string;
 
 	// --- Relations (Foreign Keys) ---
 
