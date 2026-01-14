@@ -9,10 +9,14 @@ import {
 } from '@nestjs/common';
 import * as mariadb from 'mariadb';
 import { Pool, PoolConnection } from 'mariadb';
-import type { ISQLDatabaseConfig, IMariaDbError } from '../database.interfaces';
-import { Logger } from 'winston';
-import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
+import type {
+	ISQLDatabaseConfig,
+	IMariaDbError,
+	IDatabaseService,
+} from '../database.interfaces';
 import { isErrorWithMessage } from '../../common/types/error.types';
+import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
+import { isNestHttpException } from '../../common/types/error.types';
 
 // --- Types ---
 
@@ -22,7 +26,7 @@ export type DatabasePool = 'standard' | 'oauth';
 // --- MariaDBService ---
 
 @Injectable()
-export class MariaDBService implements OnModuleInit {
+export class MariaDBService implements OnModuleInit, IDatabaseService {
 	// Singleton pools stored as private members
 	private readonly defaultPool: Pool;
 	private readonly securityPool: Pool;
@@ -33,22 +37,21 @@ export class MariaDBService implements OnModuleInit {
 		private readonly standardConfig: ISQLDatabaseConfig,
 		@Inject('OAUTH_DB_CONFIG')
 		private readonly securityConfig: ISQLDatabaseConfig,
-		@Inject(WINSTON_LOGGER)
-		private readonly logger: Logger,
+		private readonly logger: WinstonLoggerService,
 	) {
 		// Initializing connexion pools
 		this.defaultPool = mariadb.createPool(this.standardConfig);
 		this.securityPool = mariadb.createPool(this.securityConfig);
 
-		this.logger.info('MariaDBService initialized with 2 pools.');
+		this.logger.log('MariaDBService initialized with 2 pools.');
 	}
 
 	/** Async method called once module is initialized */
 	public async onModuleInit() {
-		this.logger.info('--- Checking MariaDB connections ---');
+		this.logger.log('--- Checking MariaDB connections ---');
 		await this.testConnection(this.defaultPool, 'Standard');
 		await this.testConnection(this.securityPool, 'OAuth');
-		this.logger.info('--- Checked ---');
+		this.logger.log('--- Checked ---');
 	}
 
 	/** Tests the connection of a given pool */
@@ -60,11 +63,11 @@ export class MariaDBService implements OnModuleInit {
 		try {
 			// Getting pool connection
 			conn = await pool.getConnection();
-			this.logger.info(`Pool ${name} connected.`);
+			this.logger.log(`Pool ${name} connected.`);
 		} catch (err: any) {
 			const errorMessage = isErrorWithMessage(err);
 			this.logger.error(`Pool ${name} connection ERROR: ${errorMessage}`);
-			this.logger.error(`Pool ${name} ERROR:`, err);
+			this.logger.error(`Pool ${name} ERROR:`, getErrorMessage(err));
 		} finally {
 			// Release the connection
 			if (conn) {
@@ -95,14 +98,14 @@ export class MariaDBService implements OnModuleInit {
 	public async execute<T>(
 		sqlRequest: string,
 		params: any[] = [],
-		requiredDatabase: DatabasePool = 'standard',
+		databasePool: DatabasePool = 'standard',
 		isEmptyResultAllowed: boolean = false,
 		transactionConnection: PoolConnection | null = null,
 	): Promise<T[]> {
 		const useExistingConnection = !!transactionConnection;
 		const poolOrConnection = useExistingConnection
 			? transactionConnection
-			: this.getPool(requiredDatabase);
+			: this.getPool(databasePool);
 
 		if (!poolOrConnection) {
 			this.logger.error('Database pool not initialized.');
@@ -140,13 +143,16 @@ export class MariaDBService implements OnModuleInit {
 			// --- 1. Handling errors from the database (SQL) ---
 			if (isMariaDbError(error)) {
 				if (error.code === 'ER_TOO_MANY_USER_CONNECTIONS') {
-					this.logger.error('Database connection limit reached:', error);
+					this.logger.error(
+						'Database connection limit reached:',
+						error.message,
+					);
 					throw new ServiceUnavailableException(
 						'Too many requests, try again later.',
 					);
 				}
 				if (error.code === 'ER_ACCESS_DENIED_ERROR') {
-					this.logger.error('Database access denied:', error);
+					this.logger.error('Database access denied:', error.message);
 					throw new InternalServerErrorException('Database access denied.');
 				}
 			}
@@ -207,7 +213,8 @@ export class MariaDBService implements OnModuleInit {
 			}
 
 			// Error handling
-			this.logger.error('Error starting transaction:', err);
+			const errorMessage = getErrorMessage(err);
+			this.logger.error('Error starting transaction:', errorMessage);
 			throw new ServiceUnavailableException(
 				`Unable to get connection or start transaction. Details: ${err} || 'Unknown reason'`,
 			);
@@ -239,9 +246,10 @@ export class MariaDBService implements OnModuleInit {
 		}
 		try {
 			await connection.rollback();
-		} catch (err) {
+		} catch (err: unknown) {
 			// Logging the error but no throwing (The rollback must not cause the parent operation to fail.)
-			this.logger.error('Failed to rollback transaction:', err);
+			const error = getErrorMessage(err);
+			this.logger.error('Failed to rollback transaction:', error);
 		} finally {
 			await connection.release();
 		}
@@ -258,28 +266,6 @@ function isMariaDbError(error: any): error is IMariaDbError {
 		typeof (error as IMariaDbError).code === 'string' &&
 		typeof (error as IMariaDbError).errno === 'number'
 	);
-}
-
-/** Type guard function for NestJS exceptions (HttpException)*/
-function isNestHttpException(
-	// Use 'unknow' instead of 'any' for better type safety
-	error: unknown,
-): error is { getStatus: () => number; message: string } {
-	// Basic verification that error is an object
-	if (typeof error !== 'object' || error === null) {
-		return false;
-	}
-
-	// Checking that getStatus exists !
-	const hasGetStatus = 'getStatus' in (error as Record<string, unknown>);
-
-	if (!hasGetStatus) {
-		return false;
-	}
-
-	// Checking that getStatus is a function
-	const getStatusFn = (error as { getStatus: unknown }).getStatus;
-	return typeof getStatusFn === 'function';
 }
 
 function getErrorMessage(error: unknown): string {
