@@ -14,6 +14,7 @@ import {
 	RedisConfigService,
 } from './redis/redis-config/redis-config.service';
 import { PostgresqlConfigService } from './postgresql/postgresql-config/postgresql-config.service';
+import { PoolConfig } from 'pg';
 
 // Logging
 import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
@@ -32,7 +33,7 @@ import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-l
 			inject: [PostgresqlConfigService],
 		},
 		{
-			provide: 'PG_OAUTH_CONFIG',
+			provide: 'PG_SECURITY_CONFIG',
 			useFactory: (config: PostgresqlConfigService) =>
 				config.getSecurityConfig(),
 			inject: [PostgresqlConfigService],
@@ -40,9 +41,16 @@ import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-l
 		// Postgres SQL engine service
 		{
 			provide: PostgreSQLService,
-			useFactory: (stdCfg: any, authCfg: any, logger: WinstonLoggerService) =>
-				new PostgreSQLService(stdCfg, authCfg, logger),
-			inject: ['PG_STANDARD_CONFIG', 'PG_OAUTH_CONFIG', WinstonLoggerService],
+			useFactory: (
+				stdCfg: PoolConfig,
+				authCfg: PoolConfig,
+				logger: WinstonLoggerService,
+			) => new PostgreSQLService(stdCfg, authCfg, logger),
+			inject: [
+				'PG_STANDARD_CONFIG',
+				'PG_SECURITY_CONFIG',
+				WinstonLoggerService,
+			],
 		},
 		// Provider that generates the REDIS_CONFIG config object
 		{

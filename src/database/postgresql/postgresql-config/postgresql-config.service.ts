@@ -1,0 +1,81 @@
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ISQLDatabaseConfig } from 'src/database/database.interfaces';
+
+@Injectable()
+export class PostgresqlConfigService {
+	constructor(private readonly configService: ConfigService) {}
+
+	public getStandardConfig(): ISQLDatabaseConfig {
+		// Retrieving config data stored in .env file
+		const host = this.configService.get<string>(
+			'POSTGRES_STANDARD_HOST',
+			'localhost',
+		);
+		const rawPort = this.configService.get<string>(
+			'POSTGRES_STANDARD_PORT',
+			'5432',
+		);
+
+		const user = this.configService.get<string>('POSTGRES_STANDARD_USER');
+		const password = this.configService.get<string>(
+			'POSTGRES_STANDARD_PASSWORD',
+		);
+		const database = this.configService.get<string>(
+			'POSTGRES_STANDARD_DATABASE',
+		);
+
+		const port = parseInt(rawPort, 10);
+
+		// Checking loaded data
+		if (!user || !password || !database || isNaN(port)) {
+			throw new InternalServerErrorException(
+				`Configuration Error: Missing critical Postgresql credentials. Check your .env file.`,
+			);
+		}
+
+		return {
+			host: host,
+			port: port,
+			user: user,
+			password: password,
+			database: database,
+		};
+	}
+	public getSecurityConfig(): ISQLDatabaseConfig {
+		// Retrieving config data stored in .env file
+		const host = this.configService.get<string>(
+			'POSTGRES_SECURITY_HOST',
+			'localhost',
+		);
+		const rawPort = this.configService.get<string>(
+			'POSTGRES_SECURITY_PORT',
+			'5432',
+		);
+
+		const user = this.configService.get<string>('POSTGRES_SECURITY_USER');
+		const password = this.configService.get<string>(
+			'POSTGRES_SECURITY_PASSWORD',
+		);
+		const database = this.configService.get<string>(
+			'POSTGRES_SECURITY_DATABASE',
+		);
+
+		const port = parseInt(rawPort, 10);
+
+		// Checking loaded data
+		if (!user || !password || !database || isNaN(port)) {
+			throw new InternalServerErrorException(
+				`Configuration Error: Missing critical Postgresql credentials. Check your .env file.`,
+			);
+		}
+
+		return {
+			host: host,
+			port: port,
+			user: user,
+			password: password,
+			database: database,
+		};
+	}
+}
