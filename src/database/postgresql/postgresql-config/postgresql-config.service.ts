@@ -1,3 +1,4 @@
+// src/database/postgresql/postgresql-config/postgresql-config.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ISQLDatabaseConfig } from 'src/database/database.interfaces';

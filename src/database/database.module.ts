@@ -1,7 +1,7 @@
 // src/database/database.module.ts
 
 // NestJS and other module imports
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 // Database engines
@@ -19,6 +19,7 @@ import { PoolConfig } from 'pg';
 // Logging
 import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
 
+@Global()
 @Module({
 	// No need to import SystemModule here as it's global
 	imports: [ConfigModule],
