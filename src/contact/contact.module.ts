@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Importing services and communicators
 import { ContactService } from './contact.service';
+import { ContactRepository } from './repository/contact.repository';
 import { SmsConfigService } from './contact-config/sms-config/sms-config.service';
 import { EmailConfigService } from './contact-config/email-config/email-config.service';
 import { EmailCommunicator } from './communicators/email.communicator';
@@ -17,13 +17,9 @@ import {
 } from './communicators/sms.communicator';
 
 // Importing system module and entities
-import { SystemModule } from '../system/system.module';
-import { PersonContact } from './entities/person-contact.entity';
-import { Logger } from 'winston';
-import { WINSTON_LOGGER } from '../system/logger/logger-factory/winston-logger.factory';
+import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
 
 @Module({
-	imports: [SystemModule, TypeOrmModule.forFeature([PersonContact])],
 	providers: [
 		ContactService,
 		EmailConfigService,
@@ -31,40 +27,52 @@ import { WINSTON_LOGGER } from '../system/logger/logger-factory/winston-logger.f
 		// --- 1. Factory for the 'NOREPLY' communicator ---
 		{
 			provide: EMAIL_COMMUNICATOR_NOREPLY, // The token to be injected
-			useFactory: (emailConfigService: EmailConfigService, logger: Logger) => {
+			useFactory: (
+				emailConfigService: EmailConfigService,
+				logger: WinstonLoggerService,
+			) => {
 				return new EmailCommunicator('noreply', emailConfigService, logger);
 			},
 			// The service to inject for the factory
-			inject: [EmailConfigService, WINSTON_LOGGER],
+			inject: [EmailConfigService, WinstonLoggerService],
 		},
 		// --- 2. Factory for the 'SUPPORT' communicator ---
 		{
 			provide: EMAIL_COMMUNICATOR_SUPPORT,
-			useFactory: (emailConfigService: EmailConfigService, logger: Logger) => {
+			useFactory: (
+				emailConfigService: EmailConfigService,
+				logger: WinstonLoggerService,
+			) => {
 				return new EmailCommunicator('support', emailConfigService, logger);
 			},
-			inject: [EmailConfigService, WINSTON_LOGGER],
+			inject: [EmailConfigService, WinstonLoggerService],
 		},
 
 		// --- 3. Factory for the 'NEWSLETTER' communicator ---
 		{
 			provide: EMAIL_COMMUNICATOR_NEWSLETTER,
-			useFactory: (emailConfigService: EmailConfigService, logger: Logger) => {
+			useFactory: (
+				emailConfigService: EmailConfigService,
+				logger: WinstonLoggerService,
+			) => {
 				return new EmailCommunicator('newsletter', emailConfigService, logger);
 			},
-			inject: [EmailConfigService, WINSTON_LOGGER],
+			inject: [EmailConfigService, WinstonLoggerService],
 		},
 		// --- 4. Factory for the 'SMS' communicator ---
 		{
 			provide: SMS_COMMUNICATOR,
-			useFactory: (smsConfigService: SmsConfigService, logger: Logger) => {
+			useFactory: (
+				smsConfigService: SmsConfigService,
+				logger: WinstonLoggerService,
+			) => {
 				return new SmsCommunicator(smsConfigService, logger);
 			},
-			inject: [SmsConfigService, WINSTON_LOGGER],
+			inject: [SmsConfigService, WinstonLoggerService],
 		},
+		ContactRepository,
 	],
 	exports: [
-		TypeOrmModule.forFeature([PersonContact]),
 		EMAIL_COMMUNICATOR_NOREPLY,
 		EMAIL_COMMUNICATOR_SUPPORT,
 		EMAIL_COMMUNICATOR_NEWSLETTER,

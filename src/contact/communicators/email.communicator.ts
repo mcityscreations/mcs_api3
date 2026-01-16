@@ -1,6 +1,6 @@
 // src/communicator/email.communicator.ts
 
-import { Inject, InternalServerErrorException } from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 import { createTransport, Transporter } from 'nodemailer';
 import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { CommunicatorBase } from './base.communicator';
@@ -8,8 +8,7 @@ import {
 	EmailConfigService,
 	IEmailAccountConfig,
 } from '../contact-config/email-config/email-config.service';
-import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
 
 // Tokens for Email communicator injections
 export const EMAIL_COMMUNICATOR_NOREPLY = 'EMAIL_COMMUNICATOR_NOREPLY';
@@ -28,7 +27,7 @@ export class EmailCommunicator extends CommunicatorBase {
 	constructor(
 		contactMode: EmailMode,
 		private readonly _emailConfigService: EmailConfigService,
-		@Inject(WINSTON_LOGGER) private readonly _logger: Logger,
+		private readonly _logger: WinstonLoggerService,
 	) {
 		// The channel is always 'email' for this communicator
 		// Call the base constructor
@@ -52,7 +51,7 @@ export class EmailCommunicator extends CommunicatorBase {
 
 	// Instantiating the Nodemailer transporter
 	instantiateTransporter(): void {
-		this._logger.info(
+		this._logger.log(
 			`Instantiating transporter for mode: ${this._contactMode}`,
 		);
 		if (!this._config) {
@@ -96,7 +95,7 @@ export class EmailCommunicator extends CommunicatorBase {
 
 			await this._transporter.sendMail(mailOptions);
 
-			this._logger.info(
+			this._logger.log(
 				`Email successfully sent to ${destinationsArray.length} recipients via mode ${this._contactMode}.`,
 			);
 			return true;

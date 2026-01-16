@@ -2,7 +2,6 @@
 
 import {
 	BadRequestException,
-	Inject,
 	InternalServerErrorException,
 } from '@nestjs/common';
 import ovh from 'ovh';
@@ -11,10 +10,9 @@ import {
 	SmsConfigService,
 	IOvhConfig,
 } from '../contact-config/sms-config/sms-config.service';
-import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
 import { getErrorMessage } from '../../common/types/error.types';
 import { SendSmsDto } from '../dto/contact.dto';
+import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
 
 // Token for SMS communicator injection
 export const SMS_COMMUNICATOR = 'SMS_COMMUNICATOR';
@@ -27,7 +25,7 @@ export class SmsCommunicator extends CommunicatorBase {
 	// Injection of the configuration service
 	constructor(
 		private readonly smsConfigService: SmsConfigService,
-		@Inject(WINSTON_LOGGER) private readonly _logger: Logger,
+		private readonly _logger: WinstonLoggerService,
 	) {
 		// The contactMode is 'sms', the channel is 'sms'
 		super('sms', 'sms');
@@ -40,7 +38,7 @@ export class SmsCommunicator extends CommunicatorBase {
 	}
 
 	instantiateTransporter(): void {
-		this._logger.info('Instantiating OVH transporter for SMS communication.');
+		this._logger.log('Instantiating OVH transporter for SMS communication.');
 		// Checking the presence of required config keys
 		if (
 			!this._config.appID ||
@@ -131,13 +129,14 @@ export class SmsCommunicator extends CommunicatorBase {
 					);
 				}
 				// Log success
-				this._logger.info(
+				this._logger.log(
 					`SMS successfully sent. Job ID: ${result.jobId as string}.`,
 				);
 				return true;
 			})
 			.catch((error: any) => {
-				this._logger.error(`Error sending SMS via OVH:`, error);
+				const errorMessage = getErrorMessage(error);
+				this._logger.error(`Error sending SMS via OVH:`, errorMessage);
 				throw new InternalServerErrorException(
 					`OVH SMS sending failed: ${getErrorMessage(error)}`,
 				);
