@@ -13,6 +13,7 @@ graph TD
         category[category]
         entity[entity]
         keyword[keyword]
+        language[language]
         status[status]
         subject[subject]
         technique[technique]
@@ -29,7 +30,6 @@ graph TD
         artwork_i18n[artwork_i18n]
         contact[contact]
         contact_detail[contact_detail]
-        language[language]
         people[people]
         content_media[media]
     end
