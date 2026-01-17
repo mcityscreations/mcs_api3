@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
 
 // Fichiers à tester
-import { LoginService } from '../login.service';
-import { User } from '../../../users/entities/user.entity';
+import { LoginService } from './login.service';
+import { User } from '../../users/entities/user.entity';
 import { JwtService } from '../jwt/jwt.service';
 
 // Mocks nécessaires

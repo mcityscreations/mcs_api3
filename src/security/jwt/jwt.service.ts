@@ -11,7 +11,7 @@ import {
 	JwtPayload,
 } from 'jsonwebtoken';
 import { JwtRepository } from './jwt.repository';
-import { UserRole } from 'src/roles/interfaces/roles.interface';
+import { UserRole } from '../../roles/interfaces/roles.interface';
 import { isErrorWithMessage } from '../../common/types/error.types';
 import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
 
@@ -107,7 +107,7 @@ export class JwtService {
 		// Checking the secret key
 		if (!this._JWT_PUBLIC_KEY || this._JWT_PUBLIC_KEY == '') {
 			throw new InternalServerErrorException(
-				'JWT private key is not configured',
+				'JWT public key is not configured',
 			);
 		}
 

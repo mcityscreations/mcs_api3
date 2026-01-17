@@ -5,9 +5,7 @@ import {
 } from '@nestjs/common';
 import { Buffer } from 'buffer';
 
-// Repositories
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+// Standard utilities
 import { promisify } from 'util';
 
 // Security and cryptography
@@ -16,7 +14,7 @@ import { JwtService } from '../jwt/jwt.service';
 import { IJWTResponse } from '../security.interfaces';
 
 // User scripts
-import { User } from 'src/users/entities/user.entity';
+import { UsersService } from '../../users/users.service';
 import { UserRole } from '../../roles/interfaces/roles.interface';
 import { isUserRole } from '../../roles/helpers/roles.helpers';
 
@@ -37,8 +35,7 @@ const scrypt = promisify(scryptAsync) as (
 export class LoginService {
 	constructor(
 		private readonly _jwtService: JwtService,
-		@InjectRepository(User)
-		private readonly _userRepository: Repository<User>,
+		private readonly _usersService: UsersService,
 		private readonly _winstonLogger: WinstonLoggerService,
 	) {}
 
@@ -59,15 +56,8 @@ export class LoginService {
 		}
 
 		try {
-			// 1. SINGLE QUERY: Load all necessary data (credentials, role, status)
-			const user = await this._userRepository
-				.createQueryBuilder('user')
-				// Load the role
-				.leftJoinAndSelect('user.role', 'role')
-				// Add security fields that might be hidden (select: false)
-				.addSelect(['user.password', 'user.salt', 'user.accountActive'])
-				.where('user.username = :username', { username })
-				.getOne();
+			// 1. Get user by username
+			const user = await this._usersService.getUserByUsername(username);
 
 			if (!user) {
 				throw new UnauthorizedException(
@@ -76,22 +66,34 @@ export class LoginService {
 			}
 
 			// 2. Account active check
-			if (!user.accountActive) {
+			if (!user.isAccountActive) {
 				throw new UnauthorizedException(
 					'Votre compte a été désactivé. Veuillez contacter votre webmaster.',
 				);
 			}
 
-			if (!user.password || !user.salt) {
+			// 3. Get stored password and salt
+			const credentials =
+				await this._usersService.getUserPasswordByUsername(username);
+
+			if (
+				!credentials ||
+				!credentials.passwordHash ||
+				!credentials.passwordSalt
+			) {
 				// Account without password
 				throw new UnauthorizedException(
 					"Nom d'utilisateur ou mot de passe invalide.",
 				);
 			}
 
-			// 3. Password check (scrypt)
-			const derivedKey: Buffer = await scrypt(password, user.salt, 64);
-			const storedKey = Buffer.from(user.password, 'hex');
+			// 4. Password check (scrypt)
+			const derivedKey: Buffer = await scrypt(
+				password,
+				credentials.passwordSalt,
+				64,
+			);
+			const storedKey = Buffer.from(credentials.passwordHash, 'hex');
 
 			// Secure comparison (timingSafeEqual)
 			const isMatch = timingSafeEqual(derivedKey, storedKey);
@@ -102,7 +104,7 @@ export class LoginService {
 				);
 			}
 
-			// 4. Success
+			// 5. Success
 			const userRole = user.role.title as UserRole;
 			const isValidRole = isUserRole(userRole);
 

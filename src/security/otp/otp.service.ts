@@ -34,24 +34,23 @@ export class OtpService {
 
 		// Calculating expiry time
 		const now = new Date();
-		const expiresAt = new Date(now.getTime() + OTP_TTL_SECONDS * 60 * 1000);
+		const expiresAt = new Date(now.getTime() + OTP_TTL_SECONDS * 1000); // 5 minutes from now
 
 		return { username: username, otp: otpCode, expiresAt: expiresAt.getTime() };
 	}
 
 	public async sendMFACode(otpPayload: IOTPPayload): Promise<void> {
-		// Retrieving user's phone number
-		const phoneNumber: string | null =
-			await this._usersService.getPhoneNumberByUsername(otpPayload.username);
-
-		if (!phoneNumber) {
+		// Retrieving user's person ID to communicate with the ContactService
+		const personId = await this._usersService.getPersonIDByUsername(
+			otpPayload.username,
+		);
+		if (!personId) {
 			throw new ForbiddenException('Invalid request or user configuration.');
 		}
-
-		// Sending message
 		const message = `MCITYS - Your security code is: ${otpPayload.otp}. It expires in ${OTP_TTL_SECONDS / 60} minutes.`;
-		await this._contactService.sendSMS({
-			destinations: [phoneNumber],
+		await this._contactService.sendMessage(personId, {
+			destinations: [],
+			subject: 'Your MCITYS Security Code',
 			text: message,
 		});
 	}
