@@ -17,7 +17,7 @@ import {
 } from './communicators/sms.communicator';
 
 // Importing system module and entities
-import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
+import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service';
 
 @Module({
 	providers: [

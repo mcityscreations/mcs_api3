@@ -3,10 +3,11 @@ import {
 	Injectable,
 	InternalServerErrorException,
 	BadRequestException,
+	ForbiddenException,
 } from '@nestjs/common';
 import { SmsCommunicator } from './communicators/sms.communicator';
 import { EmailCommunicator } from './communicators/email.communicator';
-import { SendEmailDto, SendSmsDto } from './dto/contact.dto';
+import { BaseMessageDto, SendEmailDto, SendSmsDto } from './dto/contact.dto';
 import { ContactRepository } from './repository/contact.repository';
 import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service';
 import { IContact } from './types/contact.interface';
@@ -22,7 +23,7 @@ export class ContactService {
 		private readonly _logger: WinstonLoggerService,
 	) {}
 
-	public async sendNoreplyEmail(data: SendEmailDto): Promise<void> {
+	private async sendNoreplyEmail(data: SendEmailDto): Promise<void> {
 		const success = await this._injectedNoreplyCommunicator.sendMessage(data);
 
 		if (success) {
@@ -35,13 +36,61 @@ export class ContactService {
 		}
 	}
 
-	public async sendSMS(data: SendSmsDto): Promise<void> {
+	private async sendSMS(data: SendSmsDto): Promise<void> {
 		const success = await this._injectedSmsCommunicator.sendMessage(data);
 		if (success) {
 			const destinationsToString = data.destinations.join(', ');
 			this._logger.log(`SMS successfully sent to ${destinationsToString}.`);
 		} else {
 			throw new InternalServerErrorException('Failed to send noreply sms.');
+		}
+	}
+
+	public async sendMessage(
+		personId: number | string,
+		data: BaseMessageDto,
+	): Promise<void> {
+		// 1. Retrieve person's contacts
+		const contacts = await this.getPersonContacts(personId);
+		if (contacts.length === 0) {
+			throw new BadRequestException(
+				'No contacts found for the specified person.',
+			);
+		}
+
+		// 2. Filter primary contacts
+		const primaryContact = contacts.find((contact) => contact.isPrimary);
+		if (!primaryContact) {
+			throw new ForbiddenException('Invalid request or user configuration.');
+		}
+		// 3. Send message to the primary contact
+		if (primaryContact.contactCategory.id === 1) {
+			if (
+				!('destinations' in data) ||
+				!('subject' in data) ||
+				!('text' in data) ||
+				data.subject === undefined
+			) {
+				throw new BadRequestException(
+					'Contact method is email, but provided data is not for email.',
+				);
+			}
+			await this.sendNoreplyEmail({
+				destinations: [primaryContact.value],
+				subject: data.subject,
+				text: data.text,
+			});
+		}
+		if (primaryContact.contactCategory.id === 2) {
+			if (!('destinations' in data) || !('text' in data)) {
+				throw new BadRequestException(
+					'Contact method is SMS, but provided data is not for SMS.',
+				);
+			}
+			await this.sendSMS({
+				destinations: [primaryContact.value],
+				text: data.text,
+			});
 		}
 	}
 
