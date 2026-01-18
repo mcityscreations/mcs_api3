@@ -83,3 +83,13 @@ export const WeatherScorePayloadSchema = z.object({
 });
 // Exporting interface
 export type IWeatherScorePayload = z.infer<typeof WeatherScorePayloadSchema>;
+
+// OpenWeather Error Response Schema
+export const OpenWeatherErrorResponseSchema = z.object({
+	cod: z.number(),
+	message: z.string(),
+	parameters: z.array(z.string()),
+});
+export type IOpenWeatherErrorResponse = z.infer<
+	typeof OpenWeatherErrorResponseSchema
+>;

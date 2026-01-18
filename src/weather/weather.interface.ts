@@ -1,3 +1,4 @@
+// src/weather/weather.interface.ts
 import { IOpenWeatherOptions } from './weather.validators';
 
 export interface IWeatherDataRaw {
@@ -141,4 +142,10 @@ export interface IOpenWeatherResponseBasic {
 		},
 	];
 	pop?: number;
+}
+
+export interface IOpenWeatherErrorResponse {
+	cod: number;
+	message: string;
+	parameters: string[];
 }

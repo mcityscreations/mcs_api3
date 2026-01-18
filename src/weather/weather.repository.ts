@@ -1,19 +1,18 @@
 // src/weather/weather.repository.ts
-import { Injectable, Inject } from '@nestjs/common';
-import { MariaDBService } from '../database/maria-db/maria-db.service';
+import { Injectable } from '@nestjs/common';
 import { IWeatherDataRaw } from './weather.interface';
 import { RedisService } from '../database/redis/redis.service';
-import { WINSTON_LOGGER } from '../system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
+import { PostgreSQLService } from 'src/database/postgresql/postgresql.service';
+import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service';
 
 @Injectable()
 export class WeatherRepository {
 	private readonly KEY_PREFIX = 'weather:';
 
 	constructor(
-		private readonly _mariaDBService: MariaDBService,
+		private readonly _postgreSQLService: PostgreSQLService,
 		private readonly _redisService: RedisService,
-		@Inject(WINSTON_LOGGER) private readonly _logger: Logger,
+		private readonly _logger: WinstonLoggerService,
 	) {}
 
 	/**
@@ -56,7 +55,7 @@ export class WeatherRepository {
             ORDER BY input_date 
             DESC
             LIMIT 24`;
-		const rawResults: IWeatherDataRaw[] = await this._mariaDBService.execute(
+		const rawResults: IWeatherDataRaw[] = await this._postgreSQLService.execute(
 			sqlRequest,
 			[],
 			'standard',
@@ -95,7 +94,7 @@ export class WeatherRepository {
 	 * @param weatherData
 	 * @param ip_sender
 	 */
-	public async setWeatherInMariadb(
+	public async setWeatherInPostgreSQL(
 		weatherData: IWeatherDataRaw,
 		ip_sender: string,
 	) {
@@ -110,6 +109,6 @@ export class WeatherRepository {
 			ip_sender,
 			weatherData.weather_score,
 		];
-		await this._mariaDBService.execute(sqlRequest, params, 'standard');
+		await this._postgreSQLService.execute(sqlRequest, params, 'standard');
 	}
 }

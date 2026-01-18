@@ -73,8 +73,8 @@ export class WeatherService {
 		weatherData.weather_score = weatherScore;
 		// 3. Save into Redis
 		await this._weatherRepository.setWeather('marseille', weatherData, 6650);
-		// 4. Save into Mariadb
-		await this._weatherRepository.setWeatherInMariadb(
+		// 4. Save into PostgreSQL
+		await this._weatherRepository.setWeatherInPostgreSQL(
 			weatherData,
 			'37.59.121.52',
 		);

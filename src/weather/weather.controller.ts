@@ -1,3 +1,4 @@
+// src/weather/weather.controller.ts
 import { Controller, Get, Res, HttpStatus } from '@nestjs/common';
 import { WeatherService } from './weather.service';
 import { IWeatherData } from './weather.interface';

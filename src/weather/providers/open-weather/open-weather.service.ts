@@ -1,22 +1,20 @@
-import {
-	Inject,
-	Injectable,
-	InternalServerErrorException,
-} from '@nestjs/common';
+// src/weather/providers/open-weather/open-weather.service.ts
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import {
 	WeatherProvider,
 	IOpenAPIResponse,
 	IWeatherDataRaw,
+	IOpenWeatherErrorResponse,
 } from '../../weather.interface';
 import {
 	IOpenWeatherOptions,
 	OpenWeatherExcludeArraySchema,
 	OpenWeatherMapRawResponseSchema,
+	OpenWeatherErrorResponseSchema,
 } from '../../weather.validators';
-import { WINSTON_LOGGER } from '../../../system/logger/logger-factory/winston-logger.factory';
-import { Logger } from 'winston';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service';
 import { getErrorMessage } from '../../../common/types/error.types';
 
 @Injectable()
@@ -26,7 +24,7 @@ export class OpenWeatherProvider extends WeatherProvider {
 
 	constructor(
 		private readonly httpService: HttpService,
-		@Inject(WINSTON_LOGGER) private readonly logger: Logger,
+		private readonly logger: WinstonLoggerService,
 	) {
 		super();
 	}
@@ -80,14 +78,24 @@ export class OpenWeatherProvider extends WeatherProvider {
 			);
 
 			const rawData: IOpenAPIResponse = httpResponse.data;
+			// Checking for error response
+			const errorValidationResult =
+				OpenWeatherErrorResponseSchema.safeParse(rawData);
+			if (errorValidationResult.success) {
+				const errorData: IOpenWeatherErrorResponse = errorValidationResult.data;
+				this.logger.error(
+					`OpenWeatherMap API error: ${errorData.message} (code: ${errorData.cod})`,
+				);
+				throw new InternalServerErrorException(
+					`OpenWeatherMap API error: ${errorData.message}`,
+				);
+			}
 			// Validating raw data
 			const validationResult =
 				OpenWeatherMapRawResponseSchema.safeParse(rawData);
 
 			if (!validationResult.success) {
-				this.logger.error('Unable to parse results from OpenWeatherAPI:', {
-					error: validationResult.error,
-				});
+				this.logger.error('Unable to parse results from OpenWeatherAPI:');
 				throw new InternalServerErrorException(
 					'Unable to parse results from OpenWeatherAPI.',
 				);
@@ -108,9 +116,10 @@ export class OpenWeatherProvider extends WeatherProvider {
 			return unifiedData;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
-			this.logger.error('Error while retrieving data from OpenWeatherMap:', {
-				error: errorMessage,
-			});
+			this.logger.error(
+				'Error while retrieving data from OpenWeatherMap:',
+				errorMessage,
+			);
 			throw new InternalServerErrorException(
 				`Impossible de récupérer la météo pour Marseille via OpenWeatherMap.`,
 			);

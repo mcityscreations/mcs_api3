@@ -1,3 +1,4 @@
+// src/weather/providers/weather.config.ts
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IWeatherProviderConfig, ProviderType } from '../weather.interface';
