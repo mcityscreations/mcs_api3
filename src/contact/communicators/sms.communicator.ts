@@ -10,7 +10,7 @@ import {
 	SmsConfigService,
 	IOvhConfig,
 } from '../contact-config/sms-config/sms-config.service';
-import { getErrorMessage } from '../../common/types/error.types';
+import { getErrorMessage } from '../../common/utils/error.utils';
 import { SendSmsDto } from '../dto/contact.dto';
 import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
 

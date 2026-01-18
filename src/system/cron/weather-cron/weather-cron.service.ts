@@ -3,7 +3,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { WeatherService } from '../../../weather/weather.service';
-import { isErrorWithMessage } from '../../../common/types/error.types';
+import { isErrorWithMessage } from '../../../common/validators/error.validators';
 import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service';
 
 @Injectable()

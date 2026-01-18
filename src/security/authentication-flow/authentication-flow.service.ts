@@ -10,7 +10,7 @@ import { RateLimiterService } from '../rate-limiter/rate-limiter.service';
 import { RecaptchaService } from '../recaptcha/recaptcha.service';
 import { MfaSessionService } from '../mfa/mfa.service';
 import { IJWTResponse } from '../security.interfaces';
-import { getErrorMessage } from '../../common/types/error.types';
+import { getErrorMessage } from '../../common/utils/error.utils';
 import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
 
 export interface IMFAChallengeResponse {

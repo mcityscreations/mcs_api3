@@ -10,7 +10,6 @@ import {
 import { AlsService } from './als/als.service';
 import { LoggingInterceptor } from './interceptors/logging/logging.interceptor';
 import { WinstonLoggerService } from './logger/logger-service/winston-logger.service';
-import { TypeOrmWinstonLogger } from './logger/logger-typeorm/logger-typeorm.service';
 
 @Global()
 @Module({
@@ -22,7 +21,6 @@ import { TypeOrmWinstonLogger } from './logger/logger-typeorm/logger-typeorm.ser
 		LoggerConfigService,
 		winstonLoggerFactory,
 		WinstonLoggerService,
-		TypeOrmWinstonLogger,
 		// Asynchronous Local Storage
 		AlsService,
 		// Interceptors

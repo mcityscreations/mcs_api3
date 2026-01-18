@@ -44,6 +44,12 @@ graph TD
         video_stream_variant[video_stream_variant]
     end
 
+    subgraph seo_schema [Schema: Seo]
+        artwork_metadata[artwork_metadata]
+        category_metadata[category_metadata]
+        technique_metadata[technique_metadata]
+    end
+
     subgraph security_schema [Schema: Security]
         user[user]
     end
@@ -63,6 +69,7 @@ graph TD
     artwork_i18n --> language
     artwork_techniques --> technique
     artwork_keywords --> keyword
+    artwork --> artwork_metadata
     people --> contact
     contact --> contact_detail
 ```

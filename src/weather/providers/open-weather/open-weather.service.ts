@@ -15,7 +15,7 @@ import {
 	OpenWeatherErrorResponseSchema,
 } from '../../weather.validators';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service';
-import { getErrorMessage } from '../../../common/types/error.types';
+import { getErrorMessage } from '../../../common/utils/error.utils';
 
 @Injectable()
 export class OpenWeatherProvider extends WeatherProvider {

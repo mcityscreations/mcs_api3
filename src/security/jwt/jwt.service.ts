@@ -12,7 +12,7 @@ import {
 } from 'jsonwebtoken';
 import { JwtRepository } from './jwt.repository';
 import { UserRole } from '../../roles/interfaces/roles.interface';
-import { isErrorWithMessage } from '../../common/types/error.types';
+import { isErrorWithMessage } from '../../common/validators/error.validators';
 import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
 
 export interface IJwtPayload {

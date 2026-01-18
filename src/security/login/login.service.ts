@@ -19,7 +19,7 @@ import { UserRole } from '../../roles/interfaces/roles.interface';
 import { isUserRole } from '../../roles/helpers/roles.helpers';
 
 // Logging and error handling
-import { getErrorMessage } from '../../common/types/error.types';
+import { getErrorMessage } from '../../common/utils/error.utils';
 import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
 
 /** LOGIN SERVICE */
