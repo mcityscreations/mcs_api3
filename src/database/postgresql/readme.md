@@ -3,6 +3,9 @@ I wanted to apply the CQRS pattern (Command Query Responsibility Segregation) to
 
 **Least privilege** The access to a given schema is limited to specific users only. This solution provides a new layer of security and also enable scalability as it prepares a future migration from a monolithic structure to a microservices architecture.
 
+**Scalability**
+The architecture of the database is scalable. The schemes 'media' and 'security' are autonomous, they can be exported later in a dedicated microservice. Every entity as an internal integer ID, used only by the PostgreSQL engine for better performance. Communication between 'media'/'security' and 'content' schemes is ensured by public IDs (uuidv7 for better indexing and performance). For these relations, data integrity is managed in the application layer. Public IDs are also used to communicate with applications outside the API.
+
 **Schemes**
 
 

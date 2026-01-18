@@ -6,6 +6,16 @@
 
 # 🚀 Mcitys API 3.0 | A scalable and modular REST API built with modern technologies
 
+## The Mcitys project
+This repository contains the back-end infrastructure of the [mcitys.com](https://mcitys.com/) website.
+Mcitys is the structure that centralizes all the creations of Yves-Leonardo Marchon.
+The front-end is a digital portfolio built with Angular. [See the repo](https://github.com/mcityscreations/mcs_angular/tree/main).
+**Current Projects** 
+- Migrate from MariaDB to PostgreSQL (nearly done)
+- Migrate Node.js/Express raw Javascript code to Nest.js/Typescript (processing)
+- Launch the API on a dedicated VPS for better performances (testing)
+- Connect the Mcitys API to the digital store mcitys.fr which is powered by Prestashop. (planned)
+
 ## 🏗️ Architecture philosophy
 
 This new version of Mcitys API is built using the **Nest.js framework**. As systems grow, maintaining a clean architecture is crucial to avoid the pitfalls of **boilerplate code** and the monolithic structure that is often hard to maintain.
@@ -29,7 +39,10 @@ The current architecture is built upon the following principles, largely enabled
 | :--- | :--- |
 | **Framework** | Nest.js |
 | **Language** | TypeScript |
-| **Databases** | MariaDB & MongoDB |
+| **Databases** | MariaDB -> PostgreSQL & MongoDB |
 | **Containerizing** | Docker & Docker Compose |
 | **Cache & Sessions** | Redis |
 | **Frontend** | Angular |
+
+## Database architecture
+[Learn more](https://github.com/mcityscreations/mcs_api3/blob/main/src/database/postgresql/readme.md)
