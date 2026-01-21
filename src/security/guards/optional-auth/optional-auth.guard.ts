@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '../../jwt/jwt.service';
 import { Request } from 'express';
-import { isErrorWithMessage } from '../../../common/types/error.types';
+import { isErrorWithMessage } from '../../../common/validators/error.validators';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service';
 
 @Injectable()
