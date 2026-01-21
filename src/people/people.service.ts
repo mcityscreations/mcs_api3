@@ -1,26 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
+import { PeopleRepository } from './repository/people.repository';
+import { IPersonBase } from './types/person.interface';
 
 @Injectable()
 export class PeopleService {
-  create(createPersonDto: CreatePersonDto) {
-    return 'This action adds a new person';
-  }
+	constructor(private readonly peopleRepository: PeopleRepository) {}
 
-  findAll() {
-    return `This action returns all people`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} person`;
-  }
-
-  update(id: number, updatePersonDto: UpdatePersonDto) {
-    return `This action updates a #${id} person`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} person`;
-  }
+	async create(createPersonDto: CreatePersonDto) {
+		// Implementation for creating a person
+	}
+	async findAll(): Promise<IPersonBase[]> {
+		// Implementation for finding all people
+	}
+	async findOne(id: string): Promise<IPersonBase | null> {
+		const result = await this.peopleRepository.findOne(id);
+		return result;
+	}
+	async update(id: string, updatePersonDto: UpdatePersonDto) {
+		// Implementation for updating a person
+	}
+	async remove(id: string) {
+		// Implementation for removing a person
+	}
 }
