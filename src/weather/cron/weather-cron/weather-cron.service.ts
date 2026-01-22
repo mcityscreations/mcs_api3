@@ -1,10 +1,10 @@
-// system/cron/weather-cron.service.ts
+// src/weather/cron/weather-cron/weather-cron.service.ts
 
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { WeatherService } from '../../../weather/weather.service';
 import { isErrorWithMessage } from '../../../common/validators/error.validators';
-import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service';
 
 @Injectable()
 export class WeatherCronService {

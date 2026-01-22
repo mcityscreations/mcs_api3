@@ -5,7 +5,6 @@ import { HttpModule } from '@nestjs/axios';
 
 // Common modules and services
 import { CommonModule } from '../common/common.module';
-import { SystemModule } from '../system/system.module';
 
 // Weather services, controllers, and providers
 import { WeatherService } from './weather.service';
@@ -13,8 +12,9 @@ import { WeatherController } from './weather.controller';
 import { WeatherProviderConfigService } from './providers/weather.config';
 import { OpenWeatherProvider } from './providers/open-weather/open-weather.service';
 import { WeatherRepository } from './weather.repository';
+import { WeatherCronService } from './cron/weather-cron/weather-cron.service';
 @Module({
-	imports: [ConfigModule, HttpModule, CommonModule, SystemModule],
+	imports: [ConfigModule, HttpModule, CommonModule],
 	controllers: [WeatherController],
 	providers: [
 		{
@@ -35,6 +35,8 @@ import { WeatherRepository } from './weather.repository';
 		OpenWeatherProvider,
 		WeatherService,
 		WeatherRepository,
+		WeatherCronService,
 	],
+	exports: [WeatherService],
 })
 export class WeatherModule {}

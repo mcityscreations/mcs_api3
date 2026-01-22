@@ -25,6 +25,7 @@ import { RolesModule } from './roles/roles.module';
 import { PrestashopModule } from './prestashop/prestashop.module';
 import { CategoriesModule } from './categories/categories.module';
 import { TechniquesModule } from './techniques/techniques.module';
+import { EntitiesModule } from './entities/entities.module';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 
@@ -36,8 +37,8 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 		}),
 		ScheduleModule.forRoot(),
 		SystemModule,
-		SecurityModule,
 		DatabaseModule,
+		SecurityModule,
 		WeatherModule,
 		CommonModule,
 		UsersModule,
@@ -47,6 +48,7 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 		PrestashopModule,
 		CategoriesModule,
 		TechniquesModule,
+		EntitiesModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

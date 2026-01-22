@@ -9,7 +9,7 @@ import {
 import Redis, { Redis as RedisClient } from 'ioredis';
 import type { IRedisConfig } from './redis-config/redis-config.service';
 import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
-import { isErrorWithMessage } from 'src/common/types/error.types';
+import { isErrorWithMessage } from 'src/common/validators/error.validators';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {

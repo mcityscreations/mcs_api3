@@ -1,5 +1,6 @@
 // src/security/security.module.ts
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SystemModule } from 'src/system/system.module';
 import { SecurityController } from './security.controller';
 import { AuthenticationFlowService } from './authentication-flow/authentication-flow.service';
@@ -14,9 +15,12 @@ import { RateLimiterService } from './rate-limiter/rate-limiter.service';
 import { RateLimiterRepository } from './rate-limiter/rate-limiter.repository';
 import { RecaptchaService } from './recaptcha/recaptcha.service';
 import { RecaptchaConfigService } from './recaptcha/recaptcha-config/recaptcha-config.service';
+// Related modules
+import { UsersModule } from 'src/users/users.module';
+import { ContactModule } from 'src/contact/contact.module';
 
 @Module({
-	imports: [SystemModule, DatabaseModule],
+	imports: [SystemModule, DatabaseModule, UsersModule, ContactModule],
 	controllers: [SecurityController],
 	providers: [
 		AuthenticationFlowService,
@@ -30,6 +34,19 @@ import { RecaptchaConfigService } from './recaptcha/recaptcha-config/recaptcha-c
 		RateLimiterRepository,
 		RecaptchaService,
 		RecaptchaConfigService,
+		{
+			provide: 'RECAPTCHA_CONFIG_TOKEN',
+			useFactory: (configService: RecaptchaConfigService) => {
+				// Ajoute un petit console.log ici pour débugger
+				if (!configService) {
+					console.error(
+						'Le service de config est introuvable dans la factory !',
+					);
+				}
+				return configService.getRecaptchaConfig();
+			},
+			inject: [RecaptchaConfigService],
+		},
 	],
 })
 export class SecurityModule {}

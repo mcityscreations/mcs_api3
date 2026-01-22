@@ -19,29 +19,69 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Request, Response } from 'express';
 import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
+import { Histogram, Counter } from 'prom-client';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
+	/*  Prometheus metrics for HTTP requests */
+	private static readonly httpRequestsTotal = new Counter({
+		name: 'http_requests_total',
+		help: 'Nombre total de requêtes HTTP',
+		labelNames: ['method', 'path', 'status'],
+	});
+
+	private static readonly httpRequestDuration = new Histogram({
+		name: 'http_request_duration_ms',
+		help: 'Durée des requêtes HTTP en ms',
+		labelNames: ['method', 'path', 'status'],
+		buckets: [50, 100, 200, 500, 1000, 2000, 5000], // Latency buckets in milliseconds
+	});
+
 	constructor(private readonly loggerService: WinstonLoggerService) {}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 		const now = Date.now();
 		const request: Request = context.switchToHttp().getRequest();
 
+		if (request.url === '/metrics') {
+			return next.handle(); // Skip logging for Prometheus metrics endpoint
+		}
+
 		return next.handle().pipe(
 			tap({
 				next: () => {
 					const response: Response = context.switchToHttp().getResponse();
-					this.logRequest(request, response.statusCode, now);
+					this.updateMetrics(request, response.statusCode, now); // Prometheus
+					this.logRequest(request, response.statusCode, now); // Winston/Mongo
 				},
 				error: (err: unknown) => {
 					const errorData = err
 						? this.getErrorData(err)
 						: this.getErrorData(new Error('Unknown error'));
-					this.logRequest(request, errorData.statusCode, now, errorData);
+					this.updateMetrics(request, errorData.statusCode, now); // Prometheus
+					this.logRequest(request, errorData.statusCode, now, errorData); // Winston/Mongo
 				},
 			}),
 		);
+	}
+
+	private updateMetrics(
+		request: Request,
+		statusCode: number,
+		startTime: number,
+	) {
+		const latency = Date.now() - startTime;
+		const path = (request.route as { path: string })?.path || 'unmatched_route';
+		// Do not use request.url directly as it contains query parameters.
+		// Multiple records would be created for the same route, generating high cardinality and performance issues.
+
+		LoggingInterceptor.httpRequestsTotal
+			.labels(request.method, path, statusCode.toString())
+			.inc();
+
+		LoggingInterceptor.httpRequestDuration
+			.labels(request.method, path, statusCode.toString())
+			.observe(latency);
 	}
 
 	private logRequest(

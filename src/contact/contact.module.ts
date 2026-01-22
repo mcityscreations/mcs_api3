@@ -77,6 +77,7 @@ import { WinstonLoggerService } from '../system/logger/logger-service/winston-lo
 		EMAIL_COMMUNICATOR_SUPPORT,
 		EMAIL_COMMUNICATOR_NEWSLETTER,
 		SMS_COMMUNICATOR,
+		ContactService,
 	],
 })
 export class ContactModule {}

@@ -1,7 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { WeatherCronService } from './cron/weather-cron/weather-cron.service';
+import { WeatherModule } from 'src/weather/weather.module';
 import { LoggerConfigService } from './logger/logger-config/logger-config.service';
 import {
 	winstonLoggerFactory,
@@ -10,13 +10,12 @@ import {
 import { AlsService } from './als/als.service';
 import { LoggingInterceptor } from './interceptors/logging/logging.interceptor';
 import { WinstonLoggerService } from './logger/logger-service/winston-logger.service';
+import { MetricsController } from './metrics/metrics.controller';
 
 @Global()
 @Module({
-	imports: [ConfigModule, ScheduleModule.forRoot()],
+	imports: [ConfigModule, ScheduleModule.forRoot(), WeatherModule],
 	providers: [
-		// Cron services
-		WeatherCronService,
 		// Winston logging
 		LoggerConfigService,
 		winstonLoggerFactory,
@@ -26,6 +25,7 @@ import { WinstonLoggerService } from './logger/logger-service/winston-logger.ser
 		// Interceptors
 		LoggingInterceptor,
 	],
+	controllers: [MetricsController],
 	exports: [WINSTON_LOGGER, AlsService, WinstonLoggerService],
 })
 export class SystemModule {}

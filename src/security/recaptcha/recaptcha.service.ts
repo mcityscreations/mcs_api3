@@ -10,7 +10,7 @@ import {
 import { RecaptchaEnterpriseServiceClient } from '@google-cloud/recaptcha-enterprise';
 import { ISecurityEvaluationResult } from '../security.interfaces';
 import type { IRecaptchaConfig } from './recaptcha-config/recaptcha-config.service';
-import { getErrorMessage } from '../../common/types/error.types';
+import { getErrorMessage } from '../../common/utils/error.utils';
 import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
 
 @Injectable()

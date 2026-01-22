@@ -24,6 +24,7 @@ import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-l
 	// No need to import SystemModule here as it's global
 	imports: [ConfigModule],
 	providers: [
+		RedisConfigService,
 		RedisService,
 		PostgresqlConfigService,
 		// Config objects for PostgreSQL connections
@@ -72,6 +73,11 @@ import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-l
 		},
 	],
 	// Exporting services for use in other modules
-	exports: [RedisService, PostgreSQLService, PostgresqlConfigService],
+	exports: [
+		RedisService,
+		RedisConfigService,
+		PostgreSQLService,
+		PostgresqlConfigService,
+	],
 })
 export class DatabaseModule {}
