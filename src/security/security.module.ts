@@ -37,7 +37,6 @@ import { ContactModule } from 'src/contact/contact.module';
 		{
 			provide: 'RECAPTCHA_CONFIG_TOKEN',
 			useFactory: (configService: RecaptchaConfigService) => {
-				// Ajoute un petit console.log ici pour débugger
 				if (!configService) {
 					console.error(
 						'Le service de config est introuvable dans la factory !',
