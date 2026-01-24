@@ -4,6 +4,7 @@ import {
 	ForbiddenException,
 	Injectable,
 } from '@nestjs/common';
+import { randomInt } from 'node:crypto';
 import { ContactService } from '../../contact/contact.service.js';
 import { IOTPPayload } from '../security.interfaces.js';
 import { UsersService } from '../../users/users.service.js';
@@ -28,7 +29,7 @@ export class OtpService {
 
 		// Generate a 6-digit OTP
 		// PadStart ensures leading zeros are included
-		const otpCode = Math.floor(Math.random() * 1000000)
+		const otpCode = randomInt(0, 1000000)
 			.toString()
 			.padStart(6, '0');
 

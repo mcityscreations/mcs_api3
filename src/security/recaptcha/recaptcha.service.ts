@@ -15,9 +15,9 @@ import { WinstonLoggerService } from '../../system/logger/logger-service/winston
 
 @Injectable()
 export class RecaptchaService implements OnModuleInit {
-	private RECAPTCHA_PROJECT_ID;
-	private RECAPTCHA_KEY;
-	private GOOGLE_APPLICATION_CREDENTIALS;
+	private readonly RECAPTCHA_PROJECT_ID;
+	private readonly RECAPTCHA_KEY;
+	private readonly GOOGLE_APPLICATION_CREDENTIALS;
 	private client: RecaptchaEnterpriseServiceClient;
 
 	// Recaptcha thresholds

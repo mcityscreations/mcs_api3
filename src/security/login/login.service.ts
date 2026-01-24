@@ -3,13 +3,13 @@ import {
 	UnauthorizedException,
 	BadRequestException,
 } from '@nestjs/common';
-import { Buffer } from 'buffer';
+import { Buffer } from 'node:buffer';
 
 // Standard utilities
-import { promisify } from 'util';
+import { promisify } from 'node:util';
 
 // Security and cryptography
-import { scrypt as scryptAsync, timingSafeEqual } from 'crypto';
+import { scrypt as scryptAsync, timingSafeEqual } from 'node:crypto';
 import { JwtService } from '../jwt/jwt.service.js';
 import { IJWTResponse } from '../security.interfaces.js';
 
@@ -76,11 +76,7 @@ export class LoginService {
 			const credentials =
 				await this._usersService.getUserPasswordByUsername(username);
 
-			if (
-				!credentials ||
-				!credentials.passwordHash ||
-				!credentials.passwordSalt
-			) {
+			if (!credentials?.passwordHash || !credentials?.passwordSalt) {
 				// Account without password
 				throw new UnauthorizedException(
 					"Nom d'utilisateur ou mot de passe invalide.",

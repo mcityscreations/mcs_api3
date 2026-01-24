@@ -1,7 +1,7 @@
 // src/security/middlewares/correlation-id.middleware.ts
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { AlsService } from '../als/als.service.js';
 
 @Injectable()

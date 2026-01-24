@@ -76,7 +76,7 @@ export class WeatherService {
 		// 4. Save into PostgreSQL
 		await this._weatherRepository.setWeatherInPostgreSQL(
 			weatherData,
-			'37.59.121.52',
+			'Mcitys API Server',
 		);
 		return weatherData;
 	}

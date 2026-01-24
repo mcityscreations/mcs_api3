@@ -1,7 +1,6 @@
 // src/security/recaptcha/recaptcha-config/recaptcha-config.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InternalServerErrorException } from '@nestjs/common';
 
 export interface IRecaptchaConfig {
 	projectId: string;

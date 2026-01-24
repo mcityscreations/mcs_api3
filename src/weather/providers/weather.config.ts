@@ -5,7 +5,7 @@ import { IWeatherProviderConfig, ProviderType } from '../weather.interface.js';
 
 @Injectable()
 export class WeatherProviderConfigService {
-	private weatherConfig: IWeatherProviderConfig;
+	private readonly weatherConfig: IWeatherProviderConfig;
 
 	constructor(private readonly configService: ConfigService) {
 		this.weatherConfig = {
@@ -38,7 +38,7 @@ export class WeatherProviderConfigService {
 	/**
 	 * Function that transforms env. variables (strings by default) to boolean values
 	 */
-	private toBoolean = (envVar: string | undefined): boolean => {
+	private readonly toBoolean = (envVar: string | undefined): boolean => {
 		// If variable is undefined, return False by default
 		if (!envVar) return false;
 

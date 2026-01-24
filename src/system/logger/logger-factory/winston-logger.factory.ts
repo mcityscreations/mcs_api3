@@ -1,11 +1,10 @@
 // src/common/logger/winston-logger.factory.ts
 
 import { transports, format, createLogger, Logger } from 'winston';
-import { MongoDB } from 'winston-mongodb';
+import { MongoDB, MongoDBConnectionOptions } from 'winston-mongodb';
 import { LoggerConfigService } from '../logger-config/logger-config.service.js';
 import { InternalServerErrorException } from '@nestjs/common';
 import { AlsService } from '../../als/als.service.js';
-import { MongoDBConnectionOptions } from 'winston-mongodb';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
 // MongoDB transport interface

@@ -39,6 +39,6 @@ export class RateLimiterRepository {
 		const key = this.getIpKey(ip);
 		const count = await this._redisService.getClient().get(key);
 		// Converts the result to a number (0 if the key does not exist or has expired)
-		return parseInt(count || '0', 10);
+		return Number.parseInt(count || '0', 10);
 	}
 }

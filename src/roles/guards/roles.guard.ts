@@ -7,7 +7,7 @@ import { Request } from 'express';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-	constructor(private reflector: Reflector) {} // Injecter le Reflector
+	constructor(private readonly reflector: Reflector) {} // Injecter le Reflector
 
 	canActivate(context: ExecutionContext): boolean {
 		// 1. Reading required roles from metadata
@@ -33,6 +33,6 @@ export class RolesGuard implements CanActivate {
 		}
 
 		// 3. If it passed the above verifications, check if the user has one of the required roles
-		return requiredRoles.some((role) => user.role === role);
+		return requiredRoles.includes(user.role);
 	}
 }

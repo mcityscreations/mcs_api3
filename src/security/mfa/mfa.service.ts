@@ -53,7 +53,7 @@ export class MfaSessionService {
 			if (
 				!data.username ||
 				!data.role ||
-				typeof data.mfa_validated === 'undefined'
+				data.mfa_validated === undefined
 			) {
 				this._winstonLogger.error(
 					`MfaSessionService: Invalid session data for the ${token}.`,
