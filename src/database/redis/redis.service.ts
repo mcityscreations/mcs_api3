@@ -6,14 +6,14 @@ import {
 	OnModuleInit,
 	OnModuleDestroy,
 } from '@nestjs/common';
-import Redis, { Redis as RedisClient } from 'ioredis';
-import type { IRedisConfig } from './redis-config/redis-config.service';
-import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
-import { isErrorWithMessage } from 'src/common/validators/error.validators';
+import { Redis } from 'ioredis';
+import type { IRedisConfig } from './redis-config/redis-config.service.js';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
+import { isErrorWithMessage } from '../../common/validators/error.validators.js';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-	private client: RedisClient;
+	private client: Redis;
 	private readonly host: string;
 	private readonly port: number;
 	private readonly password?: string;
@@ -53,7 +53,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 	 * Returns the underlying Redis client instance
 	 * that enables repositories to perform operations.
 	 */
-	public getClient(): RedisClient {
+	public getClient(): Redis {
 		return this.client;
 	}
 

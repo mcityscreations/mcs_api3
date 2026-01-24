@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { WeatherCronService } from './weather-cron.service';
+import { WeatherCronService } from './weather-cron.service.js';
 
 describe('WeatherCronService', () => {
 	let service: WeatherCronService;

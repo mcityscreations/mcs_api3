@@ -1,6 +1,6 @@
 // src/security/rate-limiter/rate-limiter.repository.ts
 import { Injectable } from '@nestjs/common';
-import { RedisService } from '../../database/redis/redis.service';
+import { RedisService } from '../../database/redis/redis.service.js';
 
 // 5 min TTL for temporary blocking
 const FAILURE_TTL_SECONDS = 5 * 60;

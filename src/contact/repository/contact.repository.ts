@@ -1,7 +1,7 @@
 // src/contact/repository/contact.repository.ts
 import { Injectable } from '@nestjs/common';
-import { PostgreSQLService } from '../../database/postgresql/postgresql.service';
-import { IContact } from '../types/contact.interface';
+import { PostgreSQLService } from '../../database/postgresql/postgresql.service.js';
+import { IContact } from '../types/contact.interface.js';
 
 @Injectable()
 export class ContactRepository {

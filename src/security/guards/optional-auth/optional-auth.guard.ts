@@ -6,10 +6,10 @@ import {
 	Injectable,
 	InternalServerErrorException,
 } from '@nestjs/common';
-import { JwtService } from '../../jwt/jwt.service';
+import { JwtService } from '../../jwt/jwt.service.js';
 import { Request } from 'express';
-import { isErrorWithMessage } from '../../../common/validators/error.validators';
-import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service';
+import { isErrorWithMessage } from '../../../common/validators/error.validators.js';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
 export class OptionalAuthGuard implements CanActivate {

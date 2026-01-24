@@ -1,23 +1,22 @@
 import { Module } from '@nestjs/common';
 
 // Importing services and communicators
-import { ContactService } from './contact.service';
-import { ContactRepository } from './repository/contact.repository';
-import { SmsConfigService } from './contact-config/sms-config/sms-config.service';
-import { EmailConfigService } from './contact-config/email-config/email-config.service';
-import { EmailCommunicator } from './communicators/email.communicator';
-import {
+import { ContactService } from './contact.service.js';
+import { ContactRepository } from './repository/contact.repository.js';
+import { SmsConfigService } from './contact-config/sms-config/sms-config.service.js';
+import { EmailConfigService } from './contact-config/email-config/email-config.service.js';
+import { EmailCommunicator,
 	EMAIL_COMMUNICATOR_NOREPLY,
 	EMAIL_COMMUNICATOR_SUPPORT,
 	EMAIL_COMMUNICATOR_NEWSLETTER,
-} from './communicators/email.communicator';
+ } from './communicators/email.communicator.js';
 import {
 	SMS_COMMUNICATOR,
 	SmsCommunicator,
-} from './communicators/sms.communicator';
+} from './communicators/sms.communicator.js';
 
 // Importing system module and entities
-import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service';
+import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service.js';
 
 @Module({
 	providers: [

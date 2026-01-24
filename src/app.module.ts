@@ -4,28 +4,28 @@ import {
 	MiddlewareConsumer,
 	RequestMethod,
 } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 
 // Middlewares
-import { CorrelationIdMiddleware } from './system/middlewares/correlation-id.middleware';
+import { CorrelationIdMiddleware } from './system/middlewares/correlation-id.middleware.js';
 
 // Application modules
-import { SystemModule } from './system/system.module';
-import { SecurityModule } from './security/security.module';
-import { DatabaseModule } from './database/database.module';
-import { WeatherModule } from './weather/weather.module';
-import { CommonModule } from './common/common.module';
-import { ContactModule } from './contact/contact.module';
-import { PeopleModule } from './people/people.module';
-import { UsersModule } from './users/users.module';
-import { RolesModule } from './roles/roles.module';
-import { PrestashopModule } from './prestashop/prestashop.module';
-import { CategoriesModule } from './categories/categories.module';
-import { TechniquesModule } from './techniques/techniques.module';
-import { EntitiesModule } from './entities/entities.module';
+import { SystemModule } from './system/system.module.js';
+import { SecurityModule } from './security/security.module.js';
+import { DatabaseModule } from './database/database.module.js';
+import { WeatherModule } from './weather/weather.module.js';
+import { CommonModule } from './common/common.module.js';
+import { ContactModule } from './contact/contact.module.js';
+import { PeopleModule } from './people/people.module.js';
+import { UsersModule } from './users/users.module.js';
+import { RolesModule } from './roles/roles.module.js';
+import { PrestashopModule } from './prestashop/prestashop.module.js';
+import { CategoriesModule } from './categories/categories.module.js';
+import { TechniquesModule } from './techniques/techniques.module.js';
+import { EntitiesModule } from './entities/entities.module.js';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 

@@ -7,15 +7,15 @@ import {
 	IOpenAPIResponse,
 	IWeatherDataRaw,
 	IOpenWeatherErrorResponse,
-} from '../../weather.interface';
+} from '../../weather.interface.js';
 import {
 	IOpenWeatherOptions,
 	OpenWeatherExcludeArraySchema,
 	OpenWeatherMapRawResponseSchema,
 	OpenWeatherErrorResponseSchema,
-} from '../../weather.validators';
-import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service';
-import { getErrorMessage } from '../../../common/utils/error.utils';
+} from '../../weather.validators.js';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
+import { getErrorMessage } from '../../../common/utils/error.utils.js';
 
 @Injectable()
 export class OpenWeatherProvider extends WeatherProvider {

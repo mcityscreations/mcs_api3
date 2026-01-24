@@ -1,23 +1,22 @@
 // src/security/security.module.ts
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { SystemModule } from 'src/system/system.module';
-import { SecurityController } from './security.controller';
-import { AuthenticationFlowService } from './authentication-flow/authentication-flow.service';
-import { JwtService } from './jwt/jwt.service';
-import { JwtRepository } from './jwt/jwt.repository';
-import { DatabaseModule } from '../database/database.module';
-import { LoginService } from './login/login.service';
-import { MfaSessionService } from './mfa/mfa.service';
-import { MfaSessionRepository } from './mfa/mfa.repository';
-import { OtpService } from './otp/otp.service';
-import { RateLimiterService } from './rate-limiter/rate-limiter.service';
-import { RateLimiterRepository } from './rate-limiter/rate-limiter.repository';
-import { RecaptchaService } from './recaptcha/recaptcha.service';
-import { RecaptchaConfigService } from './recaptcha/recaptcha-config/recaptcha-config.service';
+import { SystemModule } from '../system/system.module.js';
+import { SecurityController } from './security.controller.js';
+import { AuthenticationFlowService } from './authentication-flow/authentication-flow.service.js';
+import { JwtService } from './jwt/jwt.service.js';
+import { JwtRepository } from './jwt/jwt.repository.js';
+import { DatabaseModule } from '../database/database.module.js';
+import { LoginService } from './login/login.service.js';
+import { MfaSessionService } from './mfa/mfa.service.js';
+import { MfaSessionRepository } from './mfa/mfa.repository.js';
+import { OtpService } from './otp/otp.service.js';
+import { RateLimiterService } from './rate-limiter/rate-limiter.service.js';
+import { RateLimiterRepository } from './rate-limiter/rate-limiter.repository.js';
+import { RecaptchaService } from './recaptcha/recaptcha.service.js';
+import { RecaptchaConfigService } from './recaptcha/recaptcha-config/recaptcha-config.service.js';
 // Related modules
-import { UsersModule } from 'src/users/users.module';
-import { ContactModule } from 'src/contact/contact.module';
+import { UsersModule } from '../users/users.module.js';
+import { ContactModule } from '../contact/contact.module.js';
 
 @Module({
 	imports: [SystemModule, DatabaseModule, UsersModule, ContactModule],

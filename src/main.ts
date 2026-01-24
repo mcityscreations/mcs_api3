@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './app.module.js';
 import helmet from 'helmet';
-import { WinstonLoggerService } from './system/logger/logger-service/winston-logger.service';
+import { WinstonLoggerService } from './system/logger/logger-service/winston-logger.service.js';
 
 async function bootstrap() {
 	// 1. Starting application
@@ -19,12 +19,14 @@ async function bootstrap() {
 	app.useLogger(winstonLoggerService);
 	await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap().catch((err) => {
+try {
+	await bootstrap();
+} catch (error) {
 	// Using the console logger as Winston may not be instantiated at this stage
 	console.error(
 		"Erreur irrécupérable lors du démarrage de l'application:",
-		err,
+		error,
 	);
 	// Exiting Node.js process
 	process.exit(1);
-});
+}

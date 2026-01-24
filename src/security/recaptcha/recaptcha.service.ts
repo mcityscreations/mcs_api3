@@ -8,10 +8,10 @@ import {
 	OnModuleInit,
 } from '@nestjs/common';
 import { RecaptchaEnterpriseServiceClient } from '@google-cloud/recaptcha-enterprise';
-import { ISecurityEvaluationResult } from '../security.interfaces';
-import type { IRecaptchaConfig } from './recaptcha-config/recaptcha-config.service';
-import { getErrorMessage } from '../../common/utils/error.utils';
-import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
+import { ISecurityEvaluationResult } from '../security.interfaces.js';
+import type { IRecaptchaConfig } from './recaptcha-config/recaptcha-config.service.js';
+import { getErrorMessage } from '../../common/utils/error.utils.js';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
 export class RecaptchaService implements OnModuleInit {

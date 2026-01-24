@@ -9,9 +9,9 @@ import {
 } from '@nestjs/common';
 import { Pool } from 'pg';
 import type { PoolClient, QueryResult, PoolConfig } from 'pg';
-import { isErrorWithMessage } from '../../common/validators/error.validators';
-import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
-import { IDatabaseService } from '../database.interfaces';
+import { isErrorWithMessage } from '../../common/validators/error.validators.js';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
+import { IDatabaseService } from '../database.interfaces.js';
 
 export type DatabasePool = 'standard' | 'security';
 

@@ -10,17 +10,17 @@ import { promisify } from 'util';
 
 // Security and cryptography
 import { scrypt as scryptAsync, timingSafeEqual } from 'crypto';
-import { JwtService } from '../jwt/jwt.service';
-import { IJWTResponse } from '../security.interfaces';
+import { JwtService } from '../jwt/jwt.service.js';
+import { IJWTResponse } from '../security.interfaces.js';
 
 // User scripts
-import { UsersService } from '../../users/users.service';
-import { UserRole } from '../../roles/interfaces/roles.interface';
-import { isUserRole } from '../../roles/helpers/roles.helpers';
+import { UsersService } from '../../users/users.service.js';
+import { UserRole } from '../../roles/interfaces/roles.interface.js';
+import { isUserRole } from '../../roles/helpers/roles.helpers.js';
 
 // Logging and error handling
-import { getErrorMessage } from '../../common/utils/error.utils';
-import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
+import { getErrorMessage } from '../../common/utils/error.utils.js';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
 
 /** LOGIN SERVICE */
 

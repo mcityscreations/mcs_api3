@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PostgresqlConfigService } from './postgresql-config.service';
+import { PostgresqlConfigService } from './postgresql-config.service.js';
 
 describe('PostgresqlConfigService', () => {
 	let service: PostgresqlConfigService;

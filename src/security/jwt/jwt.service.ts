@@ -10,10 +10,10 @@ import {
 	decode as jwtDecode,
 	JwtPayload,
 } from 'jsonwebtoken';
-import { JwtRepository } from './jwt.repository';
-import { UserRole } from '../../roles/interfaces/roles.interface';
-import { isErrorWithMessage } from '../../common/validators/error.validators';
-import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
+import { JwtRepository } from './jwt.repository.js';
+import { UserRole } from '../../roles/interfaces/roles.interface.js';
+import { isErrorWithMessage } from '../../common/validators/error.validators.js';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
 
 export interface IJwtPayload {
 	username: string;

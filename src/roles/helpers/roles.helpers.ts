@@ -1,5 +1,5 @@
 // src/security/roles/roles.helpers.ts
-import { UserRole } from '../interfaces/roles.interface';
+import { UserRole } from '../interfaces/roles.interface.js';
 
 // Valid user roles
 const VALID_USER_ROLES: UserRole[] = ['ADMIN', 'ARTIST', 'PROVIDER', 'VISITOR'];

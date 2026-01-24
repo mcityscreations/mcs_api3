@@ -19,6 +19,8 @@ export default tseslint.config(
       },
       sourceType: 'commonjs',
       parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MandatoryAuthGuard } from './mandatory-auth.guard';
-import { JwtRepository } from '../../jwt/jwt.repository';
+import { MandatoryAuthGuard } from './mandatory-auth.guard.js';
+import { JwtRepository } from '../../jwt/jwt.repository.js';
 
 describe('MandatoryAuthGuard', () => {
 	let jwtRepository: JwtRepository;

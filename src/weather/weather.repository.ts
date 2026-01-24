@@ -1,9 +1,9 @@
 // src/weather/weather.repository.ts
 import { Injectable } from '@nestjs/common';
-import { IWeatherDataRaw } from './weather.interface';
-import { RedisService } from '../database/redis/redis.service';
-import { PostgreSQLService } from 'src/database/postgresql/postgresql.service';
-import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service';
+import { IWeatherDataRaw } from './weather.interface.js';
+import { RedisService } from '../database/redis/redis.service.js';
+import { PostgreSQLService } from 'src/database/postgresql/postgresql.service.js';
+import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
 export class WeatherRepository {

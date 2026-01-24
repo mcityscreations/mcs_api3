@@ -4,7 +4,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import {
 	IRecaptchaConfig,
 	RecaptchaConfigService,
-} from './recaptcha-config.service';
+} from './recaptcha-config.service.js';
 
 // --- 1. Mocks de Données et de Dépendances ---
 

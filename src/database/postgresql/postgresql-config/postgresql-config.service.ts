@@ -1,7 +1,7 @@
 // src/database/postgresql/postgresql-config/postgresql-config.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ISQLDatabaseConfig } from 'src/database/database.interfaces';
+import { ISQLDatabaseConfig } from '../../../database/database.interfaces.js';
 
 @Injectable()
 export class PostgresqlConfigService {
@@ -26,10 +26,10 @@ export class PostgresqlConfigService {
 			'POSTGRES_STANDARD_DATABASE',
 		);
 
-		const port = parseInt(rawPort, 10);
+		const port = Number.parseInt(rawPort, 10);
 
 		// Checking loaded data
-		if (!user || !password || !database || isNaN(port)) {
+		if (!user || !password || !database || Number.isNaN(port)) {
 			throw new InternalServerErrorException(
 				`Configuration Error: Missing critical Postgresql credentials. Check your .env file.`,
 			);
@@ -62,10 +62,10 @@ export class PostgresqlConfigService {
 			'POSTGRES_SECURITY_DATABASE',
 		);
 
-		const port = parseInt(rawPort, 10);
+		const port = Number.parseInt(rawPort, 10);
 
 		// Checking loaded data
-		if (!user || !password || !database || isNaN(port)) {
+		if (!user || !password || !database || Number.isNaN(port)) {
 			throw new InternalServerErrorException(
 				`Configuration Error: Missing critical Postgresql credentials. Check your .env file.`,
 			);

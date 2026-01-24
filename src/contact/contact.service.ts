@@ -5,12 +5,12 @@ import {
 	BadRequestException,
 	ForbiddenException,
 } from '@nestjs/common';
-import { SmsCommunicator } from './communicators/sms.communicator';
-import { EmailCommunicator } from './communicators/email.communicator';
-import { BaseMessageDto, SendEmailDto, SendSmsDto } from './dto/contact.dto';
-import { ContactRepository } from './repository/contact.repository';
-import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service';
-import { IContact } from './types/contact.interface';
+import { SmsCommunicator } from './communicators/sms.communicator.js';
+import { EmailCommunicator } from './communicators/email.communicator.js';
+import { BaseMessageDto, SendEmailDto, SendSmsDto } from './dto/contact.dto.js';
+import { ContactRepository } from './repository/contact.repository.js';
+import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service.js';
+import { IContact } from './types/contact.interface.js';
 
 @Injectable()
 export class ContactService {
@@ -111,7 +111,7 @@ export class ContactService {
 
 		// 3. If not UUID, is it a number?
 		const numericId = Number(personId);
-		if (!isNaN(numericId) && numericId > 0) {
+		if (!Number.isNaN(numericId) && numericId > 0) {
 			return await this.contactRepository.findContactsByPersonId(numericId);
 		}
 

@@ -1,6 +1,7 @@
 {
   "name": "mcitysapi3",
   "version": "3.1.1",
+  "type": "module",
   "description": "",
   "author": "",
   "private": true,

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PostgreSQLService } from 'src/database/postgresql/postgresql.service';
-import { IPersonBase } from '../types/person.interface';
+import { PostgreSQLService } from '../../database/postgresql/postgresql.service.js';
+import { IPersonBase } from '../types/person.interface.js';
 
 @Injectable()
 export class PeopleRepository {

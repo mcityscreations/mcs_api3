@@ -7,8 +7,8 @@ import {
 	HttpStatus,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { AlsService } from '../../../system/als/als.service';
-import { RedisService } from '../../../database/redis/redis.service';
+import { AlsService } from '../../../system/als/als.service.js';
+import { RedisService } from '../../../database/redis/redis.service.js';
 
 @Injectable()
 export class ThrottlerInterceptor implements NestInterceptor {

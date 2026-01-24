@@ -1,10 +1,10 @@
 // src/users/users.service.ts
 
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UserRepository } from './repository/user.repository';
-import { IUser } from './types/user.interface';
-import { ContactService } from '../contact/contact.service';
-import { IContact } from '../contact/types/contact.interface';
+import { UserRepository } from './repository/user.repository.js';
+import { IUser } from './types/user.interface.js';
+import { ContactService } from '../contact/contact.service.js';
+import { IContact } from '../contact/types/contact.interface.js';
 
 @Injectable()
 export class UsersService {

@@ -9,12 +9,12 @@ import {
 	InternalServerErrorException,
 	UseInterceptors,
 } from '@nestjs/common';
-import { AuthenticationFlowService } from './authentication-flow/authentication-flow.service';
+import { AuthenticationFlowService } from './authentication-flow/authentication-flow.service.js';
 
 // DTOs
-import { LoginDto } from './dto/login.dto';
-import { VerifyMFADto } from './dto/verify-mfa.dto';
-import { ThrottlerInterceptor } from './interceptors/throttler/throttler.interceptor';
+import { LoginDto } from './dto/login.dto.js';
+import { VerifyMFADto } from './dto/verify-mfa.dto.js';
+import { ThrottlerInterceptor } from './interceptors/throttler/throttler.interceptor.js';
 
 // api3.mcitys.com/security
 @Controller('security')

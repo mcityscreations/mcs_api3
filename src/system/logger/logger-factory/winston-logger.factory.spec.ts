@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { winstonLoggerFactory } from './winston-logger.factory';
+import { winstonLoggerFactory } from './winston-logger.factory.js';
 
 describe('winstonLoggerFactory', () => {
 	let service: typeof winstonLoggerFactory;

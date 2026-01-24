@@ -1,5 +1,5 @@
 // src/weather/weather.interface.ts
-import { IOpenWeatherOptions } from './weather.validators';
+import { IOpenWeatherOptions } from './weather.validators.js';
 
 export interface IWeatherDataRaw {
 	date: Date;

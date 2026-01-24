@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { TechniquesService } from './techniques.service';
-import { CreateTechniqueDto } from './dto/create-technique.dto';
-import { UpdateTechniqueDto } from './dto/update-technique.dto';
+import { TechniquesService } from './techniques.service.js';
+import { CreateTechniqueDto } from './dto/create-technique.dto.js';
+import { UpdateTechniqueDto } from './dto/update-technique.dto.js';
 
 @Controller('techniques')
 export class TechniquesController {
