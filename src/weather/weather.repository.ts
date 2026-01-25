@@ -2,7 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { IWeatherDataRaw } from './weather.interface.js';
 import { RedisService } from '../database/redis/redis.service.js';
-import { PostgreSQLService } from 'src/database/postgresql/postgresql.service.js';
+import { PostgreSQLService } from '../database/postgresql/postgresql.service.js';
 import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()

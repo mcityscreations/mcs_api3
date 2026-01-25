@@ -4,12 +4,8 @@ import {
 	UnauthorizedException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import {
-	sign as jwtSign,
-	verify as jwtVerify,
-	decode as jwtDecode,
-	JwtPayload,
-} from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+const { sign: jwtSign, verify: jwtVerify, decode: jwtDecode } = jwt;
 import { JwtRepository } from './jwt.repository.js';
 import { UserRole } from '../../roles/interfaces/roles.interface.js';
 import { isErrorWithMessage } from '../../common/validators/error.validators.js';
@@ -20,7 +16,7 @@ export interface IJwtPayload {
 	role: UserRole;
 }
 
-export interface ITokenPayload extends JwtPayload {
+export interface ITokenPayload extends jwt.JwtPayload {
 	username: string;
 	role: UserRole;
 	jti: string;
