@@ -1,4 +1,5 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateCategoryDto } from './create-category.dto.js';
+// src/taxonomy/categories/dto/update-category.dto.ts
+import { createZodDto } from 'nestjs-zod';
+import { UpdateCategorySchema } from '../schemas/category.schemas.js';
 
-export class UpdateCategoryDto extends PartialType(CreateCategoryDto) {}
+export class UpdateCategoryDto extends createZodDto(UpdateCategorySchema) {}

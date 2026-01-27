@@ -26,6 +26,7 @@ import { PrestashopModule } from './prestashop/prestashop.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
 import { TechniquesModule } from './techniques/techniques.module.js';
 import { EntitiesModule } from './entities/entities.module.js';
+import { TranslationsModule } from './translations/translations.module';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 
@@ -49,6 +50,7 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 		CategoriesModule,
 		TechniquesModule,
 		EntitiesModule,
+		TranslationsModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
