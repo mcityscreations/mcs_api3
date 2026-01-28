@@ -27,6 +27,7 @@ import { CategoriesModule } from './categories/categories.module.js';
 import { TechniquesModule } from './techniques/techniques.module.js';
 import { EntitiesModule } from './entities/entities.module.js';
 import { TranslationsModule } from './translations/translations.module';
+import { KeywordsModule } from './taxonomy/keywords/keywords.module';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 
@@ -51,6 +52,7 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 		TechniquesModule,
 		EntitiesModule,
 		TranslationsModule,
+		KeywordsModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

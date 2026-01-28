@@ -56,7 +56,7 @@ describe('LoginService', () => {
 
 	// Définitions de données de test
 	const VALID_USERNAME = 'testuser';
-	const VALID_PASSWORD = `test_${Math.random().toString(36)}`;
+	const MOCK_PASSWORD = `123456`;
 	const ADMIN_ROLE_ID = 100; // Utilisé dans le UserRole type
 
 	// Simuler l'utilisateur trouvé en base (Doit correspondre à la sortie de QueryBuilder)
