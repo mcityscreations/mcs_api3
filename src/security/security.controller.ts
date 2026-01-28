@@ -9,14 +9,16 @@ import {
 	InternalServerErrorException,
 	UseInterceptors,
 } from '@nestjs/common';
-import { AuthenticationFlowService } from './authentication-flow/authentication-flow.service';
+import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
+import { AuthenticationFlowService } from './authentication-flow/authentication-flow.service.js';
 
 // DTOs
-import { LoginDto } from './dto/login.dto';
-import { VerifyMFADto } from './dto/verify-mfa.dto';
-import { ThrottlerInterceptor } from './interceptors/throttler/throttler.interceptor';
+import { LoginDto } from './dto/login.dto.js';
+import { VerifyMFADto } from './dto/verify-mfa.dto.js';
+import { ThrottlerInterceptor } from './interceptors/throttler/throttler.interceptor.js';
 
 // api3.mcitys.com/security
+@ApiTags('Security')
 @Controller('security')
 export class SecurityController {
 	constructor(
@@ -26,6 +28,8 @@ export class SecurityController {
 	// ---------------------------------------------------------------------
 	// POST /security/login
 	// ---------------------------------------------------------------------
+	@ApiOperation({ summary: 'User login' })
+	@ApiOkResponse({ description: 'Login successful' })
 	@UseInterceptors(ThrottlerInterceptor)
 	@Post('login')
 	async login(
@@ -55,6 +59,8 @@ export class SecurityController {
 	// POST /security/mfa/send
 	// ---------------------------------------------------------------------
 	@UseInterceptors(ThrottlerInterceptor)
+	@ApiOperation({ summary: 'Send MFA code' })
+	@ApiOkResponse({ description: 'MFA code sent successfully' })
 	@Post('mfa/send')
 	async sendMfaCode(
 		@Body('authSessionToken') authSessionToken: string,
@@ -71,6 +77,8 @@ export class SecurityController {
 	// ---------------------------------------------------------------------
 	// POST /security/mfa/verify
 	// ---------------------------------------------------------------------
+	@ApiOperation({ summary: 'Verify MFA code' })
+	@ApiOkResponse({ description: 'MFA code verified successfully' })
 	@UseInterceptors(ThrottlerInterceptor)
 	@Post('mfa/verify')
 	async verifyMfaCode(

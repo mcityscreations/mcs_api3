@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import {
 	EmailConfigService,
 	IEmailAccountConfig,
-} from './email-config.service';
+} from './email-config.service.js';
 import { InternalServerErrorException } from '@nestjs/common';
 
 type EmailContactMode = 'noreply' | 'newsletter' | 'support';

@@ -4,23 +4,19 @@ import {
 	UnauthorizedException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import {
-	sign as jwtSign,
-	verify as jwtVerify,
-	decode as jwtDecode,
-	JwtPayload,
-} from 'jsonwebtoken';
-import { JwtRepository } from './jwt.repository';
-import { UserRole } from '../../roles/interfaces/roles.interface';
-import { isErrorWithMessage } from '../../common/validators/error.validators';
-import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
+import jwt from 'jsonwebtoken';
+const { sign: jwtSign, verify: jwtVerify, decode: jwtDecode } = jwt;
+import { JwtRepository } from './jwt.repository.js';
+import { UserRole } from '../../roles/interfaces/roles.interface.js';
+import { isErrorWithMessage } from '../../common/validators/error.validators.js';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
 
 export interface IJwtPayload {
 	username: string;
 	role: UserRole;
 }
 
-export interface ITokenPayload extends JwtPayload {
+export interface ITokenPayload extends jwt.JwtPayload {
 	username: string;
 	role: UserRole;
 	jti: string;
@@ -29,8 +25,8 @@ export interface ITokenPayload extends JwtPayload {
 
 @Injectable()
 export class JwtService {
-	private _JWT_PRIVATE_KEY: string;
-	private _JWT_PUBLIC_KEY: string;
+	private readonly _JWT_PRIVATE_KEY: string;
+	private readonly _JWT_PUBLIC_KEY: string;
 
 	constructor(
 		private readonly _jwtRepository: JwtRepository,
@@ -44,7 +40,7 @@ export class JwtService {
 			);
 		}
 		// Handling RS256 key formatting
-		this._JWT_PRIVATE_KEY = PRIVATE_KEY_CONTENT.replace(/\\n/g, '\n');
+		this._JWT_PRIVATE_KEY = PRIVATE_KEY_CONTENT.replaceAll(/\\n/g, '\n');
 
 		// 2. Loading public JWT public key
 		const PUBLIC_KEY_CONTENT = process.env.JWT_PUBLIC_KEY;
@@ -53,7 +49,7 @@ export class JwtService {
 				'JWT public key is not configured.',
 			);
 		}
-		this._JWT_PUBLIC_KEY = PUBLIC_KEY_CONTENT.replace(/\\n/g, '\n');
+		this._JWT_PUBLIC_KEY = PUBLIC_KEY_CONTENT.replaceAll(/\\n/g, '\n');
 	}
 
 	public createToken(payload: IJwtPayload): { token: string } {
@@ -180,12 +176,7 @@ export class JwtService {
 				jwtDecode as unknown as (token: string) => ITokenPayload
 			)(token);
 
-			if (
-				typeof decoded === 'object' &&
-				decoded !== null &&
-				decoded.jti &&
-				decoded.exp
-			) {
+			if (decoded?.jti && decoded?.exp) {
 				// Calculating remaining time to live
 				const now = Math.floor(Date.now() / 1000);
 				const ttlSeconds = decoded.exp - now;

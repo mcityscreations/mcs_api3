@@ -1,6 +1,6 @@
 // src/common/types/express.d.ts
 
-import { ITokenPayload } from 'src/security/jwt/jwt.service';
+import { ITokenPayload } from '../../security/jwt/jwt.service.js';
 
 // Type augmentation  of Express Request object
 declare global {

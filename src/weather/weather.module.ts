@@ -4,15 +4,15 @@ import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 
 // Common modules and services
-import { CommonModule } from '../common/common.module';
+import { CommonModule } from '../common/common.module.js';
 
 // Weather services, controllers, and providers
-import { WeatherService } from './weather.service';
-import { WeatherController } from './weather.controller';
-import { WeatherProviderConfigService } from './providers/weather.config';
-import { OpenWeatherProvider } from './providers/open-weather/open-weather.service';
-import { WeatherRepository } from './weather.repository';
-import { WeatherCronService } from './cron/weather-cron/weather-cron.service';
+import { WeatherService } from './weather.service.js';
+import { WeatherController } from './weather.controller.js';
+import { WeatherProviderConfigService } from './providers/weather.config.js';
+import { OpenWeatherProvider } from './providers/open-weather/open-weather.service.js';
+import { WeatherRepository } from './weather.repository.js';
+import { WeatherCronService } from './cron/weather-cron/weather-cron.service.js';
 @Module({
 	imports: [ConfigModule, HttpModule, CommonModule],
 	controllers: [WeatherController],

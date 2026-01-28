@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RecaptchaService } from './recaptcha.service';
+import { RecaptchaService } from './recaptcha.service.js';
 
 describe('RecaptchaService', () => {
 	let service: RecaptchaService;

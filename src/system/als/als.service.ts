@@ -1,6 +1,6 @@
 // src/system/als/als.service.ts
 import { Injectable } from '@nestjs/common';
-import { AsyncLocalStorage } from 'async_hooks';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 /**
  * @description Service to manage Asynchronous Local Storage (ALS)

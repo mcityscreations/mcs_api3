@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { OptionalAuthGuard } from './optional-auth.guard';
-import { JwtRepository } from '../../jwt/jwt.repository';
+import { OptionalAuthGuard } from './optional-auth.guard.js';
+import { JwtRepository } from '../../jwt/jwt.repository.js';
 
 describe('OptionalAuthGuard', () => {
 	let jwtRepository: JwtRepository;

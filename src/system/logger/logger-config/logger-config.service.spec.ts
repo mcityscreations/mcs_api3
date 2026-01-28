@@ -1,6 +1,6 @@
 // src/system/logger/logger-config/logger-config.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { LoggerConfigService } from './logger-config.service';
+import { LoggerConfigService } from './logger-config.service.js';
 import { ConfigService } from '@nestjs/config';
 
 const mockConfigService = {

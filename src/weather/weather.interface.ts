@@ -1,5 +1,5 @@
 // src/weather/weather.interface.ts
-import { IOpenWeatherOptions } from './weather.validators';
+import { IOpenWeatherOptions } from './weather.validators.js';
 
 export interface IWeatherDataRaw {
 	date: Date;
@@ -21,8 +21,6 @@ export interface IWeatherData {
 
 // Abstract class that defines common rules that every provider must apply
 export abstract class WeatherProvider {
-	constructor() {}
-
 	public abstract setApiKey(apiKey: string): void;
 	public abstract getCurrentWeather(
 		latitude: number,
@@ -52,11 +50,6 @@ export interface IWeatherProviderConfig {
 	// Le fournisseur par défaut à utiliser
 	defaultProvider: ProviderType;
 }
-/*
-export interface IWeatherProviderConfig {
-	apiKey: string;
-	enabled: boolean;
-}*/
 
 // Interface of the response sent by OpenWeatherMap
 export interface IOpenAPIResponse {

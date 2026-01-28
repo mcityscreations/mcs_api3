@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PostgreSQLService } from '../../database/postgresql/postgresql.service';
-import { IUser } from '../types/user.interface';
+import { PostgreSQLService } from '../../database/postgresql/postgresql.service.js';
+import { IUser } from '../types/user.interface.js';
 
 @Injectable()
 export class UserRepository {

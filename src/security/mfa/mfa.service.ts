@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { IMfaSessionData, IOTPPayload } from '../security.interfaces';
-import { MfaSessionRepository } from './mfa.repository';
-import { OtpService } from '../otp/otp.service';
-import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
+import { IMfaSessionData, IOTPPayload } from '../security.interfaces.js';
+import { MfaSessionRepository } from './mfa.repository.js';
+import { OtpService } from '../otp/otp.service.js';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
 export class MfaSessionService {
@@ -53,7 +53,7 @@ export class MfaSessionService {
 			if (
 				!data.username ||
 				!data.role ||
-				typeof data.mfa_validated === 'undefined'
+				data.mfa_validated === undefined
 			) {
 				this._winstonLogger.error(
 					`MfaSessionService: Invalid session data for the ${token}.`,

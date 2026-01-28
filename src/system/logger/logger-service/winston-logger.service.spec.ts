@@ -1,9 +1,9 @@
 // src/system/logger/logger-service/winston-logger.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { WinstonLoggerService } from './winston-logger.service';
+import { WinstonLoggerService } from './winston-logger.service.js';
 // Assurez-vous d'ajuster ce chemin d'importation si nécessaire
-import { WINSTON_LOGGER } from '../logger-factory/winston-logger.factory';
-import { AlsService } from '../../als/als.service';
+import { WINSTON_LOGGER } from '../logger-factory/winston-logger.factory.js';
+import { AlsService } from '../../als/als.service.js';
 import { Logger } from 'winston';
 
 // --- 1. Mocks de Données et de Dépendances ---

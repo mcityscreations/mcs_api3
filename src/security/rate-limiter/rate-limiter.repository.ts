@@ -1,6 +1,6 @@
 // src/security/rate-limiter/rate-limiter.repository.ts
 import { Injectable } from '@nestjs/common';
-import { RedisService } from '../../database/redis/redis.service';
+import { RedisService } from '../../database/redis/redis.service.js';
 
 // 5 min TTL for temporary blocking
 const FAILURE_TTL_SECONDS = 5 * 60;
@@ -39,6 +39,6 @@ export class RateLimiterRepository {
 		const key = this.getIpKey(ip);
 		const count = await this._redisService.getClient().get(key);
 		// Converts the result to a number (0 if the key does not exist or has expired)
-		return parseInt(count || '0', 10);
+		return Number.parseInt(count || '0', 10);
 	}
 }

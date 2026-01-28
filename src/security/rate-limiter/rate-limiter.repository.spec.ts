@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RateLimiterRepository } from './rate-limiter.repository';
+import { RateLimiterRepository } from './rate-limiter.repository.js';
 
 describe('RateLimiterRepositoryService', () => {
 	let service: RateLimiterRepository;

@@ -1,4 +1,4 @@
-import { isErrorWithMessage } from '../validators/error.validators';
+import { isErrorWithMessage } from '../validators/error.validators.js';
 // Helper function to extract the error message
 export function getErrorMessage(error: unknown): string {
 	if (isErrorWithMessage(error)) {

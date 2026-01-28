@@ -1,6 +1,6 @@
 // src/database/redis/redis-config/redis-config.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { RedisConfigService } from './redis-config.service';
+import { RedisConfigService } from './redis-config.service.js';
 import { ConfigService } from '@nestjs/config';
 
 const mockConfigService = {

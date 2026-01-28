@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RedisService } from '../../database/redis/redis.service';
+import { RedisService } from '../../database/redis/redis.service.js';
 
 @Injectable()
 export class JwtRepository {

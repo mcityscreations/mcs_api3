@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MfaSessionService } from './mfa.service';
+import { MfaSessionService } from './mfa.service.js';
 
 describe('MfaService', () => {
 	let service: MfaSessionService;

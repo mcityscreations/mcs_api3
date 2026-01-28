@@ -2,19 +2,19 @@
 
 import { InternalServerErrorException } from '@nestjs/common';
 import { createTransport, Transporter } from 'nodemailer';
-import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { CommunicatorBase } from './base.communicator';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport/index.js';
+import { CommunicatorBase } from './base.communicator.js';
 import {
 	EmailConfigService,
 	IEmailAccountConfig,
-} from '../contact-config/email-config/email-config.service';
-import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
+} from '../contact-config/email-config/email-config.service.js';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
 
 // Tokens for Email communicator injections
 export const EMAIL_COMMUNICATOR_NOREPLY = 'EMAIL_COMMUNICATOR_NOREPLY';
 export const EMAIL_COMMUNICATOR_SUPPORT = 'EMAIL_COMMUNICATOR_SUPPORT';
 export const EMAIL_COMMUNICATOR_NEWSLETTER = 'EMAIL_COMMUNICATOR_NEWSLETTER';
-import { SendEmailDto } from '../dto/contact.dto';
+import { SendEmailDto } from '../dto/contact.dto.js';
 
 type EmailMode = 'noreply' | 'newsletter' | 'support';
 
@@ -39,7 +39,7 @@ export class EmailCommunicator extends CommunicatorBase {
 		this._config = config;
 
 		// Setting the sender address
-		if (config && config.auth && config.auth.user) {
+		if (config?.auth?.user) {
 			this._senderAddress = config.auth.user;
 		} else {
 			throw new InternalServerErrorException(

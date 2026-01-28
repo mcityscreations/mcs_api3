@@ -1,7 +1,7 @@
 // src/contact/contact-config/sms-config/sms-config.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { SmsConfigService, IOvhConfig } from './sms-config.service';
+import { SmsConfigService, IOvhConfig } from './sms-config.service.js';
 import { InternalServerErrorException } from '@nestjs/common';
 
 // Configuration factice pour les tests réussis

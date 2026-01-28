@@ -1,9 +1,9 @@
 // src/communicator/communicator.base.ts
 
-import { IEmailAccountConfig } from '../contact-config/email-config/email-config.service';
-import { IOvhConfig } from '../contact-config/sms-config/sms-config.service';
+import { IEmailAccountConfig } from '../contact-config/email-config/email-config.service.js';
+import { IOvhConfig } from '../contact-config/sms-config/sms-config.service.js';
 import { Transporter } from 'nodemailer';
-import { BaseMessageDto } from '../dto/contact.dto';
+import { BaseMessageDto } from '../dto/contact.dto.js';
 
 // Types for contact mode and channel
 type ContactMode = 'noreply' | 'sms' | 'newsletter' | 'support';

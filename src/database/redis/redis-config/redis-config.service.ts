@@ -1,7 +1,6 @@
 // src/database/redis/redis-config/redis-config.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InternalServerErrorException } from '@nestjs/common';
 
 export interface IRedisConfig {
 	host: string;
@@ -16,7 +15,7 @@ export class RedisConfigService {
 	public getRedisConfig(): IRedisConfig {
 		// Retrieving config stored in .env file
 		const host = this.configService.get<string>('REDIS_HOST');
-		const port = parseInt(
+		const port = Number.parseInt(
 			this.configService.get<string>('REDIS_PORT') || '6379',
 			10,
 		);

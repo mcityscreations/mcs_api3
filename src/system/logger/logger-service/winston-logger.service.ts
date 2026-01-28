@@ -1,8 +1,8 @@
 // src/system/logger/logger-service/winston-logger.service.ts
 import { Inject, Injectable, LoggerService } from '@nestjs/common';
 import { Logger } from 'winston';
-import { WINSTON_LOGGER } from '../logger-factory/winston-logger.factory';
-import { AlsService } from '../../als/als.service';
+import { WINSTON_LOGGER } from '../logger-factory/winston-logger.factory.js';
+import { AlsService } from '../../als/als.service.js';
 
 /**
  * @description Winston Logger Service implementing NestJS LoggerService

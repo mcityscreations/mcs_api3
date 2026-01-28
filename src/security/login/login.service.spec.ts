@@ -1,16 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory';
+import { WINSTON_LOGGER } from '../../system/logger/logger-factory/winston-logger.factory.js';
 
 // Fichiers à tester
-import { LoginService } from './login.service';
-import { User } from '../../users/entities/user.entity';
-import { JwtService } from '../jwt/jwt.service';
+import { LoginService } from './login.service.js';
+import { JwtService } from '../jwt/jwt.service.js';
 
-// Mocks nécessaires
-import * as bcrypt from 'bcrypt'; // TypeORM utilise bcrypt par défaut, mais le service utilise 'scrypt' ici.
 
 // Simuler les fonctions crypto (scrypt et timingSafeEqual)
 // NOTE : Il est critique de mocker la fonction 'scrypt' si le hachage est dans le service.
@@ -60,7 +56,7 @@ describe('LoginService', () => {
 
 	// Définitions de données de test
 	const VALID_USERNAME = 'testuser';
-	const VALID_PASSWORD = 'valid_password';
+	const VALID_PASSWORD = `test_${Math.random().toString(36)}`;
 	const ADMIN_ROLE_ID = 100; // Utilisé dans le UserRole type
 
 	// Simuler l'utilisateur trouvé en base (Doit correspondre à la sortie de QueryBuilder)

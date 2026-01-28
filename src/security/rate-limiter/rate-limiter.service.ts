@@ -1,6 +1,6 @@
 // src/security/rate-limiter/rate-limiter.service.ts
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { RateLimiterRepository } from './rate-limiter.repository';
+import { RateLimiterRepository } from './rate-limiter.repository.js';
 
 @Injectable()
 export class RateLimiterService {

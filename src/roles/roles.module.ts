@@ -1,6 +1,6 @@
 // src/roles/roles.module.ts
 import { Module } from '@nestjs/common';
-import { RolesGuard } from './guards/roles.guard';
+import { RolesGuard } from './guards/roles.guard.js';
 import { APP_GUARD } from '@nestjs/core';
 
 @Module({

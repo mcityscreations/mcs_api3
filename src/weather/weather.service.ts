@@ -4,14 +4,14 @@ import {
 	Inject,
 	InternalServerErrorException,
 } from '@nestjs/common';
-import { OpenWeatherProvider } from './providers/open-weather/open-weather.service';
-import { WeatherRepository } from './weather.repository';
-import { IWeatherData, IWeatherDataRaw } from './weather.interface';
+import { OpenWeatherProvider } from './providers/open-weather/open-weather.service.js';
+import { WeatherRepository } from './weather.repository.js';
+import { IWeatherData, IWeatherDataRaw } from './weather.interface.js';
 import {
 	IWeatherScorePayload,
 	WeatherScorePayloadSchema,
-} from './weather.validators';
-import { DateService } from '../common/dates/datesService';
+} from './weather.validators.js';
+import { DateService } from '../common/dates/dates.service.js';
 
 @Injectable()
 export class WeatherService {
@@ -76,7 +76,7 @@ export class WeatherService {
 		// 4. Save into PostgreSQL
 		await this._weatherRepository.setWeatherInPostgreSQL(
 			weatherData,
-			'37.59.121.52',
+			'Mcitys API Server',
 		);
 		return weatherData;
 	}

@@ -2,9 +2,9 @@
 
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { WeatherService } from '../../../weather/weather.service';
-import { isErrorWithMessage } from '../../../common/validators/error.validators';
-import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service';
+import { WeatherService } from '../../../weather/weather.service.js';
+import { isErrorWithMessage } from '../../../common/validators/error.validators.js';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
 export class WeatherCronService {

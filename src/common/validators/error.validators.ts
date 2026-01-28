@@ -1,5 +1,5 @@
 // src/common/validators/error.validator.ts
-import { IErrorWithMessage, IIsExceptionObject } from '../types/error.types';
+import { IErrorWithMessage, IIsExceptionObject } from '../types/error.types.js';
 
 // Type guard to check if the error object has a message property
 export function isErrorWithMessage(error: unknown): error is IErrorWithMessage {

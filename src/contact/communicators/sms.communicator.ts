@@ -5,14 +5,14 @@ import {
 	InternalServerErrorException,
 } from '@nestjs/common';
 import ovh from 'ovh';
-import { CommunicatorBase } from './base.communicator';
+import { CommunicatorBase } from './base.communicator.js';
 import {
 	SmsConfigService,
 	IOvhConfig,
-} from '../contact-config/sms-config/sms-config.service';
-import { getErrorMessage } from '../../common/utils/error.utils';
-import { SendSmsDto } from '../dto/contact.dto';
-import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
+} from '../contact-config/sms-config/sms-config.service.js';
+import { getErrorMessage } from '../../common/utils/error.utils.js';
+import { SendSmsDto } from '../dto/contact.dto.js';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
 
 // Token for SMS communicator injection
 export const SMS_COMMUNICATOR = 'SMS_COMMUNICATOR';

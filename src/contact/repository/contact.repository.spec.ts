@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ContactRepository } from './contact.repository';
+import { ContactRepository } from './contact.repository.js';
 
 describe('ContactRepository', () => {
 	let service: ContactRepository;

@@ -1,6 +1,6 @@
 // src/people/types/person.interface.ts
-import { IPersonIndividual } from './individual.interface';
-import { IPersonOrganization } from './organization.interface';
+import { IPersonIndividual } from './individual.interface.js';
+import { IPersonOrganization } from './organization.interface.js';
 
 export interface IPersonBase {
 	id: string; // uuidv7

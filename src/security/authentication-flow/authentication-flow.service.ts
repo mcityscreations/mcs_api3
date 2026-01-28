@@ -5,13 +5,13 @@ import {
 	InternalServerErrorException,
 	UnauthorizedException,
 } from '@nestjs/common';
-import { LoginService } from '../login/login.service';
-import { RateLimiterService } from '../rate-limiter/rate-limiter.service';
-import { RecaptchaService } from '../recaptcha/recaptcha.service';
-import { MfaSessionService } from '../mfa/mfa.service';
-import { IJWTResponse } from '../security.interfaces';
-import { getErrorMessage } from '../../common/utils/error.utils';
-import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service';
+import { LoginService } from '../login/login.service.js';
+import { RateLimiterService } from '../rate-limiter/rate-limiter.service.js';
+import { RecaptchaService } from '../recaptcha/recaptcha.service.js';
+import { MfaSessionService } from '../mfa/mfa.service.js';
+import { IJWTResponse } from '../security.interfaces.js';
+import { getErrorMessage } from '../../common/utils/error.utils.js';
+import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
 
 export interface IMFAChallengeResponse {
 	status: string;

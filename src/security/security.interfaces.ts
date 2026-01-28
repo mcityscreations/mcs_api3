@@ -1,5 +1,5 @@
 // src/security/security.interfaces.ts
-import { UserRole } from '../roles/interfaces/roles.interface';
+import { UserRole } from '../roles/interfaces/roles.interface.js';
 
 export interface ISecurityEvaluationResult {
 	/** If set to true, proceed */

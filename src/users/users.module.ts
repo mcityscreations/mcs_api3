@@ -2,10 +2,10 @@
 
 import { Module } from '@nestjs/common';
 
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
-import { ContactModule } from '../contact/contact.module';
-import { UserRepository } from './repository/user.repository';
+import { UsersController } from './users.controller.js';
+import { UsersService } from './users.service.js';
+import { ContactModule } from '../contact/contact.module.js';
+import { UserRepository } from './repository/user.repository.js';
 
 @Module({
 	imports: [ContactModule],

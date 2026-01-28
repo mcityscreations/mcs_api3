@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ContactModule } from '../contact/contact.module';
-import { PeopleService } from './people.service';
-import { PeopleController } from './people.controller';
-import { PeopleRepository } from './repository/people.repository';
+import { ContactModule } from '../contact/contact.module.js';
+import { PeopleService } from './people.service.js';
+import { PeopleController } from './people.controller.js';
+import { PeopleRepository } from './repository/people.repository.js';
 
 @Module({
 	imports: [ContactModule],

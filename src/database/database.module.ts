@@ -5,19 +5,19 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 // Database engines
-import { PostgreSQLService } from './postgresql/postgresql.service';
-import { RedisService } from './redis/redis.service';
+import { PostgreSQLService } from './postgresql/postgresql.service.js';
+import { RedisService } from './redis/redis.service.js';
 
 // Configuration services and interfaces
 import {
 	IRedisConfig,
 	RedisConfigService,
-} from './redis/redis-config/redis-config.service';
-import { PostgresqlConfigService } from './postgresql/postgresql-config/postgresql-config.service';
+} from './redis/redis-config/redis-config.service.js';
+import { PostgresqlConfigService } from './postgresql/postgresql-config/postgresql-config.service.js';
 import { PoolConfig } from 'pg';
 
 // Logging
-import { WinstonLoggerService } from 'src/system/logger/logger-service/winston-logger.service';
+import { WinstonLoggerService } from '../system/logger/logger-service/winston-logger.service.js';
 
 @Global()
 @Module({

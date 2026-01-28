@@ -7,9 +7,9 @@ import {
 	UnauthorizedException,
 	InternalServerErrorException,
 } from '@nestjs/common';
-import { JwtService } from '../../jwt/jwt.service';
+import { JwtService } from '../../jwt/jwt.service.js';
 import { Request } from 'express';
-import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
 export class MandatoryAuthGuard implements CanActivate {
