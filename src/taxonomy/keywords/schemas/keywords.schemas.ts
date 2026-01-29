@@ -18,11 +18,11 @@ export type ICreateKeywordDto = z.infer<typeof CreateKeywordSchema>;
 export const ReadKeywordSchema = z.object({
 	id: z.uuidv7().describe('Unique identifier for the keyword'),
 	name: z.string().min(1).max(100).describe('Value of the keyword'),
-	createdAt: z.coerce
+	createdAt: z
 		.date()
 		.optional()
 		.describe('Timestamp when the keyword was created'),
-	updatedAt: z.coerce
+	updatedAt: z
 		.date()
 		.optional()
 		.describe('Timestamp when the keyword was last updated'),

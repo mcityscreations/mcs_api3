@@ -24,12 +24,12 @@ export const ReadCategorySchema = z.object({
 	hasDimensions: z
 		.boolean()
 		.describe('Indicates if the category has dimensions'),
-	createdAt: z.coerce
+	createdAt: z
 		.date()
 		.optional()
 		.describe('Timestamp when the category was created'),
 
-	updatedAt: z.coerce
+	updatedAt: z
 		.date()
 		.optional()
 		.describe('Timestamp when the category was last updated'),
