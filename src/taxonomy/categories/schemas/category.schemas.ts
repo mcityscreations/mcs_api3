@@ -1,39 +1,53 @@
 // src/taxonomy/categories/schemas/category.schemas.ts
 import { z } from 'zod';
 
-export const CategorySchema = z.object({
+// Schema for creating a new category
+export const CreateCategorySchema = z.object({
+	name: z
+		.array(
+			z.object({
+				idLanguage: z.uuidv7(), // ou z.string().uuid()
+				title: z.string().min(3).max(150),
+			}),
+		)
+		.min(1),
+	isPublic: z.boolean(),
+	hasDimensions: z.boolean(),
+});
+export type ICreateCategoryDto = z.infer<typeof CreateCategorySchema>;
+
+// Schema for reading an existing category
+export const ReadCategorySchema = z.object({
 	id: z.uuidv7().describe('Unique identifier for the category'),
 	name: z.string().min(3).max(150).describe('Name of the category'),
 	isPublic: z.boolean().describe('Indicates if the category is public'),
 	hasDimensions: z
 		.boolean()
 		.describe('Indicates if the category has dimensions'),
-	createdAt: z
+	createdAt: z.coerce
 		.date()
 		.optional()
 		.describe('Timestamp when the category was created'),
-	updatedAt: z
+
+	updatedAt: z.coerce
 		.date()
 		.optional()
 		.describe('Timestamp when the category was last updated'),
 });
+export type IReadCategoryDto = z.infer<typeof ReadCategorySchema>;
 
-export type ICategory = z.infer<typeof CategorySchema>;
-
-// Create category schema (omit id, createdAt, updatedAt)
-export const CreateCategorySchema = CategorySchema.omit({
-	id: true,
-	createdAt: true,
-	updatedAt: true,
+// Schema for updating an existing category
+export const UpdateCategorySchema = z.object({
+	name: z
+		.array(
+			z.object({
+				idLanguage: z.uuidv7(),
+				title: z.string().min(3).max(150),
+			}),
+		)
+		.min(1)
+		.optional(),
+	isPublic: z.boolean().optional(),
+	hasDimensions: z.boolean().optional(),
 });
-export type ICreateCategory = z.infer<typeof CreateCategorySchema>;
-
-// Update category schema (partial, with id required)
-export const UpdateCategorySchema = CategorySchema.partial().extend({
-	id: z.uuidv7().describe('Unique identifier for the category'),
-});
-export type IUpdateCategory = z.infer<typeof UpdateCategorySchema>;
-
-// Read category schema (same as CategorySchema)
-export const ReadCategorySchema = CategorySchema;
-export type IReadCategory = z.infer<typeof ReadCategorySchema>;
+export type IUpdateCategoryDto = z.infer<typeof UpdateCategorySchema>;
