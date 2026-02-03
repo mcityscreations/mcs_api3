@@ -14,20 +14,11 @@ import { CorrelationIdMiddleware } from './system/middlewares/correlation-id.mid
 
 // Application modules
 import { SystemModule } from './system/system.module.js';
-import { SecurityModule } from './security/security.module.js';
-import { DatabaseModule } from './database/database.module.js';
-import { WeatherModule } from './weather/weather.module.js';
+import { DatabaseModule } from './system/database/database.module.js';
 import { CommonModule } from './common/common.module.js';
-import { ContactModule } from './contact/contact.module.js';
-import { PeopleModule } from './people/people.module.js';
-import { UsersModule } from './users/users.module.js';
-import { RolesModule } from './roles/roles.module.js';
-import { PrestashopModule } from './prestashop/prestashop.module.js';
-import { CategoriesModule } from './categories/categories.module.js';
-import { TechniquesModule } from './techniques/techniques.module.js';
-import { EntitiesModule } from './entities/entities.module.js';
-import { TranslationsModule } from './translations/translations.module';
-import { KeywordsModule } from './taxonomy/keywords/keywords.module';
+import { UsersModule } from './modules/identity/users/users.module.js';
+import { RolesModule } from './modules/identity/roles/roles.module.js';
+import { ContentModule } from './modules/content/content.module.js';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 
@@ -40,19 +31,11 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 		ScheduleModule.forRoot(),
 		SystemModule,
 		DatabaseModule,
-		SecurityModule,
-		WeatherModule,
+		SystemModule,
 		CommonModule,
 		UsersModule,
-		PeopleModule,
-		ContactModule,
 		RolesModule,
-		PrestashopModule,
-		CategoriesModule,
-		TechniquesModule,
-		EntitiesModule,
-		TranslationsModule,
-		KeywordsModule,
+		ContentModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

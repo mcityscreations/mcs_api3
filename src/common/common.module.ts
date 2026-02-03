@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { DateService } from './dates/dates.service.js';
-import { ZodValidationPipe } from './pipes/zod-validation.pipe.js';
 
+@Global()
 @Module({
-	providers: [DateService, ZodValidationPipe],
-	exports: [DateService, ZodValidationPipe],
+	providers: [DateService],
+	exports: [DateService],
 })
 export class CommonModule {}
