@@ -46,7 +46,7 @@ graph TD
         SM[SystemModule]
         SM --> DB[(PostgreSQL / MongoDB)]
         SM --> SEC[Security & JWT]
-        SM --> ALS[Asynchronous Local Storage]
+        SM --> ALS[Async Local Storage]
         SM --> LOG[Winston Logging]
         SM --> MON[Monitoring: Prometheus]
     end
@@ -60,28 +60,25 @@ graph TD
 
     subgraph "Business Layer (Domain)"
         BM[Modules Folder]
-    end
+        
+        subgraph "Content"
+            CTM[Contact]
+            AWM[Artworks]
+            TSM[Translations]
+            SEOM[SEO]
+            WEM[Weather]
+        end
 
-    subgraph "Content"
-        CT[Content Folder]
-        CT --> AWM[ArtworksModule]
-        CT --> CTM[ContactModule]
-        CT --> TSM[TranslationsModule]
-        CT --> SEOM[SeoModule]
-        CT --> WEM[WeatherModule]
-    end
-
-    subgraph "Identity"
-        ID --> USR[UsersModule]
-        ID --> ROL[RolesModule]
+        subgraph "Identity"
+            USR[Users]
+            ROL[Roles]
+        end
     end
 
     %% Relations
     AM --> SM
     AM --> CM
     AM --> BM
-    BM --> CT
-    BM --> ID
     BM -.-> |Imports| SM
     BM -.-> |Uses| CM
 ```
