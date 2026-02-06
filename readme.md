@@ -84,7 +84,7 @@ graph TD
 ```
 This tiered approach ensures that the Business Layer remains lean and focused on domain logic, while infrastructure concerns are abstracted within the System Layer. This structure is the first step toward a seamless transition to a Microservices architecture.
 
-### 🛡️ Resilience & Observability
+## 🛡️ Resilience & Observability
 
 To ensure high availability and maintainability, the API implements a multi-layered resilience strategy:
 

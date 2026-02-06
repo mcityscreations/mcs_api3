@@ -3,24 +3,32 @@ import { AppModule } from './app.module.js';
 import helmet from 'helmet';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { WinstonLoggerService } from './system/logger/logger-service/winston-logger.service.js';
+import { SuccessInterceptor } from './common/interceptors/success/success.interceptor.js';
+import { GlobalExceptionFilter } from './common/filters/global-exception/global-exception.filter.js';
 
 async function bootstrap() {
-	// 1. Starting application
+	// Starting application
 	const app = await NestFactory.create(AppModule, {
 		bufferLogs: true, // Keeps logs in buffer until a logger is set
 	});
 
-	// 2. Applying security middleware
+	// Applying security middleware
 	app.use(helmet());
 
-	// 3. Retrieving Winston Logger instance
+	// Retrieving Winston Logger instance
 	const winstonLoggerService = app.get(WinstonLoggerService);
 
-	// 4. Replacing the default Logger with the custom Winston logger
+	// Replacing the default Logger with the custom Winston logger
 	app.useLogger(winstonLoggerService);
 
-	// 5. Applying Zod validation pipe globally
+	// Applying Zod validation pipe globally
 	app.useGlobalPipes(new ZodValidationPipe());
+
+	// Applying global response interceptor
+	app.useGlobalInterceptors(new SuccessInterceptor());
+
+	// Applying global exception filter
+	app.useGlobalFilters(new GlobalExceptionFilter());
 
 	await app.listen(process.env.PORT ?? 3000);
 }

@@ -36,7 +36,10 @@ export function isInstanceofError(error: unknown): error is Error {
 export function isNestHttpException(
 	// Use 'unknow' instead of 'any' for better type safety
 	error: unknown,
-): error is { getStatus: () => number; message: string } {
+): error is {
+	getStatus: () => number;
+	getResponse: () => { message: string };
+} {
 	// Basic verification that error is an object
 	if (typeof error !== 'object' || error === null) {
 		return false;
@@ -44,12 +47,17 @@ export function isNestHttpException(
 
 	// Checking that getStatus exists !
 	const hasGetStatus = 'getStatus' in (error as Record<string, unknown>);
+	const hasGetResponse = 'getResponse' in (error as Record<string, unknown>);
 
-	if (!hasGetStatus) {
+	// If either getStatus or getResponse is missing, it's not a NestJS HttpException
+	if (!hasGetStatus || !hasGetResponse) {
 		return false;
 	}
 
 	// Checking that getStatus is a function
 	const getStatusFn = (error as { getStatus: unknown }).getStatus;
-	return typeof getStatusFn === 'function';
+	const getResponseFn = (error as { getResponse: unknown }).getResponse;
+	return (
+		typeof getStatusFn === 'function' && typeof getResponseFn === 'function'
+	);
 }
