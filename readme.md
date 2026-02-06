@@ -60,9 +60,6 @@ graph TD
 
     subgraph "Business Layer (Domain)"
         BM[Modules Folder]
-        BM --> AW[ArtworksModule]
-        BM --> KW[TaxonomyModule]
-        BM --> ST[StaticContentModule]
     end
 
     subgraph "Content"
