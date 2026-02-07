@@ -18,16 +18,13 @@ export const WINSTON_LOGGER = 'WINSTON_LOGGER';
 
 export const winstonLoggerFactory = {
 	provide: WINSTON_LOGGER,
-	useFactory: (
-		configService: LoggerConfigService,
-	): Logger => {
-
+	useFactory: (configService: LoggerConfigService): Logger => {
 		// Loading MongoDB URI from configuration
 		const mongoUri = configService.getMongoUri();
 		if (!mongoUri)
-		throw new InternalServerErrorException(
-			'MongoDB configuration is missing',
-		);
+			throw new InternalServerErrorException(
+				'MongoDB configuration is missing',
+			);
 		const transportsList = [
 			// 1. Console transport for "debug" messages, on development mode
 			new transports.Console({
@@ -38,10 +35,13 @@ export const winstonLoggerFactory = {
 						// Converting type from unknown to string
 						const msg = message as string;
 						const time = timestamp as string;
-						const reqId = requestId ? ` [${requestId}]` : '';
+						const formattedRequestID =
+							requestId && typeof requestId === 'object'
+								? `[${JSON.stringify(requestId)}]`
+								: ` [${requestId as string}]`;
 						// Fallback in case timestamp is undefined
 						const finalTimestamp = time || new Date().toISOString();
-						return `[Nest] ${finalTimestamp} ${reqId} ${level}: ${msg}`;
+						return `[Nest] ${finalTimestamp} ${formattedRequestID} ${level}: ${msg}`;
 					}),
 				),
 			}),
@@ -63,7 +63,7 @@ export const winstonLoggerFactory = {
 				capped: true, // Creates a limited size collection
 				cappedSize: 20000000, // 20 MB
 				format: format.combine(format.timestamp(), format.json()),
-			} as WinstonMongoDBOptions)
+			} as WinstonMongoDBOptions),
 		];
 
 		return createLogger({

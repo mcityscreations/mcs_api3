@@ -18,7 +18,7 @@ import {
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Request, Response } from 'express';
-import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
+import { WinstonLoggerService } from '../logger-service/winston-logger.service.js';
 import { Histogram, Counter } from 'prom-client';
 
 @Injectable()

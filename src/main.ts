@@ -3,8 +3,6 @@ import { AppModule } from './app.module.js';
 import helmet from 'helmet';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { WinstonLoggerService } from './system/logger/logger-service/winston-logger.service.js';
-import { SuccessInterceptor } from './common/interceptors/success/success.interceptor.js';
-import { GlobalExceptionFilter } from './common/filters/global-exception/global-exception.filter.js';
 
 async function bootstrap() {
 	// Starting application
@@ -23,12 +21,6 @@ async function bootstrap() {
 
 	// Applying Zod validation pipe globally
 	app.useGlobalPipes(new ZodValidationPipe());
-
-	// Applying global response interceptor
-	app.useGlobalInterceptors(new SuccessInterceptor());
-
-	// Applying global exception filter
-	app.useGlobalFilters(new GlobalExceptionFilter());
 
 	await app.listen(process.env.PORT ?? 3000);
 }
