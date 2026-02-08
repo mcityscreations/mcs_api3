@@ -10,10 +10,9 @@ export class WeatherProviderConfigService {
 	constructor(private readonly configService: ConfigService) {
 		this.weatherConfig = {
 			openWeatherMap: {
-				apiKey:
-					this.configService.get<string>('OPEN_WEATHER_MAP_API_KEY') || '',
+				apiKey: this.configService.get<string>('OPEN_WEATHER_API_KEY') || '',
 				enabled: this.toBoolean(
-					this.configService.get<string>('OPEN_WEATHER_MAP_ENABLED'),
+					this.configService.get<string>('OPEN_WEATHER_ENABLED'),
 				),
 			},
 			accuWeather: {

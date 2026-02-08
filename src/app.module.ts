@@ -14,10 +14,7 @@ import { CorrelationIdMiddleware } from './system/middlewares/correlation-id.mid
 
 // Application modules
 import { SystemModule } from './system/system.module.js';
-import { DatabaseModule } from './system/database/database.module.js';
 import { CommonModule } from './common/common.module.js';
-import { UsersModule } from './modules/identity/users/users.module.js';
-import { RolesModule } from './modules/identity/roles/roles.module.js';
 import { ContentModule } from './modules/content/content.module.js';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
@@ -30,11 +27,7 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 		}),
 		ScheduleModule.forRoot(),
 		SystemModule,
-		DatabaseModule,
-		SystemModule,
 		CommonModule,
-		UsersModule,
-		RolesModule,
 		ContentModule,
 	],
 	controllers: [AppController],

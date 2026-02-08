@@ -1,7 +1,7 @@
 // src/common/filters/global-exception/global-exception.filter.ts
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { isNestHttpException } from 'src/common/validators/error.validators.js';
+import { isNestHttpException } from '../../../../common/validators/error.validators.js';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
