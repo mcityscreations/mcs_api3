@@ -6,6 +6,7 @@ import { TechniquesModule } from './taxonomy/techniques/techniques.module.js';
 import { KeywordsModule } from './taxonomy/keywords/keywords.module.js';
 import { TranslationsModule } from './translations/translations.module.js';
 import { WeatherModule } from './weather/weather.module.js';
+import { ArtworksModule } from './artworks/artworks.module.js';
 
 /** Module wrapper for content */
 @Module({
@@ -17,6 +18,7 @@ import { WeatherModule } from './weather/weather.module.js';
 		KeywordsModule,
 		TranslationsModule,
 		WeatherModule,
+		ArtworksModule,
 	],
 })
 export class ContentModule {}
