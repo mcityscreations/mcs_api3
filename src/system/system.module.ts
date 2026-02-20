@@ -22,6 +22,7 @@ import { DatabaseModule } from './database/database.module.js';
 // HTTP formatters
 import { GlobalExceptionFilter } from './http/filters/global-exception/global-exception.filter.js';
 import { SuccessInterceptor } from './http/interceptors/success/success.interceptor.js';
+import { EventBusModule } from './eventbus/eventbus.module.js';
 
 @Global()
 @Module({
@@ -30,6 +31,7 @@ import { SuccessInterceptor } from './http/interceptors/success/success.intercep
 		ScheduleModule.forRoot(),
 		DatabaseModule,
 		SecurityModule,
+		EventBusModule,
 	],
 	providers: [
 		// Logging
@@ -56,6 +58,7 @@ import { SuccessInterceptor } from './http/interceptors/success/success.intercep
 		WinstonLoggerService,
 		SecurityModule,
 		DatabaseModule,
+		EventBusModule,
 	],
 })
 export class SystemModule {}
