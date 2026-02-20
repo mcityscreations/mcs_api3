@@ -29,22 +29,15 @@ export class RabbitMqAdapter
 		private readonly rabbitMqConfig: RabbitMqConfig,
 	) {
 		super(alsService, logger);
-		this.exchangeName =
-			this.rabbitMqConfig.getRabbitMqConfig()?.exchangeName ||
-			'default_exchange';
+		this.exchangeName = this.rabbitMqConfig.getRabbitMqConfig().exchangeName;
 	}
 
 	async onModuleInit() {
-		if (!this.rabbitMqConfig.getRabbitMqConfig()?.enabled) {
-			this.logger.warn(
-				'RabbitMQ is disabled in the configuration. RabbitMqAdapter will not be initialized.',
-			);
-			return;
-		}
-		const connectionURI = this.rabbitMqConfig.getRabbitMqConfig()?.uri ?? '';
 		try {
 			this.logger.log('Connecting to RabbitMQ...');
-			this.connection = amqp.connect([connectionURI]);
+			this.connection = amqp.connect([
+				this.rabbitMqConfig.getRabbitMqConfig().uri,
+			]);
 
 			this.channelWrapper = this.connection.createChannel({
 				json: true,

@@ -2,7 +2,6 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 export interface IRabbitMqConfig {
-	enabled: boolean;
 	uri: string;
 	host: string;
 	port: number;
@@ -14,9 +13,7 @@ export interface IRabbitMqConfig {
 export class RabbitMqConfig {
 	constructor(private readonly configService: ConfigService) {}
 
-	public getRabbitMqConfig(): IRabbitMqConfig | null {
-		if (!this.isRabbitMQEnabled()) return null;
-
+	public getRabbitMqConfig(): IRabbitMqConfig {
 		const rabbitMQURI = this.configService.get<string>('RABBITMQ_URI');
 		if (!rabbitMQURI) {
 			throw new InternalServerErrorException(
@@ -59,7 +56,6 @@ export class RabbitMqConfig {
 		}
 
 		return {
-			enabled: !this.isRabbitMQEnabled(),
 			uri: rabbitMQURI,
 			host: host,
 			port: port,
