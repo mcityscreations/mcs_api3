@@ -40,7 +40,10 @@ export class JwtService {
 			);
 		}
 		// Handling RS256 key formatting
-		this._JWT_PRIVATE_KEY = PRIVATE_KEY_CONTENT.replaceAll('\\n', '\n');
+		this._JWT_PRIVATE_KEY = PRIVATE_KEY_CONTENT.replaceAll(
+			String.raw`\n`,
+			'\n',
+		);
 
 		// 2. Loading public JWT public key
 		const PUBLIC_KEY_CONTENT = process.env.JWT_PUBLIC_KEY;
@@ -49,7 +52,7 @@ export class JwtService {
 				'JWT public key is not configured.',
 			);
 		}
-		this._JWT_PUBLIC_KEY = PUBLIC_KEY_CONTENT.replaceAll('\\n', '\n');
+		this._JWT_PUBLIC_KEY = PUBLIC_KEY_CONTENT.replaceAll(String.raw`\n`, '\n');
 	}
 
 	public createToken(payload: IJwtPayload): { token: string } {
