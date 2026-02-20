@@ -26,5 +26,6 @@ import { AlsService } from '../als/als.service.js';
 			inject: [RabbitMqConfig, RabbitMqAdapter, LocalEventBus],
 		},
 	],
+	exports: [EventBus],
 })
 export class EventBusModule {}
