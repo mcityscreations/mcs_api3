@@ -8,7 +8,6 @@ import {
 import * as amqp from 'amqp-connection-manager';
 import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConfirmChannel } from 'amqplib';
-import { PublishOptions } from 'node_modules/amqp-connection-manager/dist/types/ChannelWrapper.js';
 import { EventBus } from '../interfaces/eventbus.interface.js';
 import { RabbitMqConfig } from '../configs/rabbit-mq/rabbit-mq.config.js';
 import { AlsService } from '../../als/als.service.js';
@@ -101,7 +100,7 @@ export class RabbitMqAdapter
 					correlationId: correlationId,
 					timestamp: Date.now(),
 					messageId: crypto.randomUUID(),
-				} as PublishOptions,
+				},
 			);
 			if (this.logger.debug) {
 				this.logger.debug(

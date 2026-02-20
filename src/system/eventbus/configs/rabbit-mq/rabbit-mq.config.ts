@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InternalServerErrorException } from '@nestjs/common';
 
 export interface IRabbitMqConfig {
 	enabled: boolean;
@@ -36,7 +35,8 @@ export class RabbitMqConfig {
 				'RABBITMQ_PORT is not defined in the configuration.',
 			);
 		}
-		const port = typeof rawPort === 'number' ? rawPort : parseInt(rawPort, 10);
+		const port =
+			typeof rawPort === 'number' ? rawPort : Number.parseInt(rawPort, 10);
 		const username = this.configService.get<string>('RABBITMQ_USERNAME');
 		if (!username) {
 			throw new InternalServerErrorException(
@@ -73,7 +73,7 @@ export class RabbitMqConfig {
 		const isEnabledRaw: string =
 			this.configService.get<string>('RABBITMQ_ENABLED') || 'false';
 		const isEnabled =
-			typeof isEnabledRaw == 'string' && isEnabledRaw === 'true' ? true : false;
+			typeof isEnabledRaw === 'string' && isEnabledRaw === 'true';
 		return isEnabled;
 	};
 }

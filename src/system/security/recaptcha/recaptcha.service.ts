@@ -22,7 +22,7 @@ export class RecaptchaService implements OnModuleInit {
 
 	// Recaptcha thresholds
 	private readonly BLOCK_THRESHOLD = 0.1;
-	private readonly MFA_THRESHOLD = 0.9;
+	private readonly MFA_THRESHOLD = 0.5;
 
 	constructor(
 		@Inject('RECAPTCHA_CONFIG_TOKEN') config: IRecaptchaConfig,
