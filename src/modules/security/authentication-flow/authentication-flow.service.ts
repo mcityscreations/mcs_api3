@@ -1,3 +1,4 @@
+// src/modules/security/authentication-flow/authentication-flow.service.ts
 import {
 	ConflictException,
 	ForbiddenException,
@@ -11,7 +12,7 @@ import { RecaptchaService } from '../recaptcha/recaptcha.service.js';
 import { MfaSessionService } from '../mfa/mfa.service.js';
 import { IJWTResponse } from '../security.interfaces.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
-import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 
 export interface IMFAChallengeResponse {
 	status: string;

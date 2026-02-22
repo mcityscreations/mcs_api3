@@ -16,12 +16,12 @@ import { LoggingInterceptor } from './logger/logging-interceptor/logging.interce
 import { WinstonLoggerService } from './logger/logger-service/winston-logger.service.js';
 // Metrics
 import { MetricsController } from './metrics/metrics.controller.js';
-// Security services
-import { SecurityModule } from './security/security.module.js';
+// Database
 import { DatabaseModule } from './database/database.module.js';
 // HTTP formatters
 import { GlobalExceptionFilter } from './http/filters/global-exception/global-exception.filter.js';
 import { SuccessInterceptor } from './http/interceptors/success/success.interceptor.js';
+// Event Bus
 import { EventBusModule } from './eventbus/eventbus.module.js';
 
 @Global()
@@ -30,7 +30,6 @@ import { EventBusModule } from './eventbus/eventbus.module.js';
 		ConfigModule,
 		ScheduleModule.forRoot(),
 		DatabaseModule,
-		SecurityModule,
 		EventBusModule,
 	],
 	providers: [
@@ -56,7 +55,6 @@ import { EventBusModule } from './eventbus/eventbus.module.js';
 		WINSTON_LOGGER,
 		AlsService,
 		WinstonLoggerService,
-		SecurityModule,
 		DatabaseModule,
 		EventBusModule,
 	],

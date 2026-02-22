@@ -1,6 +1,6 @@
-// src/system/security/mfa/mfa.repository.ts
+// src/modules/security/mfa/mfa.repository.ts
 import { Injectable } from '@nestjs/common';
-import { RedisService } from '../../database/redis/redis.service.js';
+import { RedisService } from '../../../system/database/redis/redis.service.js';
 
 const MFA_SESSION_TTL_SECONDS = 5 * 60; // 5 minutes
 

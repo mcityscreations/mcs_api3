@@ -1,4 +1,4 @@
-// src/security/guards/mandatory-auth/mandatory-auth.guard.ts
+// src/modules/security/guards/mandatory-auth/mandatory-auth.guard.ts
 
 import {
 	CanActivate,
@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '../../jwt/jwt.service.js';
 import { Request } from 'express';
-import { WinstonLoggerService } from '../../../logger/logger-service/winston-logger.service.js';
+import { WinstonLoggerService } from '../../../../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
 export class MandatoryAuthGuard implements CanActivate {

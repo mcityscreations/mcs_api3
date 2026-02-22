@@ -1,12 +1,12 @@
-// src/system/security/security.interfaces.ts
-import { UserRole } from '../../modules/identity/roles/interfaces/roles.interface.js';
+// src/modules/security/security.interfaces.ts
+import { UserRole } from '../identity/roles/interfaces/roles.interface.js';
 
 export interface ISecurityEvaluationResult {
 	/** If set to true, proceed */
 	isAllowed: boolean;
 
 	/** * Required action if isAllowed is false.
-	 * Ex: 'NONE', 'BLOCK', 'MFA_REQUIRED', 'CAPTCHA_REQUIRED'
+	 * Ex: 'NONE', 'BLOCK', 'MFA_REQUIRED', 'CHALLENGE_REQUIRED'
 	 */
 	requiredAction: 'NONE' | 'BLOCK' | 'MFA_REQUIRED' | 'CHALLENGE_REQUIRED';
 }

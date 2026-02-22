@@ -1,4 +1,4 @@
-// src/system/security/rate-limiter/rate-limiter.service.ts
+// src/modules/security/rate-limiter/rate-limiter.service.ts
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { RateLimiterRepository } from './rate-limiter.repository.js';
 
@@ -13,7 +13,7 @@ export class RateLimiterService {
 	 * Checks if an IP address is temporarily blocked by Rate Limiting.
 	 * Throws an HttpError if the threshold is exceeded.
 	 *
-	 * @param ip Yhe IP address to check.
+	 * @param ip The IP address to check.
 	 */
 	public async checkIpBlocked(ip: string): Promise<void> {
 		const failureCount = await this.repository.getFailureCount(ip);

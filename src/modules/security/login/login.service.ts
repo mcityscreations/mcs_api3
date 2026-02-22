@@ -1,4 +1,4 @@
-// src/system/security/login/login.service.ts
+// src/modules/security/login/login.service.ts
 import {
 	Injectable,
 	UnauthorizedException,
@@ -15,13 +15,13 @@ import { JwtService } from '../jwt/jwt.service.js';
 import { IJWTResponse } from '../security.interfaces.js';
 
 // User scripts
-import { UsersService } from '../../../modules/identity/users/users.service.js';
-import { UserRole } from '../../../modules/identity/roles/interfaces/roles.interface.js';
-import { isUserRole } from '../../../modules/identity/roles/helpers/roles.helpers.js';
+import { UsersService } from '../../identity/users/users.service.js';
+import { UserRole } from '../../identity/roles/interfaces/roles.interface.js';
+import { isUserRole } from '../../identity/roles/helpers/roles.helpers.js';
 
 // Logging and error handling
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
-import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 
 /** LOGIN SERVICE */
 

@@ -1,4 +1,4 @@
-// src/system/security/recaptcha/recaptcha-config/recaptcha-config.service.ts
+// src/modules/security/recaptcha/recaptcha-config/recaptcha-config.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 

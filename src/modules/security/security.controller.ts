@@ -1,4 +1,4 @@
-// src/system/security/security.controller.ts
+// src/modules/security/security.controller.ts
 
 import {
 	Controller,

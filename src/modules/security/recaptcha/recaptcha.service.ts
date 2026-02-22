@@ -1,4 +1,4 @@
-// src/system/security/recaptcha/recaptcha.service.ts
+// src/modules/security/recaptcha/recaptcha.service.ts
 import {
 	BadRequestException,
 	Injectable,
@@ -11,7 +11,7 @@ import { RecaptchaEnterpriseServiceClient } from '@google-cloud/recaptcha-enterp
 import { ISecurityEvaluationResult } from '../security.interfaces.js';
 import type { IRecaptchaConfig } from './recaptcha-config/recaptcha-config.service.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
-import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
 export class RecaptchaService implements OnModuleInit {

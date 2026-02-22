@@ -1,13 +1,13 @@
-// src/system/security/otp/otp.service.ts
+// src/modules/security/otp/otp.service.ts
 import {
 	BadRequestException,
 	ForbiddenException,
 	Injectable,
 } from '@nestjs/common';
 import { randomInt } from 'node:crypto';
-import { ContactService } from '../../../modules/content/contact/contact.service.js';
+import { ContactService } from '../../content/contact/contact.service.js';
 import { IOTPPayload } from '../security.interfaces.js';
-import { UsersService } from '../../../modules/identity/users/users.service.js';
+import { UsersService } from '../../identity/users/users.service.js';
 
 // TTL (Time To Live) for OTP in minutes
 const OTP_TTL_SECONDS = 5 * 60; // 5 minutes

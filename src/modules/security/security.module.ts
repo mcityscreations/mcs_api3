@@ -1,10 +1,10 @@
-// src/system/security/security.module.ts
+// src/modules/security/security.module.ts
 import { Module } from '@nestjs/common';
 import { SecurityController } from './security.controller.js';
 import { AuthenticationFlowService } from './authentication-flow/authentication-flow.service.js';
 import { JwtService } from './jwt/jwt.service.js';
 import { JwtRepository } from './jwt/jwt.repository.js';
-import { DatabaseModule } from '../database/database.module.js';
+import { DatabaseModule } from '../../system/database/database.module.js';
 import { LoginService } from './login/login.service.js';
 import { MfaSessionService } from './mfa/mfa.service.js';
 import { MfaSessionRepository } from './mfa/mfa.repository.js';
@@ -14,8 +14,8 @@ import { RateLimiterRepository } from './rate-limiter/rate-limiter.repository.js
 import { RecaptchaService } from './recaptcha/recaptcha.service.js';
 import { RecaptchaConfigService } from './recaptcha/recaptcha-config/recaptcha-config.service.js';
 // Related modules
-import { UsersModule } from '../../modules/identity/users/users.module.js';
-import { ContactModule } from '../../modules/content/contact/contact.module.js';
+import { UsersModule } from '../identity/users/users.module.js';
+import { ContactModule } from '../content/contact/contact.module.js';
 
 @Module({
 	imports: [DatabaseModule, UsersModule, ContactModule],

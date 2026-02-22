@@ -1,5 +1,6 @@
+// src/modules/security/jwt/jwt.repository.ts
 import { Injectable } from '@nestjs/common';
-import { RedisService } from '../../database/redis/redis.service.js';
+import { RedisService } from '../../../system/database/redis/redis.service.js';
 
 @Injectable()
 export class JwtRepository {

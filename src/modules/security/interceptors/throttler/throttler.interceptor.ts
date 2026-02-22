@@ -1,3 +1,4 @@
+// src/modules/security/interceptors/throttler/throttler.interceptor.ts
 import {
 	Injectable,
 	NestInterceptor,
@@ -7,8 +8,8 @@ import {
 	HttpStatus,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { AlsService } from '../../../als/als.service.js';
-import { RedisService } from '../../../database/redis/redis.service.js';
+import { AlsService } from '../../../../system/als/als.service.js';
+import { RedisService } from '../../../../system/database/redis/redis.service.js';
 
 @Injectable()
 export class ThrottlerInterceptor implements NestInterceptor {

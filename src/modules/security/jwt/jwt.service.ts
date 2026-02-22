@@ -1,3 +1,4 @@
+// src/modules/security/jwt/jwt.service.ts
 import {
 	Injectable,
 	InternalServerErrorException,
@@ -7,9 +8,9 @@ import { randomUUID } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 const { sign: jwtSign, verify: jwtVerify, decode: jwtDecode } = jwt;
 import { JwtRepository } from './jwt.repository.js';
-import { UserRole } from '../../../modules/identity/roles/interfaces/roles.interface.js';
+import { UserRole } from '../../identity/roles/interfaces/roles.interface.js';
 import { isErrorWithMessage } from '../../../common/validators/error.validators.js';
-import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 
 export interface IJwtPayload {
 	username: string;

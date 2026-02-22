@@ -1,4 +1,4 @@
-// src/security/guards/optional-auth/optional-auth.guard.ts
+// src/modules/security/guards/optional-auth/optional-auth.guard.ts
 
 import {
 	CanActivate,
@@ -9,7 +9,7 @@ import {
 import { JwtService } from '../../jwt/jwt.service.js';
 import { Request } from 'express';
 import { isErrorWithMessage } from '../../../../common/validators/error.validators.js';
-import { WinstonLoggerService } from '../../../logger/logger-service/winston-logger.service.js';
+import { WinstonLoggerService } from '../../../../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
 export class OptionalAuthGuard implements CanActivate {
