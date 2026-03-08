@@ -18,9 +18,9 @@ This module centralizes **core, cross-cutting concerns** and infrastructure-leve
 
 ## Usage
 
-- **Database**: Import `DatabaseService` or use the abstract class to interact with SQL/Redis.
-- **HTTP**: Interceptors and filters are globally registered. Customize as needed in `app.module.ts`.
-- **Logging**: Inject `LoggerService` anywhere in the app. Critical logs are automatically stored in MongoDB.
+- **Database**: Import `PostgreSQLService` or use the abstract class `IDatabaseService` to interact with SQL.
+- **HTTP**: Interceptors and filters are globally registered.
+- **Logging**: Inject `WinstonLoggerService` anywhere in the app. Critical logs are automatically stored in MongoDB.
 - **Metrics**: Endpoint `/metrics` is exposed by default for Prometheus scraping.
 
 ## Dependencies

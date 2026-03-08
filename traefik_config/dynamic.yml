@@ -1,0 +1,25 @@
+# Dynamic configuration
+http:
+  middlewares:
+    secureHeaders:
+      headers:
+        frameDeny: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        referrerPolicy: "same-origin"
+        sslRedirect: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        permissionsPolicy: "camera=(), microphone=(), geolocation=()"
+
+tls:
+  options:
+    pqc-profile:
+      minVersion: VersionTLS13
+      curvePreferences:
+        - X25519Kyber768Draft00 # Hybrid post-quantum (PQ) curve
+        - X25519                # Classic elliptic curve for compatibility
+        - CurveP256
+        - CurveP384             # For older clients that don't support X25519
