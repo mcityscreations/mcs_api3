@@ -1,6 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import helmet from 'helmet';
+import * as cookieParser from 'cookie-parser';
+import { ConfigService } from '@nestjs/config';
+import { corsFactory } from './modules/security/cors/cors.factory.js';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { WinstonLoggerService } from './system/logger/logger-service/winston-logger.service.js';
 
@@ -10,8 +13,23 @@ async function bootstrap() {
 		bufferLogs: true, // Keeps logs in buffer until a logger is set
 	});
 
+	const configService = app.get(ConfigService);
+
 	// Applying security middleware
-	app.use(helmet());
+	app.use(helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-inline'"],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                imgSrc: ["'self'", "data:", "https:"],
+                connectSrc: ["'self'", configService.get('CORS_ORIGIN') ?? ''],
+            },
+        }
+	}));
+
+	// Enabling CORS with custom configuration
+	app.enableCors(corsFactory(configService));
 
 	// Retrieving Winston Logger instance
 	const winstonLoggerService = app.get(WinstonLoggerService);
