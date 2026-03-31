@@ -10,6 +10,17 @@
 This repository contains the back-end infrastructure of the [mcitys.com](https://mcitys.com/) website.
 Mcitys is the structure that centralizes all the creations of Yves-Leonardo Marchon.
 The front-end is a digital portfolio built with Angular. [See the repo](https://github.com/mcityscreations/mcs_angular/tree/main).
+The back-end was first created with Express. It was a monolith.I'm actually migrating this application to Angular, the API being the only data provider and handler.
+
+**Features**
+- Artwork catalog management
+- Exhibitions list management
+- Blog articles (publish/update with Quill)
+- Media upload and processing (artwork images)
+- Dynamic certificates of authenticity
+- Exhibition labels with all the details associated to each artwork
+- Contact form
+
 **Current Projects** 
 - Migrate from MariaDB to PostgreSQL (In progress)
 - Migrate Node.js/Express raw Javascript code to Nest.js/Typescript (processing)
