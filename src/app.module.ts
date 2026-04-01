@@ -16,6 +16,7 @@ import { CorrelationIdMiddleware } from './system/middlewares/correlation-id.mid
 import { SystemModule } from './system/system.module.js';
 import { CommonModule } from './common/common.module.js';
 import { ContentModule } from './modules/content/content.module.js';
+import { StoresModule } from './modules/stores/stores.module';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 
@@ -29,6 +30,7 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 		SystemModule,
 		CommonModule,
 		ContentModule,
+		StoresModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
