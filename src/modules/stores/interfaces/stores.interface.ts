@@ -1,6 +1,5 @@
 export abstract class StoreAdapter {
 
-    constructor() {}
     abstract uploadProduct(): void;
     abstract updateProduct(): void;
     abstract uploadProductImage(): void;

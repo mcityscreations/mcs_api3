@@ -15,14 +15,15 @@ readonly REQUIRED_ENV_VARS=(
 check_env_vars_set() {
   for var in "${REQUIRED_ENV_VARS[@]}"; do
     if [[ -z "${!var:-}" ]]; then
-      echo "ERROR: Environment variable '$var' is not set."
-      exit 1
+      echo "ERROR: Environment variable '$var' is not set." >&2
+      return 1
     fi
   done
+  return 0
 }
 
 main() {
-  check_env_vars_set
+  check_env_vars_set || exit 1
   wait_for_postgres
 
   echo "Initializing database..."
