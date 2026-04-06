@@ -25,7 +25,8 @@ The back-end was first created with Express. It was a monolith.I'm actually migr
 - Migrate from MariaDB to PostgreSQL (In progress)
 - Migrate Node.js/Express raw Javascript code to Nest.js/Typescript (processing)
 - Launch the API on a dedicated VPS for better performances (testing)
-- Connect the Mcitys API to the digital store mcitys.fr which is powered by Prestashop. (planned)
+- Connect the Mcitys API to the digital store mcitys.fr which is powered by Prestashop. (processing)
+- Digital Invoices handling. Creating a bridge between Prestashop and Qonto API to transmit to the Tax Authorities the invoices in the FACTUR-X format.
 
 ## 🏗️ Architecture philosophy
 
@@ -78,6 +79,10 @@ graph TD
             TSM[Translations]
             SEOM[SEO]
             WEM[Weather]
+        end
+
+        subgraph "Stores"
+            PRS[Prestashop]
         end
 
         subgraph "Identity"
