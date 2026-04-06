@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import helmet from 'helmet';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { ConfigService } from '@nestjs/config';
 import { corsFactory } from './modules/security/cors/cors.factory.js';
 import { ZodValidationPipe } from 'nestjs-zod';
@@ -27,7 +27,9 @@ async function bootstrap() {
             },
         }
 	}));
-
+	// Middleware to parse cookies from incoming requests
+	app.use(cookieParser());
+	
 	// Enabling CORS with custom configuration
 	app.enableCors(corsFactory(configService));
 

@@ -20,7 +20,10 @@ export class MandatoryAuthGuard implements CanActivate {
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request: Request = context.switchToHttp().getRequest();
-		const token = this.extractTokenFromHeader(request);
+		// Try to extract token from cookies first  header first, then fallback to Authorization header
+		const token =
+			this.extractTokenFromCookie(request) ||
+			this.extractTokenFromHeader(request);
 
 		if (!token) {
 			// Token missing
@@ -46,5 +49,9 @@ export class MandatoryAuthGuard implements CanActivate {
 	private extractTokenFromHeader(request: Request): string | undefined {
 		const [type, token] = request.headers.authorization?.split(' ') ?? [];
 		return type === 'Bearer' ? token : undefined;
+	}
+
+	private extractTokenFromCookie(request: Request): string | undefined {
+		return request.cookies?.['auth_token'];
 	}
 }
