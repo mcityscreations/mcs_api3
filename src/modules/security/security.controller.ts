@@ -5,6 +5,7 @@ import {
 	Post,
 	Body,
 	Headers,
+	Res,
 	Ip,
 	InternalServerErrorException,
 	UseInterceptors,
@@ -16,6 +17,12 @@ import { AuthenticationFlowService } from './authentication-flow/authentication-
 import { LoginDto } from './dto/login.dto.js';
 import { VerifyMFADto } from './dto/verify-mfa.dto.js';
 import { ThrottlerInterceptor } from './interceptors/throttler/throttler.interceptor.js';
+
+// Utils
+import { isWebClient } from '../../common/utils/isWebClient.utils.js';
+
+// Types
+import type { Response } from 'express';
 
 // api3.mcitys.com/security
 @ApiTags('Security')
@@ -36,6 +43,8 @@ export class SecurityController {
 		@Body() body: LoginDto, // Contains username, password, recaptchaToken)
 		@Ip() ipAddress: string,
 		@Headers('user-agent') userAgent: string,
+		@Headers('x-client-platform') clientPlatform: string,
+		@Res({ passthrough: true }) response: Response,
 	) {
 		// 1. Extracting IP address
 		if (!ipAddress) {
@@ -52,7 +61,24 @@ export class SecurityController {
 		);
 
 		// 3. Responding with the result
-		return result;
+		if (isWebClient(clientPlatform)) {
+			// If this is a web client, we set the token in an HttpOnly cookie and return a simple success message
+			response.cookie('auth_token', result.jwt_token, {
+				httpOnly: true,   // Prevent Angular (and attackers) from reading the cookie
+				secure: true,     // Only transmit cookie over HTTPS
+				sameSite: 'strict', // Protection against CSRF
+				path: '/',        // Enable cookie for all routes
+				maxAge: 3600000,  // Expires within 1 hour (in ms)
+			});
+			return { 
+				message: 'Login successful', 
+				username: result.username, 
+				role: result.role 
+			};
+		} else {
+			return result;
+		}
+
 	}
 
 	// ---------------------------------------------------------------------
