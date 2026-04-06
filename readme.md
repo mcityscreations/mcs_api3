@@ -26,7 +26,7 @@ The back-end was first created with Express. It was a monolith.I'm actually migr
 - Migrate Node.js/Express raw Javascript code to Nest.js/Typescript (processing)
 - Launch the API on a dedicated VPS for better performances (testing)
 - Connect the Mcitys API to the digital store mcitys.fr which is powered by Prestashop. (processing)
-- Digital Invoices handling. Creating a bridge between Prestashop and Qonto API to transmit to the Tax Authorities the invoices in the FACTUR-X format.
+- Digital Invoices handling. Creating a bridge between Prestashop and Qonto API to transmit invoices in the FACTUR-X format to the Tax Authorities.
 
 ## 🏗️ Architecture philosophy
 
@@ -57,7 +57,8 @@ graph TD
     subgraph "System Layer (Infrastructure)"
         SM[SystemModule]
         SM --> DB[(PostgreSQL / MongoDB)]
-        SM --> SEC[Security & JWT]
+        SM --> EVT[EventBus]
+        SM --> EXFIL[Exception Filters & Interceptors]
         SM --> ALS[Async Local Storage]
         SM --> LOG[Winston Logging]
         SM --> MON[Monitoring: Prometheus]
@@ -86,6 +87,7 @@ graph TD
         end
 
         subgraph "Identity"
+            SEC[Security & JWT]
             USR[Users]
             ROL[Roles]
         end
@@ -112,7 +114,7 @@ To ensure high availability and maintainability, the API implements a multi-laye
 
 * **Persistence:** Critical logs and audit trails are indexed in MongoDB, enabling high-speed searches and historical analysis.
 
-**Health Monitoring:** Implementation of the Prometheus metrics exporter to track system vitals (CPU, Memory, Request Latency), ready for Grafana visualization.
+* **Health Monitoring:** Implementation of the Prometheus metrics exporter to track system vitals (CPU, Memory, Request Latency), ready for Grafana visualization.
 
 ## 🛠️ Key technologies
 
