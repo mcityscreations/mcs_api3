@@ -93,7 +93,7 @@ export const PrestaShopProductSchema = z.object({
     meta_description: MetaDataSchema,
     meta_keywords: MetaDataSchema,
     meta_title: MetaDataSchema,
-    link_rewrite: MetaDataSchema,
+    link_rewrite: MetaDataSchema.optional(),
     name: MetaDataSchema,
     description: MetaDataSchema,
     description_short: MetaDataSchema,
@@ -105,3 +105,5 @@ export const PrestaShopProductSchema = z.object({
         })
     })
 });
+
+export type IPrestaShopProduct = z.infer<typeof PrestaShopProductSchema>;

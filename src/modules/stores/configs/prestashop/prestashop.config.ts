@@ -13,6 +13,14 @@ export class PrestashopConfigService {
     return key;
   }
 
+  // Recommended connection method for PrestaShop API is Basic Authentication, 
+  // which requires the key to be encoded in Base64 format
+  get authorizationKey(): string {
+    const authorizationKey = Buffer.from(this.key + ':').toString('base64');
+    return 'Basic ' + authorizationKey;
+
+  }
+
   get url(): string {
     const url = this.configService.get<string>('PRESTASHOP_URL');
     if (!url) {
