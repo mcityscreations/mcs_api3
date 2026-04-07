@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { StoreAdapter } from '../interfaces/stores.interface.js';
 import { PrestashopConfigService } from '../configs/prestashop/prestashop.config.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
+import { IDateFilter } from '../schemas/datefilter.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -47,7 +48,7 @@ export class PrestashopAdapter extends StoreAdapter {
         // The logic to retrieve product attributes from PrestaShop
     }
 
-    getInvoices(): void {
+    getInvoices(dateFilter: IDateFilter): void {
         // The logic to retrieve invoices from PrestaShop
     }
 }

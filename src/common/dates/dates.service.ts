@@ -40,4 +40,16 @@ export class DateService {
 		// YYYY-MM-DD HH:MM:SS
 		return `${year}-${month}-${day} ${hour}:${minute}:${seconds}`;
 	}
+
+	/**
+	 * @description Returns a date in the following format
+	 * YYYY-MM-DD
+	 */
+	public dateOnlyFormatter(date: Date) {
+		const day = String(date.getDate()).padStart(2, '0');
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const year = date.getFullYear();
+
+		return `${year}-${month}-${day}`;
+	}
 }

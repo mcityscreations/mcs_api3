@@ -1,3 +1,5 @@
+import { IDateFilter } from "../schemas/datefilter.schema.js";
+
 export abstract class StoreAdapter {
 
     abstract uploadProduct(): void;
@@ -7,5 +9,5 @@ export abstract class StoreAdapter {
     abstract getProductCategories(): void;
     abstract getProductAttributes(): void;
 
-    abstract getInvoices(): void;
+    abstract getInvoices(dateFilter: IDateFilter): void;
 }
