@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { DateTime } from 'luxon';
 import { DateService } from 'src/common/dates/dates.service.js';
 import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
 import { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
@@ -23,9 +24,12 @@ export class PrestashopCronService {
             this.logger.log('Service not started yet. First execution will be on November 2nd 2026.');
             return;
         } else {
-            const startOfPeriod = this.dateService.dateOnlyFormatter(new Date(now.getFullYear(), now.getMonth() - 2, 1));
-            const endOfPeriod = this.dateService.dateOnlyFormatter(new Date(now.getFullYear(), now.getMonth(), 0));
-            const invoices: IPrestashopInvoice[] = await this.prestashopAdapter.getInvoices({ startDate: startOfPeriod, endDate: endOfPeriod });
+            const nowParis = DateTime.now().setZone('Europe/Paris');
+            const rawStartOfPeriod = nowParis.minus({ days: 7 }).startOf('day');
+            const rawEndOfPeriod = nowParis.minus({ days: 1 }).endOf('day');
+            const startOfPeriod = this.dateService.dateOnlyFormatter(rawStartOfPeriod.toJSDate());
+            const endOfPeriod = this.dateService.dateOnlyFormatter(rawEndOfPeriod.toJSDate());
+            const invoices: IPrestashopInvoice[] = await this.prestashopAdapter.getInvoicesByDatePeriod({ startDate: startOfPeriod, endDate: endOfPeriod });
             // Next step : save the invoices into the database. 
             // They will then be processed by the Accounting module's cron service on the 2nd day of every 2 months.
             // + change the way startOfPeriod and endOfPeriod are calculated 

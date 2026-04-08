@@ -9,5 +9,5 @@ export abstract class StoreAdapter {
     abstract getProductCategories(): void;
     abstract getProductAttributes(): void;
 
-    abstract getInvoices(dateFilter: IDateFilter): void;
+    abstract getInvoicesByDatePeriod(dateFilter: IDateFilter): void;
 }

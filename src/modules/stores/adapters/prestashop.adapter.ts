@@ -48,7 +48,7 @@ export class PrestashopAdapter extends StoreAdapter {
         // The logic to retrieve product attributes from PrestaShop
     }
 
-    getInvoices(dateFilter: IDateFilter): void {
+    getInvoicesByDatePeriod(dateFilter: IDateFilter): void {
         // The logic to retrieve invoices from PrestaShop
     }
 }
