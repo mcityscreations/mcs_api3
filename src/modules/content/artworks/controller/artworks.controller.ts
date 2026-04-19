@@ -4,7 +4,7 @@ import { ArtworksService } from '../services/artworks/artworks.service.js';
 
 @Controller('artworks')
 export class ArtworksController {
-    
+
     constructor(private readonly artworksService: ArtworksService) {}
 
     @Post()
@@ -17,11 +17,13 @@ export class ArtworksController {
 
     }
 
-    getArtworksByCategory(categoryId: string) {
+    @Get(':categoryName')
+    getArtworksByCategory(categoryName: string) {
 
     }
 
-    getArtworksByTechnique(techniqueId: string) {
+    @Get(':categoryName/:techniqueName')
+    getArtworksByTechnique(techniqueName: string) {
 
     }
 
