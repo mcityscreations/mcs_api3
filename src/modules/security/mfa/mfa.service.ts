@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { IMfaSessionData, IOTPPayload } from '../security.interfaces.js';
 import { MfaSessionRepository } from './mfa.repository.js';
 import { OtpService } from '../otp/otp.service.js';
-import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
 export class MfaSessionService {

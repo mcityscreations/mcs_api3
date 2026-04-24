@@ -30,6 +30,7 @@ export class PrestashopCronService {
             const startOfPeriod = this.dateService.dateOnlyFormatter(rawStartOfPeriod.toJSDate());
             const endOfPeriod = this.dateService.dateOnlyFormatter(rawEndOfPeriod.toJSDate());
             const invoices: IPrestashopInvoice[] = await this.prestashopAdapter.getInvoicesByDatePeriod({ startDate: startOfPeriod, endDate: endOfPeriod });
+            console.log(`Fetched ${invoices.length} invoices from Prestashop for the period ${startOfPeriod} to ${endOfPeriod}.`);
             // Next step : save the invoices into the database. 
             // They will then be processed by the Accounting module's cron service on the 2nd day of every 2 months.
             // + change the way startOfPeriod and endOfPeriod are calculated 

@@ -1,8 +1,8 @@
 // src/modules/content/taxonomy/keywords/controller/keywords.controller.ts
 import { Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiOperation, ApiOkResponse } from '@nestjs/swagger';
-import { ThrottlerInterceptor } from '../../../../../system/security/interceptors/throttler/throttler.interceptor.js';
-import { MandatoryAuthGuard } from '../../../../../system/security/guards/mandatory-auth/mandatory-auth.guard.js';
+import { ThrottlerInterceptor } from '../../../../security/interceptors/throttler/throttler.interceptor.js';
+import { MandatoryAuthGuard } from '../../../../security/guards/mandatory-auth/mandatory-auth.guard.js';
 
 @Controller('keywords')
 export class KeywordsController {

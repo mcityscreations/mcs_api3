@@ -3,6 +3,7 @@ import { StoreAdapter } from '../interfaces/stores.interface.js';
 import { PrestashopConfigService } from '../configs/prestashop/prestashop.config.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { IDateFilter } from '../schemas/datefilter.schema.js';
+import type { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -48,7 +49,8 @@ export class PrestashopAdapter extends StoreAdapter {
         // The logic to retrieve product attributes from PrestaShop
     }
 
-    getInvoicesByDatePeriod(dateFilter: IDateFilter): void {
+    getInvoicesByDatePeriod(dateFilter: IDateFilter): IPrestashopInvoice[] {
         // The logic to retrieve invoices from PrestaShop
+        return [];
     }
 }
