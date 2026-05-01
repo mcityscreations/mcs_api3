@@ -4,6 +4,7 @@ import { PrestashopAdapter } from './adapters/prestashop.adapter.js';
 import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
 import { PrestashopCronService } from './cron/cron.service.js';
 import { StoresRepository } from './repository/stores.repository.js';
+import { SystemModule } from '../../system/system.module.js';
 
 @Module({
   providers: [
@@ -17,8 +18,10 @@ import { StoresRepository } from './repository/stores.repository.js';
 
     },
     PrestashopCronService,
-    StoresRepository
+    StoresRepository,
+    PrestashopAdapter,
   ],
+  imports: [SystemModule],
   exports: ['PRESTASHOP_STORE']
 })
 export class StoresModule {}
