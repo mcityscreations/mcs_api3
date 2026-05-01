@@ -15,23 +15,28 @@ async function bootstrap() {
 
 	const configService = app.get(ConfigService);
 
+	// Generating CORS configuration from environment variables
+	const corsConfig = corsFactory(configService);
+
 	// Applying security middleware
-	app.use(helmet({
-        contentSecurityPolicy: {
-            directives: {
-                defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "'unsafe-inline'"],
-                styleSrc: ["'self'", "'unsafe-inline'"],
-                imgSrc: ["'self'", "data:", "https:"],
-                connectSrc: ["'self'", configService.get('CORS_ORIGIN') ?? ''],
-            },
-        }
-	}));
+	app.use(
+		helmet({
+			contentSecurityPolicy: {
+				directives: {
+					defaultSrc: ["'self'"],
+					scriptSrc: ["'self'", "'unsafe-inline'"],
+					styleSrc: ["'self'", "'unsafe-inline'"],
+					imgSrc: ["'self'", 'data:', 'https:'],
+					connectSrc: ["'self'", ...(corsConfig.origin as string[])],
+				},
+			},
+		}),
+	);
 	// Middleware to parse cookies from incoming requests
 	app.use(cookieParser());
-	
+
 	// Enabling CORS with custom configuration
-	app.enableCors(corsFactory(configService));
+	app.enableCors(corsConfig);
 
 	// Retrieving Winston Logger instance
 	const winstonLoggerService = app.get(WinstonLoggerService);
@@ -42,7 +47,7 @@ async function bootstrap() {
 	// Applying Zod validation pipe globally
 	app.useGlobalPipes(new ZodValidationPipe());
 
-	await app.listen(process.env.PORT ?? 3000);
+	await app.listen(process.env.PORT ?? 4000, '0.0.0.0');
 }
 try {
 	await bootstrap();
