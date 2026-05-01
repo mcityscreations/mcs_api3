@@ -22,15 +22,16 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=mcitys-net
-      - traefik.http.routers.traefik-secure.entrypoints=websecure
-      - traefik.http.routers.traefik-secure.rule=Host(`api3.mcitys.com`)
-      - traefik.http.routers.traefik-secure.service=api@internal
-      - traefik.http.middlewares.admin-auth.basicauth.users=${TRAEFIK_AUTH_HASH}
-      - traefik.http.routers.traefik-secure.middlewares=admin-auth,traefik.http.routers.traefik-secure.middlewares=user-auth@file
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.mcitys.com`)"
+      - "traefik.http.routers.traefik-secure.entrypoints=websecure"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-secure.middlewares=admin-auth"
+      - "traefik.http.middlewares.admin-auth.basicauth.users=${TRAEFIK_AUTH_HASH}"
   
   # Mcitys API
   api:
-    build: .
+    image: mcityscreations/mcsapi3:latest
     container_name: mcsapi3
     restart: always
     environment:
@@ -117,7 +118,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=mcitys-net
       - traefik.http.routers.portainer-secure.entrypoints=websecure
-      - traefik.http.routers.portainer-secure.rule=Host(`api3.mcitys.com`)
+      - traefik.http.routers.portainer-secure.rule=Host(`portainer.mcitys.com`)
       - traefik.http.routers.portainer-secure.service=portainer
       - traefik.http.routers.portainer.tls.certresolver=letsencrypt
       - traefik.http.services.portainer.loadbalancer.server.port=9000
