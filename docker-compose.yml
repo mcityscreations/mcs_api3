@@ -117,7 +117,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=mcitys-net
       - traefik.http.routers.portainer-secure.entrypoints=websecure
-      - traefik.http.routers.portainer-secure.rule=Host(`portainer.yourdomain.com`)
+      - traefik.http.routers.portainer-secure.rule=Host(`api3.mcitys.com`)
       - traefik.http.routers.portainer-secure.service=portainer
       - traefik.http.routers.portainer.tls.certresolver=letsencrypt
       - traefik.http.services.portainer.loadbalancer.server.port=9000
