@@ -23,7 +23,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=mcitys-net
       - traefik.http.routers.traefik-secure.entrypoints=websecure
-      - traefik.http.routers.traefik-secure.rule=Host(`traefik.yourdomain.com`)
+      - traefik.http.routers.traefik-secure.rule=Host(`api3.mcitys.com`)
       - traefik.http.routers.traefik-secure.service=api@internal
       - traefik.http.middlewares.admin-auth.basicauth.users=${TRAEFIK_AUTH_HASH}
       - traefik.http.routers.traefik-secure.middlewares=admin-auth,traefik.http.routers.traefik-secure.middlewares=user-auth@file
@@ -42,7 +42,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=mcitys-net"
-      - "traefik.http.routers.api.rule=Host(`api.mon-serveur.local`)"
+      - "traefik.http.routers.api.rule=Host(`api3.mcitys.com`)"
       - "traefik.http.services.api.loadbalancer.server.port=4000"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=letsencrypt"
