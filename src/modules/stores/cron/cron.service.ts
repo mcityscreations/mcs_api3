@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { DateTime } from 'luxon';
-import { DateService } from 'src/common/dates/dates.service.js';
+import { DateService } from '../../../common/dates/dates.service.js';
 import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
 import { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
