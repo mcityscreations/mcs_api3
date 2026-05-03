@@ -24,7 +24,6 @@ check_env_vars_set() {
 
 main() {
   check_env_vars_set || exit 1
-  wait_for_postgres
 
   echo "Initializing database..."
 

@@ -6,19 +6,23 @@ services:
     restart: unless-stopped
     security_opt:
       - "no-new-privileges:true"
+    env_file:
+      - .env.prod
     environment:
       - TRAEFIK_AUTH=${TRAEFIK_AUTH_HASH}
     networks:
       - mcitys-net
+    dns:
+      - 8.8.8.8
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./traefik-config/traefik.yml:/traefik.yml:ro"
-      - "./traefik-config/acme.json:/acme.json"
-      - "./traefik-config/dynamic.yml:/dynamic.yml:ro"
+      - "./traefik_config/traefik.yml:/traefik.yml:ro"
+      - "./traefik_config/acme.json:/acme.json"
+      - "./traefik_config/dynamic.yml:/dynamic.yml:ro"
     labels:
       - traefik.enable=true
       - traefik.docker.network=mcitys-net
@@ -34,6 +38,8 @@ services:
     image: mcityscreations/mcsapi3:latest
     container_name: mcsapi3
     restart: always
+    env_file:
+      - .env.prod
     environment:
       - PORT=4000
       - DB_URL_STANDARD=postgresql://${POSTGRES_STANDARD_USER}:${POSTGRES_STANDARD_PASSWORD}@postgres:5432/${POSTGRES_MAIN_DATABASE}
@@ -59,20 +65,22 @@ services:
   postgres:
     image: postgres:18-alpine
     container_name: postgres-db
+    env_file:
+      - .env.prod
     environment:
       # Variables read by PostgreSQL to initialize the main database and admin user
-      POSTGRES_MAIN_USER: ${POSTGRES_MAIN_USER}
-      POSTGRES_MAIN_PASSWORD: ${POSTGRES_MAIN_PASSWORD}
-      POSTGRES_MAIN_DATABASE: ${POSTGRES_MAIN_DATABASE}
+      - POSTGRES_USER=${POSTGRES_MAIN_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_MAIN_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_MAIN_DATABASE}
       # Variables read by the init script to create the standard and security users
-      POSTGRES_STANDARD_USER: ${POSTGRES_STANDARD_USER}
-      POSTGRES_STANDARD_PASSWORD: ${POSTGRES_STANDARD_PASSWORD}
-      POSTGRES_SECURITY_USER: ${POSTGRES_SECURITY_USER}
-      POSTGRES_SECURITY_PASSWORD: ${POSTGRES_SECURITY_PASSWORD}
+      - POSTGRES_STANDARD_USER=${POSTGRES_STANDARD_USER}
+      - POSTGRES_STANDARD_PASSWORD=${POSTGRES_STANDARD_PASSWORD}
+      - POSTGRES_SECURITY_USER=${POSTGRES_SECURITY_USER}
+      - POSTGRES_SECURITY_PASSWORD=${POSTGRES_SECURITY_PASSWORD}
     volumes:
-      - /home/leo/postgresdata:/var/lib/postgresql/data
+      - /home/leo/postgresdata:/var/lib/postgresql
       # Script to create the standard and security users after the main database is initialized
-      - ./init-db:/01-init.sh 
+      - ./init-db:/docker-entrypoint-initdb.d
     networks:
       - mcitys-net
 
@@ -82,7 +90,7 @@ services:
     container_name: redis-cache
     restart: always
     env_file:
-      - .env
+      - .env.prod
     command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - /home/leo/redisdata:/data
@@ -94,6 +102,8 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     restart: always
+    env_file:
+      - .env.prod
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
