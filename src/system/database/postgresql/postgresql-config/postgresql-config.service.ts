@@ -9,10 +9,7 @@ export class PostgresqlConfigService {
 
 	public getStandardConfig(): ISQLDatabaseConfig {
 		// Retrieving config data stored in .env file
-		const host = this.configService.get<string>(
-			'POSTGRES_STANDARD_HOST',
-			'localhost',
-		);
+		const host = this.configService.get<string>('POSTGRES_STANDARD_HOST');
 		const rawPort = this.configService.get<string>(
 			'POSTGRES_STANDARD_PORT',
 			'5432',
