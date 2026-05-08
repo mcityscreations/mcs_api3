@@ -4,6 +4,7 @@ import { IWeatherDataRaw } from './weather.interface.js';
 import { RedisService } from '../../../system/database/redis/redis.service.js';
 import { PostgreSQLService } from '../../../system/database/postgresql/postgresql.service.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
+import { getErrorMessage } from '../../../common/utils/error.utils.js';
 
 @Injectable()
 export class WeatherRepository {
@@ -35,7 +36,8 @@ export class WeatherRepository {
 			// Parsing data
 			return JSON.parse(jsonString) as IWeatherDataRaw;
 		} catch (e) {
-			this._logger.error('Error parsing Redis data for key ' + key, e);
+			const errorMessage = getErrorMessage(e);
+			this._logger.error('Error parsing Redis data for key ' + key + ': ' + errorMessage);
 			// Deleting corrupted key
 			await this._redisService.del(key);
 			return null;
@@ -90,7 +92,7 @@ export class WeatherRepository {
 	}
 
 	/**
-	 * Stores weather data in MariaDB
+	 * Stores weather data in PostgreSQL
 	 * @param weatherData
 	 * @param ip_sender
 	 */
@@ -98,15 +100,15 @@ export class WeatherRepository {
 		weatherData: IWeatherDataRaw,
 		ip_sender: string,
 	) {
-		const sqlRequest = `INSERT INTO mcs_weather_data 
-    (input_date, pressure, temperature, humidity, ip_sender, weather_score) 
-    VALUES (?, ?, ?, ?, ?, ?)`;
+		const sqlRequest = `INSERT INTO content.weather 
+    (date, pressure, temperature, humidity, id_provider, weather_score) 
+    VALUES ($1, $2, $3, $4, $5, $6)`;
 		const params = [
 			weatherData.date,
 			weatherData.pressure,
 			weatherData.temperature,
 			weatherData.humidity,
-			ip_sender,
+			2, // id_provider is hardcoded to 2 as we have only one provider for now
 			weatherData.weather_score,
 		];
 		await this._postgreSQLService.execute(sqlRequest, params, 'standard');
