@@ -26,12 +26,7 @@ import { EventBusModule } from './eventbus/eventbus.module.js';
 
 @Global()
 @Module({
-	imports: [
-		ConfigModule,
-		ScheduleModule.forRoot(),
-		DatabaseModule,
-		EventBusModule,
-	],
+	imports: [ConfigModule, ScheduleModule, DatabaseModule, EventBusModule],
 	providers: [
 		// Logging
 		LoggerConfigService,
