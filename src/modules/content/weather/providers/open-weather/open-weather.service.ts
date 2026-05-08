@@ -20,7 +20,8 @@ import { getErrorMessage } from '../../../../../common/utils/error.utils.js';
 @Injectable()
 export class OpenWeatherProvider extends WeatherProvider {
 	private apiKey: string;
-	private readonly baseUrl: string = 'https://api.openweathermap.org/data/3.0/onecall';
+	private readonly baseUrl: string =
+		'https://api.openweathermap.org/data/3.0/onecall';
 
 	constructor(
 		private readonly httpService: HttpService,
