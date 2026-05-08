@@ -26,7 +26,7 @@ export class PostgresqlConfigService {
 		const port = Number.parseInt(rawPort, 10);
 
 		// Checking loaded data
-		if (!user || !password || !database || Number.isNaN(port)) {
+		if (!host || !user || !password || !database || Number.isNaN(port)) {
 			throw new InternalServerErrorException(
 				`Configuration Error: Missing critical Postgresql credentials. Check your .env file.`,
 			);
@@ -42,10 +42,7 @@ export class PostgresqlConfigService {
 	}
 	public getSecurityConfig(): ISQLDatabaseConfig {
 		// Retrieving config data stored in .env file
-		const host = this.configService.get<string>(
-			'POSTGRES_SECURITY_HOST',
-			'localhost',
-		);
+		const host = this.configService.get<string>('POSTGRES_SECURITY_HOST');
 		const rawPort = this.configService.get<string>(
 			'POSTGRES_SECURITY_PORT',
 			'5432',
@@ -62,7 +59,7 @@ export class PostgresqlConfigService {
 		const port = Number.parseInt(rawPort, 10);
 
 		// Checking loaded data
-		if (!user || !password || !database || Number.isNaN(port)) {
+		if (!host || !user || !password || !database || Number.isNaN(port)) {
 			throw new InternalServerErrorException(
 				`Configuration Error: Missing critical Postgresql credentials. Check your .env file.`,
 			);
