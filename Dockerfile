@@ -12,9 +12,9 @@ RUN npm run build
 FROM node:24-alpine
 ENV NODE_ENV=production
 WORKDIR /app
+COPY --from=builder --chown=root:root --chmod=755 /app/package*.json ./
+COPY --from=builder --chown=root:root --chmod=755 /app/node_modules ./node_modules
+COPY --from=builder --chown=root:root --chmod=755 /app/dist ./dist
 USER node
-COPY --from=builder --chown=node:node --chmod=555 /app/package*.json ./
-COPY --from=builder --chown=node:node --chmod=555 /app/node_modules ./node_modules
-COPY --from=builder --chown=node:node --chmod=555 /app/dist ./dist
 EXPOSE 4000
 CMD ["node", "dist/main"]
