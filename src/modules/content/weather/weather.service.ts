@@ -74,10 +74,7 @@ export class WeatherService {
 		// 3. Save into Redis
 		await this._weatherRepository.setWeather('marseille', weatherData, 6650);
 		// 4. Save into PostgreSQL
-		await this._weatherRepository.setWeatherInPostgreSQL(
-			weatherData,
-			'Mcitys API Server',
-		);
+		await this._weatherRepository.setWeatherInPostgreSQL(weatherData);
 		return weatherData;
 	}
 

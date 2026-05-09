@@ -37,7 +37,9 @@ export class WeatherRepository {
 			return JSON.parse(jsonString) as IWeatherDataRaw;
 		} catch (e) {
 			const errorMessage = getErrorMessage(e);
-			this._logger.error('Error parsing Redis data for key ' + key + ': ' + errorMessage);
+			this._logger.error(
+				'Error parsing Redis data for key ' + key + ': ' + errorMessage,
+			);
 			// Deleting corrupted key
 			await this._redisService.del(key);
 			return null;
@@ -48,15 +50,14 @@ export class WeatherRepository {
 	 * Date formatting complies with ISO 8601 */
 	public async getLast24H(): Promise<IWeatherDataRaw[]> {
 		const sqlRequest = `SELECT 
-            DATE_FORMAT(input_date, '%Y-%m-%dT%H:%i:%s.000Z') AS date, 
-            pressure, 
-            temperature, 
-            humidity,  
-            weather_score 
-            FROM mcs_weather_data 
-            ORDER BY input_date 
-            DESC
-            LIMIT 24`;
+    		TO_CHAR(date, 'YYYY-MM-DD"T"HH24:MI:SS.000"Z"') AS date, 
+    		pressure, 
+    		temperature, 
+    		humidity,  
+    		weather_score 
+			FROM content.weather 
+			ORDER BY date DESC 
+			LIMIT 24;`;
 		const rawResults: IWeatherDataRaw[] = await this._postgreSQLService.execute(
 			sqlRequest,
 			[],
@@ -94,12 +95,8 @@ export class WeatherRepository {
 	/**
 	 * Stores weather data in PostgreSQL
 	 * @param weatherData
-	 * @param ip_sender
 	 */
-	public async setWeatherInPostgreSQL(
-		weatherData: IWeatherDataRaw,
-		ip_sender: string,
-	) {
+	public async setWeatherInPostgreSQL(weatherData: IWeatherDataRaw) {
 		const sqlRequest = `INSERT INTO content.weather 
     (date, pressure, temperature, humidity, id_provider, weather_score) 
     VALUES ($1, $2, $3, $4, $5, $6)`;
