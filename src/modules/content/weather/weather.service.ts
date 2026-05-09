@@ -30,9 +30,16 @@ export class WeatherService {
 			await this._weatherRepository.getLast('marseille');
 		if (!weatherData) return null;
 		// Transforming date to 'DD/MM/YYYY HH:mm' format
-		this._dateService.standardDateFormater(weatherData?.date);
-		// weatherData.date is now a string, returning as IWeatherData
-		return weatherData as unknown as IWeatherData;
+		const dateObject = new Date(weatherData.date);
+		const formattedDate = this._dateService.standardDateFormater(dateObject);
+		const newWeatherData: IWeatherData = {
+			date: formattedDate,
+			pressure: weatherData.pressure,
+			humidity: weatherData.humidity,
+			temperature: weatherData.temperature,
+			weather_score: weatherData.weather_score,
+		};
+		return newWeatherData;
 	}
 
 	public async getLast24h(): Promise<IWeatherData[] | []> {
