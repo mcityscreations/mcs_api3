@@ -12,10 +12,10 @@ RUN npm run build
 FROM node:24-alpine
 ENV NODE_ENV=production
 WORKDIR /app
-RUN chown node:node /app
-USER node
 COPY --from=builder --chown=node:node /app/package*.json ./
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/dist ./dist
+RUN chown -R node:node /app && chmod -R 555 /app
+USER node
 EXPOSE 4000
 CMD ["node", "dist/main"]
