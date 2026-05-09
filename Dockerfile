@@ -12,6 +12,7 @@ RUN npm run build
 FROM node:24-alpine
 ENV NODE_ENV=production
 WORKDIR /app
+RUN mkdir -p logs && chown node:node logs && chmod 755 logs
 COPY --from=builder --chown=root:root --chmod=755 /app/package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 COPY --from=builder --chown=root:root --chmod=755 /app/dist ./dist
