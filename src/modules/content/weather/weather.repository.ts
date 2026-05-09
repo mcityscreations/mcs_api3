@@ -48,13 +48,13 @@ export class WeatherRepository {
 	 * Date formatting complies with ISO 8601 */
 	public async getLast24H(): Promise<IWeatherDataRaw[]> {
 		const sqlRequest = `SELECT 
-            DATE_FORMAT(input_date, '%Y-%m-%dT%H:%i:%s.000Z') AS date, 
+            DATE_FORMAT(date, '%Y-%m-%dT%H:%i:%s.000Z') AS date, 
             pressure, 
             temperature, 
             humidity,  
             weather_score 
-            FROM mcs_weather_data 
-            ORDER BY input_date 
+            FROM content.weather 
+            ORDER BY date 
             DESC
             LIMIT 24`;
 		const rawResults: IWeatherDataRaw[] = await this._postgreSQLService.execute(
