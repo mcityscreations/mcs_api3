@@ -10,9 +10,12 @@ RUN npm run build
 
 # --- RUN ---
 FROM node:24-alpine
+ENV NODE_ENV=production
 WORKDIR /app
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
+RUN chown node:node /app
+USER node
+COPY --from=builder --chown=node:node /app/package*.json ./
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/dist ./dist
 EXPOSE 4000
 CMD ["node", "dist/main"]
