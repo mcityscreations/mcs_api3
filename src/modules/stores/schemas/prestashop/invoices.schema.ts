@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-/**
+/** XML Schema for PrestaShop 8.1 Invoice
+ * <?xml version="1.0" encoding="UTF-8"?>
  * <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
   <order_invoice>
     <id><![CDATA[]]></id>
@@ -27,26 +28,35 @@ import { z } from 'zod';
 
  */
 
+/** PrestaShop 8.1 API returns a list of invoices in this format:
+ * <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
+      <order_invoices>
+        <order_invoice id="3" xlink:href="https://mcitys.fr/api/order_invoices/3"/>
+        <order_invoice id="1" xlink:href="https://mcitys.fr/api/order_invoices/1"/>
+      </order_invoices>
+    </prestashop>
+ */
+
 export const PrestashopInvoiceSchema = z.object({
-  id: z.number().optional(),
-  id_order: z.number(),
-  number: z.number(),
-  delivery_number: z.number().optional(),
-  delivery_date: z.string().optional(),
-  total_discount_tax_excl: z.number().optional(),
-  total_discount_tax_incl: z.number().optional(),
-  total_paid_tax_excl: z.number().optional(),
-  total_paid_tax_incl: z.number().optional(),
-  total_products: z.number().optional(),
-  total_products_wt: z.number().optional(),
-  total_shipping_tax_excl: z.number().optional(),
-  total_shipping_tax_incl: z.number().optional(),
-  shipping_tax_computation_method: z.string().optional(),
-  total_wrapping_tax_excl: z.number().optional(),
-  total_wrapping_tax_incl: z.number().optional(),
-  shop_address: z.string().max(1000).optional(),
-  note: z.string().max(65000).optional(),
-  date_add: z.string().optional()
+	id: z.number().optional(),
+	id_order: z.number(),
+	number: z.number(),
+	delivery_number: z.number().optional(),
+	delivery_date: z.string().optional(),
+	total_discount_tax_excl: z.number().optional(),
+	total_discount_tax_incl: z.number().optional(),
+	total_paid_tax_excl: z.number().optional(),
+	total_paid_tax_incl: z.number().optional(),
+	total_products: z.number().optional(),
+	total_products_wt: z.number().optional(),
+	total_shipping_tax_excl: z.number().optional(),
+	total_shipping_tax_incl: z.number().optional(),
+	shipping_tax_computation_method: z.string().optional(),
+	total_wrapping_tax_excl: z.number().optional(),
+	total_wrapping_tax_incl: z.number().optional(),
+	shop_address: z.string().max(1000).optional(),
+	note: z.string().max(65000).optional(),
+	date_add: z.string().optional(),
 });
 
 export type IPrestashopInvoice = z.infer<typeof PrestashopInvoiceSchema>;

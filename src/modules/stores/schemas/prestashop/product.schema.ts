@@ -57,53 +57,56 @@ import { z } from 'zod';
  */
 
 const LanguageValueSchema = z.object({
-  // The ID attribute of the language block
-  '@_id': z.string().or(z.number()).transform(String),
-  
-  // The textual content (which will be wrapped in CDATA during conversion)
-  '#': z.string().max(255, "La meta-description est trop longue")
+	// The ID attribute of the language block
+	'@_id': z.string().or(z.number()).transform(String),
+
+	// The textual content (which will be wrapped in CDATA during conversion)
+	'#': z.string().max(255, 'La meta-description est trop longue'),
 });
 
 const MetaDataSchema = z.object({
-  language: z.union([LanguageValueSchema, z.array(LanguageValueSchema)])
+	language: z.union([LanguageValueSchema, z.array(LanguageValueSchema)]),
 });
 
 // Helper to create a schema for CDATA content { "#": value }
-const cdata = (schema: z.ZodTypeAny) => z.object({
-    '#': schema.transform(String)
-});
+const cdata = (schema: z.ZodTypeAny) =>
+	z.object({
+		'#': schema.transform(String),
+	});
 
 export const PrestaShopProductSchema = z.object({
-    id_manufacturer: cdata(z.number()),
-    id_supplier: cdata(z.number()),
-    id_category_default: cdata(z.number()),
-    new: cdata(z.number()),
-    id_default_combination: cdata(z.number()),
-    id_tax_rules_group: cdata(z.number()),
-    type: cdata(z.string()),
-    id_shop_default: cdata(z.string()),
-    reference: cdata(z.string()),
-    supplier_reference: cdata(z.string()),
-    ean13: cdata(z.string()),
-    state: cdata(z.string()),
-    product_type: cdata(z.string()),
-    price: cdata(z.number()),
-    unit_price: cdata(z.number()),
-    active: cdata(z.boolean().transform(v => v ? 1 : 0)),
-    meta_description: MetaDataSchema,
-    meta_keywords: MetaDataSchema,
-    meta_title: MetaDataSchema,
-    link_rewrite: MetaDataSchema.optional(),
-    name: MetaDataSchema,
-    description: MetaDataSchema,
-    description_short: MetaDataSchema,
-    associations: z.object({
-        categories: z.object({
-            category: z.array(z.object({
-                id: cdata(z.number())
-            }))
-        })
-    })
+	id_manufacturer: cdata(z.number()),
+	id_supplier: cdata(z.number()),
+	id_category_default: cdata(z.number()),
+	new: cdata(z.number()),
+	id_default_combination: cdata(z.number()),
+	id_tax_rules_group: cdata(z.number()),
+	type: cdata(z.string()),
+	id_shop_default: cdata(z.string()),
+	reference: cdata(z.string()),
+	supplier_reference: cdata(z.string()),
+	ean13: cdata(z.string()),
+	state: cdata(z.string()),
+	product_type: cdata(z.string()),
+	price: cdata(z.number()),
+	unit_price: cdata(z.number()),
+	active: cdata(z.boolean().transform((v) => (v ? 1 : 0))),
+	meta_description: MetaDataSchema,
+	meta_keywords: MetaDataSchema,
+	meta_title: MetaDataSchema,
+	link_rewrite: MetaDataSchema.optional(),
+	name: MetaDataSchema,
+	description: MetaDataSchema,
+	description_short: MetaDataSchema,
+	associations: z.object({
+		categories: z.object({
+			category: z.array(
+				z.object({
+					id: cdata(z.number()),
+				}),
+			),
+		}),
+	}),
 });
 
 export type IPrestaShopProduct = z.infer<typeof PrestaShopProductSchema>;
