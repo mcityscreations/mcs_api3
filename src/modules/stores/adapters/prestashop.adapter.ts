@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import axios from 'axios';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
+import { xmlToJsonConverter } from '../../../common/utils/XMLToJson.utils.js';
 import { StoreAdapter } from '../interfaces/stores.interface.js';
 import { PrestashopConfigService } from '../configs/prestashop/prestashop.config.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
@@ -63,6 +64,10 @@ export class PrestashopAdapter extends StoreAdapter {
 	): Promise<IPrestashopInvoiceList> {
 		// The logic to retrieve invoices from PrestaShop
 		const { startDate, endDate } = dateFilter;
+		if (!startDate || !endDate) {
+			this.logger.error(`Please provide a correct startDate and/or endDate value.`,`PrestashopAdapter`,`getInvoicesByDatePeriod`);
+			throw new InternalServerErrorException(`Please provide a correct startDate and/or endDate value.`)
+		}
 		try {
 			const response = await axios.get(`${this.apiEndpoint}/invoices`, {
 				params: {
@@ -73,9 +78,11 @@ export class PrestashopAdapter extends StoreAdapter {
 					Authorization: `Bearer ${this.authorizationKey}`,
 				},
 			});
+			// Parse XML response
+			const parsedResponse = xmlToJsonConverter(response.data);
 			// Parse the response to match the IPrestashopInvoice interface
-			const isGoodFormat = PrestashopInvoiceListSchema.array().safeParse(
-				response.data,
+			const isGoodFormat = PrestashopInvoiceListSchema.safeParse(
+				parsedResponse,
 			);
 			if (!isGoodFormat.success) {
 				this.logger.error(
@@ -97,5 +104,27 @@ export class PrestashopAdapter extends StoreAdapter {
 				'Error fetching invoices from PrestaShop',
 			);
 		}
+	}
+
+	public async getInvoiceDetail(invoiceID: number): Promise<IPrestashopInvoice> {
+		if (!invoiceID || Number.isNaN(invoiceID)) {
+			this.logger.error(`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`);
+			throw new InternalServerErrorException(`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`);
+		}
+		const response = await axios.get(`${this.apiEndpoint}/invoices/${invoiceID}`, {
+			headers: {
+					Authorization: `Bearer ${this.authorizationKey}`,
+				}
+			}
+		);
+		// Parse response
+		const parsedResponse = xmlToJsonConverter(response.data)
+		// Check type
+		if (!PrestashopInvoiceSchema.safeParse(parsedResponse)) {
+			this.logger.error(`Invalid invoice data format received from PrestaShop.`);
+			throw new InternalServerErrorException(`Invalid invoice data format received from PrestaShop.`);
+		}
+		// Send result
+		return parsedResponse as IPrestashopInvoice;
 	}
 }
