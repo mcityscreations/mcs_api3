@@ -58,7 +58,6 @@ export const PrestashopInvoiceSchema = z.object({
 	note: z.string().max(65000).optional(),
 	date_add: z.string().optional(),
 });
-
 export type IPrestashopInvoice = z.infer<typeof PrestashopInvoiceSchema>;
 
 export const PrestashopInvoiceListSchema = z.object({
@@ -79,5 +78,9 @@ export const PrestashopInvoiceListSchema = z.object({
     }),
   }),
 });
-
 export type IPrestashopInvoiceList = z.infer<typeof PrestashopInvoiceListSchema>;
+
+export const PrestashopInvoiceIDSchema = z.object({
+  invoiceID: z.coerce.number(), // Using .coerce to transform the type of the param from string to number
+});
+export type IPrestashopInvoiceID = z.infer<typeof PrestashopInvoiceIDSchema>;
