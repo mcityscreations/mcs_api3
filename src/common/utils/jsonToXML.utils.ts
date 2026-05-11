@@ -24,6 +24,7 @@ export function jsonToXMLConverter(
 		format: true,
 		cdataPropName: '#',
 		attributeNamePrefix: '@_',
+		suppressEmptyNode: true,
 	});
 	const xmlContent = builder.build({ [rootElementName]: json });
 	return xmlContent;
