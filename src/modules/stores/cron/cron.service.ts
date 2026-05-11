@@ -3,7 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { DateTime } from 'luxon';
 import { DateService } from '../../../common/dates/dates.service.js';
 import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
-import { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
+import { IPrestashopInvoiceList } from '../schemas/prestashop/invoices.schema.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 
 @Injectable()
@@ -34,13 +34,13 @@ export class PrestashopCronService {
 			const endOfPeriod = this.dateService.dateOnlyFormatter(
 				rawEndOfPeriod.toJSDate(),
 			);
-			const invoices: IPrestashopInvoice[] =
+			const invoices: IPrestashopInvoiceList =
 				await this.prestashopAdapter.getInvoicesByDatePeriod({
 					startDate: startOfPeriod,
 					endDate: endOfPeriod,
 				});
 			console.log(
-				`Fetched ${invoices.length} invoices from Prestashop for the period ${startOfPeriod} to ${endOfPeriod}.`,
+				`Fetched ${invoices.prestashop.order_invoices.order_invoice.length} invoices from Prestashop for the period ${startOfPeriod} to ${endOfPeriod}.`,
 			);
 			// Next step : save the invoices into the database.
 			// They will then be processed by the Accounting module's cron service on the 2nd day of every 2 months.

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { WINSTON_LOGGER } from '../../logger/logger-factory/winston-logger.factory.js';
+import { WINSTON_LOGGER } from '../../../system/logger/logger-factory/winston-logger.factory.js';
 
 // Fichiers à tester
 import { LoginService } from './login.service.js';
