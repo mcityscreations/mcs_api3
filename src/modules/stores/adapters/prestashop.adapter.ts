@@ -5,8 +5,8 @@ import { StoreAdapter } from '../interfaces/stores.interface.js';
 import { PrestashopConfigService } from '../configs/prestashop/prestashop.config.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { IDateFilter } from '../schemas/datefilter.schema.js';
-import type { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
-import { PrestashopInvoiceSchema } from '../schemas/prestashop/invoices.schema.js';
+import type { IPrestashopInvoice, IPrestashopInvoiceList } from '../schemas/prestashop/invoices.schema.js';
+import { PrestashopInvoiceSchema, PrestashopInvoiceListSchema } from '../schemas/prestashop/invoices.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -60,7 +60,7 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	async getInvoicesByDatePeriod(
 		dateFilter: IDateFilter,
-	): Promise<IPrestashopInvoice[]> {
+	): Promise<IPrestashopInvoiceList> {
 		// The logic to retrieve invoices from PrestaShop
 		const { startDate, endDate } = dateFilter;
 		try {
@@ -74,7 +74,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				},
 			});
 			// Parse the response to match the IPrestashopInvoice interface
-			const isGoodFormat = PrestashopInvoiceSchema.array().safeParse(
+			const isGoodFormat = PrestashopInvoiceListSchema.array().safeParse(
 				response.data,
 			);
 			if (!isGoodFormat.success) {
@@ -85,7 +85,8 @@ export class PrestashopAdapter extends StoreAdapter {
 					'Invalid invoice data format received from PrestaShop',
 				);
 			}
-			return isGoodFormat.data;
+			// Type casting to unknown required, Zod parsing ensures the correctness of the response type.
+			return response as unknown as IPrestashopInvoiceList;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error(

@@ -8,5 +8,5 @@ export abstract class StoreAdapter {
 	abstract getProductCategories(): void;
 	abstract getProductAttributes(): void;
 
-	abstract getInvoicesByDatePeriod(dateFilter: IDateFilter): Promise<any[]>;
+	abstract getInvoicesByDatePeriod(dateFilter: IDateFilter): Promise<unknown>;
 }
