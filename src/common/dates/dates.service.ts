@@ -1,5 +1,6 @@
 // src/common/dates/datesService.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import z from 'zod';
 
 @Injectable()
 export class DateService {
@@ -9,6 +10,11 @@ export class DateService {
 	 * @returns Returns date in the following format "15-10-2025 10:00:00"
 	 */
 	public standardDateFormater(date: Date) {
+		// Checking that "date" param has the correct type
+		if (!this.isJSDate) {
+			throw new InternalServerErrorException(`Wrong type for param "date". Expecting "JS Date", ${typeof date} given.`);
+		}
+
 		// 1. Retrieving date components
 		const day = date.getDate();
 		const month = date.getMonth() + 1; // January is 0
@@ -30,6 +36,9 @@ export class DateService {
 	 * YYYY-MM-DD HH:MM:SS
 	 * */
 	public dateTimeFormatter(date: Date) {
+		if (!this.isJSDate) {
+			throw new InternalServerErrorException(`Wrong type for param "date". Expecting "JS Date", ${typeof date} given.`);
+		}
 		const day = String(date.getDate()).padStart(2, '0');
 		const month = String(date.getMonth() + 1).padStart(2, '0');
 		const year = date.getFullYear();
@@ -46,10 +55,18 @@ export class DateService {
 	 * YYYY-MM-DD
 	 */
 	public dateOnlyFormatter(date: Date) {
+		if (!this.isJSDate) {
+			throw new InternalServerErrorException(`Wrong type for param "date". Expecting "JS Date", ${typeof date} given.`);
+		}
 		const day = String(date.getDate()).padStart(2, '0');
 		const month = String(date.getMonth() + 1).padStart(2, '0');
 		const year = date.getFullYear();
 
 		return `${year}-${month}-${day}`;
+	}
+
+	public isJSDate(date: unknown): boolean {
+		const isDate = z.date().safeParse(date);
+		return isDate.success;
 	}
 }
