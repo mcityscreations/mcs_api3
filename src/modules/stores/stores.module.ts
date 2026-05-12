@@ -21,8 +21,8 @@ import { StoresController } from './controllers/stores.controller.js';
     PrestashopCronService,
     StoresRepository,
     PrestashopAdapter,
-    StoresController,
   ],
+  controllers:[StoresController,]
   imports: [SystemModule],
   exports: ['PRESTASHOP_STORE']
 })
