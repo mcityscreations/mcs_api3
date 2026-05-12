@@ -22,7 +22,7 @@ import { StoresController } from './controllers/stores.controller.js';
     StoresRepository,
     PrestashopAdapter,
   ],
-  controllers:[StoresController,]
+  controllers:[StoresController],
   imports: [SystemModule],
   exports: ['PRESTASHOP_STORE']
 })

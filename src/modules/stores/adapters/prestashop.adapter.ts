@@ -1,11 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import axios from 'axios';
+import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
 import { xmlToJsonConverter } from '../../../common/utils/XMLToJson.utils.js';
+import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
 import { StoreAdapter } from '../interfaces/stores.interface.js';
 import { PrestashopConfigService } from '../configs/prestashop/prestashop.config.js';
-import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
-import { IDateFilter } from '../schemas/datefilter.schema.js';
 import type { IPrestashopInvoice, IPrestashopInvoiceList } from '../schemas/prestashop/invoices.schema.js';
 import { PrestashopInvoiceSchema, PrestashopInvoiceListSchema } from '../schemas/prestashop/invoices.schema.js';
 
