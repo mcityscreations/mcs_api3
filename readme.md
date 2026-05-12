@@ -33,6 +33,41 @@ The back-end was first created with Express. It was a monolith.I'm actually migr
 - Traefik - Load balancing, TLS certificates automated renewal (container)
 - Portainer - Graphic interface to manage containers easily
 
+```mermaid
+graph TD
+
+    subgraph "Network Layer"
+        NT[Internet]
+        DNS[DNS Planethoster]
+        NT --> DNS
+    end
+    subgraph "VPS Debian (OVH)"
+        subgraph "Docker/Docker Compose"
+            TR[Traefik - Load balancer]
+            AP[API3 - NestJS]
+            PG[PostgreSQL]
+            RD[Redis]
+            RB[RabbitMQ]
+            PT[Portainer]
+            TR --> AP
+            TR --> PT
+            AP --> PG
+            AP --> RD
+            AP --> RB
+        end
+    end
+    subgraph "Linux Cloud (Planesthoster)"
+        PH[PhusionPassenger]
+        NJ[API 1 & 2 Nodejs]
+        MDB[MariaDB - Baremetal]
+        PH --> NJ
+        NJ --> MDB
+    end
+
+    DNS --> TR
+    DNS --> PH
+```
+
 **Current Projects** 
 - Migrate from MariaDB to PostgreSQL (In progress)
 - Migrate Node.js/Express raw Javascript code to Nest.js/Typescript (in progress)
@@ -86,6 +121,7 @@ graph TD
         BM[Modules Folder]
 
         subgraph "Accounting"
+        end
         
         subgraph "Content"
             CTM[Contact]
