@@ -5,6 +5,7 @@
 ![MariaDB](https://img.shields.io/badge/MariaDB-003545?style=plastic&logo=mariadb&logoColor=white)
 
 # 🚀 Mcitys API 3.0 | A scalable and modular REST API built with modern technologies
+Now available at [api3.mcitys.com](https://api3.mcitys.com) !
 
 ## The Mcitys project
 This repository contains the back-end infrastructure of the [mcitys.com](https://mcitys.com/) website.
@@ -21,11 +22,21 @@ The back-end was first created with Express. It was a monolith.I'm actually migr
 - Exhibition labels with all the details associated to each artwork
 - Contact form
 
+**Infrastructure**
+- DNS routing Planethoster -> OVH
+- VPS Debian
+- Docker + Docker Compose
+- API3 (container)
+- Postgresql (container)
+- Redis - Caching (container)
+- RabbitMQ - Messaging (container)
+- Traefik - Load balancing, TLS certificates automated renewal (container)
+- Portainer - Graphic interface to manage containers easily
+
 **Current Projects** 
 - Migrate from MariaDB to PostgreSQL (In progress)
-- Migrate Node.js/Express raw Javascript code to Nest.js/Typescript (processing)
-- Launch the API on a dedicated VPS for better performances (testing)
-- Connect the Mcitys API to the digital store mcitys.fr which is powered by Prestashop. (processing)
+- Migrate Node.js/Express raw Javascript code to Nest.js/Typescript (in progress)
+- Connect the Mcitys API to the digital store mcitys.fr which is powered by Prestashop. (in progress)
 - Digital Invoices handling. Creating a bridge between Prestashop and Qonto API to transmit invoices in the FACTUR-X format to the Tax Authorities.
 
 ## 🏗️ Architecture philosophy
@@ -44,9 +55,9 @@ The current architecture is built upon the following principles, largely enabled
 
 * **Stateless Authentication:** Implementation of JWT-based security with decoupled RoleGuards, designed for seamless transition to microservices.
 
-* **Enterprise Standards:** The framework facilitates the implementation of microservices architecture and enforces high code quality through tools like Prettier, ESLint and SonarQube.
+* **Enterprise Standards:** The framework facilitates the implementation of a microservice ready architecture and enforces high code quality through tools like Prettier, ESLint and SonarQube.
 
-**Goal:** To move beyond simply writing functional code, towards thinking like an architect who builds scalable, enterprise-grade applications.
+**Goal:** Build a backend architecture that remains maintainable as the project grows in complexity and traffic.
 
 ```mermaid
 graph TD
@@ -73,6 +84,8 @@ graph TD
 
     subgraph "Business Layer (Domain)"
         BM[Modules Folder]
+
+        subgraph "Accounting"
         
         subgraph "Content"
             CTM[Contact]
@@ -100,7 +113,7 @@ graph TD
     BM -.-> |Imports| SM
     BM -.-> |Uses| CM
 ```
-This tiered approach ensures that the Business Layer remains lean and focused on domain logic, while infrastructure concerns are abstracted within the System Layer. This structure is the first step toward a seamless transition to a Microservices architecture.
+This tiered approach ensures that the Business Layer remains lean and focused on domain logic, while infrastructure concerns are abstracted within the System Layer. This structure keeps the application modular and prepares the codebase for future service decomposition if needed.
 
 ## 🛡️ Resilience & Observability
 
