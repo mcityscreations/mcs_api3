@@ -78,13 +78,14 @@ export class PrestashopAdapter extends StoreAdapter {
 					Authorization: this.authorizationKey,
 				},
 			});
+
 			// Parse XML response
 			const parsedResponse = xmlToJsonConverter(response.data);
+			
 			// Parse the response to match the IPrestashopInvoice interface
-			const isGoodFormat = PrestashopInvoiceListSchema.safeParse(
+			if (!PrestashopInvoiceListSchema.safeParse(
 				parsedResponse,
-			);
-			if (!isGoodFormat.success) {
+			).success) {
 				this.logger.error(
 					'Invalid invoice data format received from PrestaShop',
 				);
@@ -92,8 +93,7 @@ export class PrestashopAdapter extends StoreAdapter {
 					'Invalid invoice data format received from PrestaShop',
 				);
 			}
-			// Type casting to unknown required, Zod parsing ensures the correctness of the response type.
-			return parsedResponse as unknown as IPrestashopInvoiceList;
+			return parsedResponse as IPrestashopInvoiceList;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error(
@@ -121,7 +121,7 @@ export class PrestashopAdapter extends StoreAdapter {
 			// Parse response
 			const parsedResponse = xmlToJsonConverter(response.data)
 			// Check type
-			if (!PrestashopInvoiceSchema.safeParse(parsedResponse)) {
+			if (!PrestashopInvoiceSchema.safeParse(parsedResponse).success) {
 				this.logger.error(`Invalid invoice data format received from PrestaShop.`);
 				throw new InternalServerErrorException(`Invalid invoice data format received from PrestaShop.`);
 			}
