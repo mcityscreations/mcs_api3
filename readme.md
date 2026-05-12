@@ -42,6 +42,9 @@ graph TD
         NT --> DNS
     end
     subgraph "VPS Debian (OVH)"
+        PGV[(Postgres volume)]
+        RDV[(Redis volume)]
+        RBV[(RabbitMQ volume)]
         subgraph "Docker/Docker Compose"
             TR[Traefik - Load balancer]
             AP[API3 - NestJS]
@@ -55,6 +58,9 @@ graph TD
             AP --> RD
             AP --> RB
         end
+        PG --> PGV
+        RD --> RDV
+        RB --> RBV
     end
     subgraph "Linux Cloud (Planesthoster)"
         PH[PhusionPassenger]
