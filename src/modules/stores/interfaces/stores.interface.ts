@@ -1,4 +1,4 @@
-import { IDateFilter } from '../schemas/datefilter.schema.js';
+import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
 
 export abstract class StoreAdapter {
 	abstract uploadProduct(): void;
