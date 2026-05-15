@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AccountingCronServiceService } from './cron.service.js';
+import { AccountingCronService } from './cron.service.js';
 
-describe('AccountingCronServiceService', () => {
-  let service: AccountingCronServiceService;
+describe('AccountingCronService', () => {
+	let service: AccountingCronService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [AccountingCronServiceService],
-    }).compile();
+	beforeEach(async () => {
+		const module: TestingModule = await Test.createTestingModule({
+			providers: [AccountingCronService],
+		}).compile();
 
-    service = module.get<AccountingCronServiceService>(AccountingCronServiceService);
-  });
+		service = module.get<AccountingCronService>(AccountingCronService);
+	});
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+	it('should be defined', () => {
+		expect(service).toBeDefined();
+	});
 });

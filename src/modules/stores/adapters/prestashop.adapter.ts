@@ -6,8 +6,14 @@ import { xmlToJsonConverter } from '../../../common/utils/XMLToJson.utils.js';
 import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
 import { StoreAdapter } from '../interfaces/stores.interface.js';
 import { PrestashopConfigService } from '../configs/prestashop/prestashop.config.js';
-import type { IPrestashopInvoice, IPrestashopInvoiceList } from '../schemas/prestashop/invoices.schema.js';
-import { PrestashopInvoiceSchema, PrestashopInvoiceListSchema } from '../schemas/prestashop/invoices.schema.js';
+import type {
+	IPrestashopInvoice,
+	IPrestashopInvoiceList,
+} from '../schemas/prestashop/invoices.schema.js';
+import {
+	PrestashopInvoiceSchema,
+	PrestashopInvoiceListSchema,
+} from '../schemas/prestashop/invoices.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -59,14 +65,24 @@ export class PrestashopAdapter extends StoreAdapter {
 		// The logic to retrieve product attributes from PrestaShop
 	}
 
+	async getLastInvoices(): Promise<IPrestashopInvoiceList> {
+		// Retrieve last invoice ID stored in Postgres
+	}
+
 	async getInvoicesByDatePeriod(
 		dateFilter: IDateFilter,
 	): Promise<IPrestashopInvoiceList> {
 		// The logic to retrieve invoices from PrestaShop
 		const { startDate, endDate } = dateFilter;
 		if (!startDate || !endDate) {
-			this.logger.error(`Please provide a correct startDate and/or endDate value.`,`PrestashopAdapter`,`getInvoicesByDatePeriod`);
-			throw new InternalServerErrorException(`Please provide a correct startDate and/or endDate value.`)
+			this.logger.error(
+				`Please provide a correct startDate and/or endDate value.`,
+				`PrestashopAdapter`,
+				`getInvoicesByDatePeriod`,
+			);
+			throw new InternalServerErrorException(
+				`Please provide a correct startDate and/or endDate value.`,
+			);
 		}
 		try {
 			const response = await axios.get(`${this.apiEndpoint}/order_invoices`, {
@@ -80,12 +96,10 @@ export class PrestashopAdapter extends StoreAdapter {
 			});
 
 			// Parse XML response
-			const parsedResponse = xmlToJsonConverter(response.data);
-			
+			const parsedResponse = xmlToJsonConverter(response.data as string);
+
 			// Parse the response to match the IPrestashopInvoice interface
-			if (!PrestashopInvoiceListSchema.safeParse(
-				parsedResponse,
-			).success) {
+			if (!PrestashopInvoiceListSchema.safeParse(parsedResponse).success) {
 				this.logger.error(
 					'Invalid invoice data format received from PrestaShop',
 				);
@@ -106,32 +120,48 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 	}
 
-	public async getInvoiceDetail(invoiceID: number): Promise<IPrestashopInvoice> {
+	public async getInvoiceDetail(
+		invoiceID: number,
+	): Promise<IPrestashopInvoice> {
 		if (!invoiceID || Number.isNaN(invoiceID)) {
-			this.logger.error(`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`);
-			throw new InternalServerErrorException(`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`);
+			this.logger.error(
+				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
+			);
+			throw new InternalServerErrorException(
+				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
+			);
 		}
 		try {
-			const response = await axios.get(`${this.apiEndpoint}/order_invoices/${invoiceID}`, {
-				headers: {
+			const response = await axios.get(
+				`${this.apiEndpoint}/order_invoices/${invoiceID}`,
+				{
+					headers: {
 						Authorization: this.authorizationKey,
-					}
-				}
+					},
+				},
 			);
 			// Parse response
-			const parsedResponse = xmlToJsonConverter(response.data)
+			const parsedResponse = xmlToJsonConverter(response.data as string);
 			// Check type
 			if (!PrestashopInvoiceSchema.safeParse(parsedResponse).success) {
-				this.logger.error(`Invalid invoice data format received from PrestaShop.`);
-				throw new InternalServerErrorException(`Invalid invoice data format received from PrestaShop.`);
+				this.logger.error(
+					`Invalid invoice data format received from PrestaShop.`,
+				);
+				throw new InternalServerErrorException(
+					`Invalid invoice data format received from PrestaShop.`,
+				);
 			}
 			// Send result
 			return parsedResponse as IPrestashopInvoice;
-		} catch(error) {
+		} catch (error) {
 			const errorMessage = getErrorMessage(error);
-			this.logger.error(`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}`, errorMessage);
-			throw new InternalServerErrorException(`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}`);
+			this.logger.error(
+				`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}`,
+				errorMessage,
+			);
+			throw new InternalServerErrorException(
+				`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}`,
+			);
 		}
-		
 	}
 }

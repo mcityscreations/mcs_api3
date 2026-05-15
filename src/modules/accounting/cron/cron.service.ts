@@ -6,7 +6,7 @@ import { WinstonLoggerService } from '../../../system/logger/logger-service/wins
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
 
 @Injectable()
-export class AccountingCronServiceService {
+export class AccountingCronService {
 	constructor(
 		private readonly dateService: DateService,
 		private readonly logger: WinstonLoggerService,

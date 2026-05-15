@@ -8,5 +8,6 @@ export abstract class StoreAdapter {
 	abstract getProductCategories(): void;
 	abstract getProductAttributes(): void;
 
+	abstract getLastInvoices(): Promise<unknown>;
 	abstract getInvoicesByDatePeriod(dateFilter: IDateFilter): Promise<unknown>;
 }

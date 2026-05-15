@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AccountingCronServiceService } from './cron/cron.service.js';
+import { AccountingCronService } from './cron/cron.service.js';
 import { AccountingService } from './services/accounting.service.js';
+import { AccountingRepository } from './repository/accounting.repository.js';
 
 @Module({
-  providers: [AccountingCronServiceService, AccountingService]
+	providers: [AccountingCronService, AccountingService, AccountingRepository],
 })
 export class AccountingModule {}
