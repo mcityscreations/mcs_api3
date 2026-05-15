@@ -84,12 +84,12 @@ export const QontoClientSchema = z.object({
 				if (Array.isArray(val))
 					return val.filter((email: unknown) => email !== '') as string[];
 				return val;
-			}, z.array(z.string().email()).nullable()),
+			}, z.array(z.email()).nullable()),
 			currency: z.string(),
 			e_invoicing_address: z.string(),
 			e_invoicing_reachable: z.boolean(),
-			vat_number: z.string(),
-			tax_identification_number: z.string(), //SIRET
+			vat_number: z.string().nullable().optional(),
+			tax_identification_number: z.string().nullable().optional(), //SIRET
 			address: z.string(),
 			city: z.string().length(50),
 			zip_code: z.string().length(20),
