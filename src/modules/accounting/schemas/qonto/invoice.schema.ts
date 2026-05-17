@@ -1,4 +1,4 @@
-import z from 'zod'
+import z from 'zod';
 
 /**
  * Qonto invoice RESPONSE schema
@@ -182,84 +182,112 @@ import z from 'zod'
 }
  */
 
-const currenciesEnum = z.enum(['EUR', 'AED', 'AUD', 'BGN', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'GBP', 
-    'GHS', 'HKD', 'HUF', 'ILS', 'MXN', 'NOK', 'NZD', 'PEN', 'PLN', 'RON', 'RSD', 'SAR', 'SEK', 
-    'SGD', 'TRY', 'USD', 'ZAR', 'ZMW']);
+const currenciesEnum = z.enum([
+	'EUR',
+	'AED',
+	'AUD',
+	'BGN',
+	'CAD',
+	'CHF',
+	'CNY',
+	'CZK',
+	'DKK',
+	'GBP',
+	'GHS',
+	'HKD',
+	'HUF',
+	'ILS',
+	'MXN',
+	'NOK',
+	'NZD',
+	'PEN',
+	'PLN',
+	'RON',
+	'RSD',
+	'SAR',
+	'SEK',
+	'SGD',
+	'TRY',
+	'USD',
+	'ZAR',
+	'ZMW',
+]);
 
 const discount = z.enum(['percentage', 'absolute']);
 
 const invoiceItem = z.array(
-    z.object({
-        title: z.string(),
-        quantity: z.string(),
-        unit_price: z.object({
-            value: z.string(),
-            currency: currenciesEnum,
-        }),
-        vat_rate: z.string(),
-        description: z.string().nullable().optional(),
-        unit: z.string().nullable().optional(),
-        vat_exemption_reason: z.string().nullable().optional(),
-        discount: z.object({
-            type: discount,
-            value: z.string(),
-        }).nullable().optional(),
-
-
-    })
+	z.object({
+		title: z.string(),
+		quantity: z.string(),
+		unit_price: z.object({
+			value: z.string(),
+			currency: currenciesEnum,
+		}),
+		vat_rate: z.string(),
+		description: z.string().nullable().optional(),
+		unit: z.string().nullable().optional(),
+		vat_exemption_reason: z.string().nullable().optional(),
+		discount: z
+			.object({
+				type: discount,
+				value: z.string(),
+			})
+			.nullable()
+			.optional(),
+	}),
 );
 const createInvoiceStatus = z.enum(['unpaid', 'draft']);
 
 // Data schema returned by Qonto once the invoice created
 export const QontoClientCreatedInvoiceSchema = z.object({
-    client_invoice: z.object({
-        id: z.string(), // Technical Qonto public ID
-        organization_id: z.string(),
-        number: z.string(), // Accounting reference number
-        pruchase_order: z.string(),
-        items: z.array(invoiceItem),
-       
-
-    })
-})
+	client_invoice: z.object({
+		id: z.string(), // Technical Qonto public ID
+		organization_id: z.string(),
+		number: z.string(), // Accounting reference number
+		pruchase_order: z.string(),
+		items: z.array(invoiceItem),
+	}),
+});
 
 // Data schema describing the data required to create an invoice
 export const QontoClientCreateInvoiceSchema = z.object({
-    client_id: z.string(), // Qonto client ID
-    issue_date: z.iso.date(),
-    due_date: z.iso.date(),
-    currency: currenciesEnum,
-    payment_methods: z.object({
-        iban: z.string(),
-    }),
-    items: z.array(invoiceItem),
-     upload_id: z.string(), // UUID
-    // The performance period defines the date range during which
-    // the job or service is expected to be completed by the client.
-    performance_start_date: z.iso.date().nullable().optional(),  
-    performance_end_date: z.iso.date().nullable().optional(),
-    status: createInvoiceStatus.nullable().optional(),
-    number: z.string().nullable().optional(),
-    purchase_order: z.string().nullable().optional(),
-    terms_and_conditions: z.string().nullable().optional(),
-    header: z.string().nullable().optional(),
-    footer: z.string().nullable().optional(),
-    setting: z.object({
-        vat_number: z.string(),
-        company_leadership: z.string(),
-        district_court: z.string(),
-        commercial_register_number: z.string(),
-        tax_number: z.string(),
-        legal_capital_share: z.object({
-            value: z.string(),
-            currency: currenciesEnum,
-        }),
-        transaction_type: z.string(),
-        vat_payment_condition: z.string().nullable().optional(),
-        discount_conditions: z.string().nullable().optional(),
-        late_payment_penalties: z.string().nullable().optional(),
-        legal_fixed_compensation: z.string().nullable().optional(),
-
-    }).nullable().optional(),
-    discount: discount.nullable().optional(), // Global discount
+	client_id: z.string(), // Qonto client ID
+	issue_date: z.iso.date(),
+	due_date: z.iso.date(),
+	currency: currenciesEnum,
+	payment_methods: z.object({
+		iban: z.string(),
+	}),
+	items: z.array(invoiceItem),
+	upload_id: z.string(), // UUID
+	// The performance period defines the date range during which
+	// the job or service is expected to be completed by the client.
+	performance_start_date: z.iso.date().nullable().optional(),
+	performance_end_date: z.iso.date().nullable().optional(),
+	status: createInvoiceStatus.nullable().optional(),
+	number: z.string().nullable().optional(),
+	purchase_order: z.string().nullable().optional(),
+	terms_and_conditions: z.string().nullable().optional(),
+	header: z.string().nullable().optional(),
+	footer: z.string().nullable().optional(),
+	setting: z
+		.object({
+			vat_number: z.string(),
+			company_leadership: z.string(),
+			district_court: z.string(),
+			commercial_register_number: z.string(),
+			tax_number: z.string(),
+			legal_capital_share: z.object({
+				value: z.string(),
+				currency: currenciesEnum,
+			}),
+			transaction_type: z.string(),
+			vat_payment_condition: z.string().nullable().optional(),
+			discount_conditions: z.string().nullable().optional(),
+			late_payment_penalties: z.string().nullable().optional(),
+			legal_fixed_compensation: z.string().nullable().optional(),
+		})
+		.nullable()
+		.optional(),
+	discount: discount.nullable().optional(), // Global discount
 });
