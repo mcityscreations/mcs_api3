@@ -172,7 +172,8 @@ export class PrestashopAdapter extends StoreAdapter {
 	public async getInvoiceDetail(
 		invoiceID: number,
 	): Promise<IPrestashopInvoice> {
-		if (!invoiceID || Number.isNaN(invoiceID)) {
+		const invoiceIDParsed = Number.parseInt(String(invoiceID));
+		if (!invoiceIDParsed || Number.isNaN(invoiceIDParsed)) {
 			this.logger.error(
 				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
 			);

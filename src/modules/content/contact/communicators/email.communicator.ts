@@ -20,7 +20,7 @@ type EmailMode = 'noreply' | 'newsletter' | 'support';
 
 export class EmailCommunicator extends CommunicatorBase {
 	// Defining Nodemailer transporter and config with proper types
-	protected _transporter: Transporter;
+	protected _transporter!: Transporter;
 	protected _config: IEmailAccountConfig;
 	private readonly _senderAddress: string;
 
