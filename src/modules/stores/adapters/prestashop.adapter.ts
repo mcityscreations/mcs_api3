@@ -5,6 +5,7 @@ import { getErrorMessage } from '../../../common/utils/error.utils.js';
 import { xmlToJsonConverter } from '../../../common/utils/XMLToJson.utils.js';
 import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
 import { StoreAdapter } from '../interfaces/stores.interface.js';
+import { StoresRepository } from '../repository/stores.repository.js';
 import { PrestashopConfigService } from '../configs/prestashop/prestashop.config.js';
 import type {
 	IPrestashopInvoice,
@@ -23,6 +24,7 @@ export class PrestashopAdapter extends StoreAdapter {
 	constructor(
 		private readonly configService: PrestashopConfigService,
 		private readonly logger: WinstonLoggerService,
+		private readonly storesRepository: StoresRepository,
 	) {
 		super();
 		this.initializeStore();
@@ -67,6 +69,53 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	async getLastInvoices(): Promise<IPrestashopInvoiceList> {
 		// Retrieve last invoice ID stored in Postgres
+		const lastInvoiceID =
+			await this.storesRepository.getLastPrestashopInvoiceID();
+		if (lastInvoiceID === 0) {
+			// Make an api call to Prestashop to retrieve all invoices,
+			// since there is no invoice stored in the database yet.
+			const response = await axios.get(`${this.apiEndpoint}/order_invoices`, {
+				params: {
+					'filter[id]': [1, 999999],
+				},
+				headers: {
+					Authorization: this.authorizationKey,
+				},
+			});
+			// Parse response
+			const parsedResponse = xmlToJsonConverter(response.data as string);
+			if (!PrestashopInvoiceListSchema.safeParse(parsedResponse).success) {
+				this.logger.error(
+					'Invalid invoice data format received from PrestaShop',
+				);
+				throw new InternalServerErrorException(
+					'Invalid invoice data format received from PrestaShop',
+				);
+			}
+			return parsedResponse as IPrestashopInvoiceList;
+		} else {
+			// Make an api call to Prestashop to retrieve invoices with an ID greater than the last one stored in the database.
+			const nextInvoiceID = lastInvoiceID + 1;
+			const response = await axios.get(`${this.apiEndpoint}/order_invoices`, {
+				params: {
+					'filter[id]': [nextInvoiceID, 999999],
+				},
+				headers: {
+					Authorization: this.authorizationKey,
+				},
+			});
+			// Parse response
+			const parsedResponse = xmlToJsonConverter(response.data as string);
+			if (!PrestashopInvoiceListSchema.safeParse(parsedResponse).success) {
+				this.logger.error(
+					'Invalid invoice data format received from PrestaShop',
+				);
+				throw new InternalServerErrorException(
+					'Invalid invoice data format received from PrestaShop',
+				);
+			}
+			return parsedResponse as IPrestashopInvoiceList;
+		}
 	}
 
 	async getInvoicesByDatePeriod(

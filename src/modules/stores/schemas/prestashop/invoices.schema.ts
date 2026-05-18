@@ -61,26 +61,28 @@ export const PrestashopInvoiceSchema = z.object({
 export type IPrestashopInvoice = z.infer<typeof PrestashopInvoiceSchema>;
 
 export const PrestashopInvoiceListSchema = z.object({
-  prestashop: z.object({
-    order_invoices: z.object({
-      // If there is only one invoice, Prestashop will return an object 
-      // instead of an array of objects. For an easier data parsing, it's 
-      // better to store a single object into an array.
-      order_invoice: z.preprocess(
-        (val) => (Array.isArray(val) ? val : [val]),
-        z.array(
-          z.object({
-            id: z.coerce.number(), // Extracting XML attribute ID
-            "xlink:href": z.url(),
-          })
-        )
-      ),
-    }),
-  }),
+	prestashop: z.object({
+		order_invoices: z.object({
+			// If there is only one invoice, Prestashop will return an object
+			// instead of an array of objects. For an easier data parsing, it's
+			// better to store a single object into an array.
+			order_invoice: z.preprocess(
+				(val) => (Array.isArray(val) ? val : [val]),
+				z.array(
+					z.object({
+						id: z.coerce.number(), // Extracting XML attribute ID
+						'xlink:href': z.url(),
+					}),
+				),
+			),
+		}),
+	}),
 });
-export type IPrestashopInvoiceList = z.infer<typeof PrestashopInvoiceListSchema>;
+export type IPrestashopInvoiceList = z.infer<
+	typeof PrestashopInvoiceListSchema
+>;
 
 export const PrestashopInvoiceIDSchema = z.object({
-  invoiceID: z.coerce.number(), // Using .coerce to transform the type of the param from string to number
+	invoiceID: z.coerce.number(), // Using .coerce to transform the type of the param from string to number
 });
 export type IPrestashopInvoiceID = z.infer<typeof PrestashopInvoiceIDSchema>;
