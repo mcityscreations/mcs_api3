@@ -102,7 +102,7 @@ export const PrestashopOrderItemSchema = z.object({
 	product_isbn: z.string().nullable().optional(),
 	product_upc: z.string().nullable().optional(),
 	product_mpn: z.string().nullable().optional(),
-	product_weight: z.string().optional(), // Often a float in string, optional here
+	product_weight: stringToInteger.optional(), // Often a float in string, optional here
 
 	// Quantities (Converted to strict Integers)
 	product_quantity: stringToInteger,
@@ -120,7 +120,7 @@ export const PrestashopOrderItemSchema = z.object({
 	original_wholesale_price: prestashopPriceToCents,
 
 	// Discounts
-	reduction_percent: z.string().optional(), // Kept as string for analysis or conversion to PBS later
+	reduction_percent: prestashopPriceToCents, //conversion to PBS later
 	reduction_amount: prestashopPriceToCents,
 	reduction_amount_tax_excl: prestashopPriceToCents,
 	reduction_amount_tax_incl: prestashopPriceToCents,
