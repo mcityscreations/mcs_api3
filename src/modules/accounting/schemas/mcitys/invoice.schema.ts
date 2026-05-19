@@ -44,7 +44,7 @@ export const McitysInvoiceSchema = z.object({
 	emitter: z
 		.object({
 			id: z.string(),
-			legal_number: z.string(), // Ton SIRET
+			legal_number: z.string(), // SIRET
 		})
 		.optional(),
 	customer: z.object({
