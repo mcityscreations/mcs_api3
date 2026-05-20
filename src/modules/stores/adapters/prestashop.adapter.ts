@@ -15,6 +15,8 @@ import {
 	PrestashopInvoiceSchema,
 	PrestashopInvoiceListSchema,
 } from '../schemas/prestashop/invoices.schema.js';
+import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order.schema.js';
+import { PrestashopOrderDetailsResponseSchema } from '../schemas/prestashop/order.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -67,6 +69,42 @@ export class PrestashopAdapter extends StoreAdapter {
 		// The logic to retrieve product attributes from PrestaShop
 	}
 
+	async getOrderDetailsByInvoiceID(
+		invoiceID: number,
+	): Promise<IPrestashopOrderDetailsNormalized> {
+		if (!invoiceID || Number.isNaN(invoiceID)) {
+			this.logger.error(
+				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
+			);
+			throw new InternalServerErrorException(
+				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
+			);
+		}
+		const response = await axios.get(`${this.apiEndpoint}/order_details`, {
+			params: {
+				'filter[id_order_invoice]': invoiceID,
+				display: 'full',
+			},
+			headers: {
+				Authorization: this.authorizationKey,
+			},
+		});
+		// Parse XML response
+		const parsedResponse = xmlToJsonConverter(response.data as string);
+		if (
+			!PrestashopOrderDetailsResponseSchema.safeParse(parsedResponse).success
+		) {
+			this.logger.error(
+				'Invalid order details data format received from PrestaShop',
+			);
+			throw new InternalServerErrorException(
+				'Invalid order details data format received from PrestaShop',
+			);
+		}
+		return PrestashopOrderDetailsResponseSchema.safeParse(parsedResponse)
+			.data as IPrestashopOrderDetailsNormalized;
+	}
+
 	async getLastInvoices(): Promise<IPrestashopInvoiceList> {
 		// Retrieve last invoice ID stored in Postgres
 		const lastInvoiceID =
@@ -92,7 +130,8 @@ export class PrestashopAdapter extends StoreAdapter {
 					'Invalid invoice data format received from PrestaShop',
 				);
 			}
-			return parsedResponse as IPrestashopInvoiceList;
+			return PrestashopInvoiceListSchema.safeParse(parsedResponse)
+				.data as IPrestashopInvoiceList;
 		} else {
 			// Make an api call to Prestashop to retrieve invoices with an ID greater than the last one stored in the database.
 			const nextInvoiceID = lastInvoiceID + 1;
@@ -114,7 +153,8 @@ export class PrestashopAdapter extends StoreAdapter {
 					'Invalid invoice data format received from PrestaShop',
 				);
 			}
-			return parsedResponse as IPrestashopInvoiceList;
+			return PrestashopInvoiceListSchema.safeParse(parsedResponse)
+				.data as IPrestashopInvoiceList;
 		}
 	}
 
@@ -156,7 +196,8 @@ export class PrestashopAdapter extends StoreAdapter {
 					'Invalid invoice data format received from PrestaShop',
 				);
 			}
-			return parsedResponse as IPrestashopInvoiceList;
+			return PrestashopInvoiceListSchema.safeParse(parsedResponse)
+				.data as IPrestashopInvoiceList;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error(
@@ -202,7 +243,8 @@ export class PrestashopAdapter extends StoreAdapter {
 				);
 			}
 			// Send result
-			return parsedResponse as IPrestashopInvoice;
+			return PrestashopInvoiceSchema.safeParse(parsedResponse)
+				.data as IPrestashopInvoice;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error(

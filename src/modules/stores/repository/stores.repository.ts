@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PostgreSQLService } from '../../../system/database/postgresql/postgresql.service.js';
-import { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
+import { IMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
 
 @Injectable()
 export class StoresRepository {
 	constructor(private readonly postgreSQLService: PostgreSQLService) {}
 
-	saveInvoice(invoiceData: IPrestashopInvoice): void {
+	saveInvoice(invoiceData: IMcitysInvoice): void {
 		// The logic to save the invoice data into the database
 	}
 
 	/** Retrieves the ID of the last Prestashop invoice recorded in the Mcitys database */
 	async getLastPrestashopInvoiceID(): Promise<number> {
-		const sqlRequest = `SELECT id_technical_erp FROM accounting.invoice ORDER BY issue_date DESC LIMIT 1;`;
+		const sqlRequest = `SELECT id_technical_erp FROM accounting.invoice WHERE system_source = 'prestashop' ORDER BY issue_date DESC LIMIT 1;`;
 		const result = await this.postgreSQLService.execute(
 			sqlRequest,
 			[],

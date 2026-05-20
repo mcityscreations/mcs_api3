@@ -218,6 +218,6 @@ export const PrestashopOrderDetailsResponseSchema = z.preprocess(
 	}),
 );
 
-export type PrestashopOrderDetailsNormalized = z.infer<
+export type IPrestashopOrderDetailsNormalized = z.infer<
 	typeof PrestashopOrderDetailsResponseSchema
 >;

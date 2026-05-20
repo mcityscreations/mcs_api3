@@ -3,6 +3,9 @@ import { WinstonLoggerService } from '../../../system/logger/logger-service/wins
 import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
 import type { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
+import { IMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
+import { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order.schema.js';
+import { mapPrestashopInvoiceToMcitysInvoice } from '../../accounting/schemas/mappers/invoice.mapper.js';
 
 @Injectable()
 export class StoresService {
@@ -20,12 +23,19 @@ export class StoresService {
 			if (invoices.prestashop.order_invoices.order_invoice.length === 0) {
 				this.logger.log('No new invoices found in PrestaShop.');
 			}
-			const invoiceDetails: IPrestashopInvoice[] = [];
+			const invoiceDetails: IMcitysInvoice[] = [];
 			for (const invoice of invoices.prestashop.order_invoices.order_invoice) {
-				const detail = await this.prestashopStoreAdapter.getInvoiceDetail(
-					invoice.id,
+				const invoiceGlobalDetails: IPrestashopInvoice =
+					await this.prestashopStoreAdapter.getInvoiceDetail(invoice.id);
+				const invoiceItems: IPrestashopOrderDetailsNormalized =
+					await this.prestashopStoreAdapter.getOrderDetailsByInvoiceID(
+						invoice.id,
+					);
+				const mappedInvoice = mapPrestashopInvoiceToMcitysInvoice(
+					invoiceGlobalDetails,
+					invoiceItems,
 				);
-				invoiceDetails.push(detail);
+				invoiceDetails.push(mappedInvoice);
 			}
 			return invoiceDetails.sort((a, b) => a.id! - b.id!); // Sort invoices by ID in ascending order
 		} catch (error) {

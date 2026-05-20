@@ -53,7 +53,7 @@ export const McitysInvoiceSchema = z.object({
 		legal_number: z.string().optional(), // Legal number of the customer (e.g. SIRET in France)
 		country_code: z.string().length(2).default('FR'),
 	}),
-	items: z.array(
+	order_details: z.array(
 		z.object({
 			id: z.string().min(1), // Technical ID of the item in the third party system (Qonto, Prestashop, etc.)
 			label: z.string().min(1), // Label of the item (e.g. product name)

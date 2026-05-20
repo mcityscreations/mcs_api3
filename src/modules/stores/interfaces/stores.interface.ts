@@ -8,6 +8,8 @@ export abstract class StoreAdapter {
 	abstract getProductCategories(): void;
 	abstract getProductAttributes(): void;
 
+	abstract getOrderDetailsByInvoiceID(invoiceID: number): Promise<unknown>;
+
 	abstract getLastInvoices(): Promise<unknown>;
 	abstract getInvoicesByDatePeriod(dateFilter: IDateFilter): Promise<unknown>;
 }
