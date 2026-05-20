@@ -13,12 +13,12 @@ import { z } from 'zod';
 				<newsletter_date_add><![CDATA[0000-00-00 00:00:00]]></newsletter_date_add>
 				<ip_registration_newsletter><![CDATA[]]></ip_registration_newsletter>
 				<last_passwd_gen><![CDATA[2023-10-20 13:10:53]]></last_passwd_gen>
-				<secure_key><![CDATA[e5646e3e233648d06231e82e429076f8]]></secure_key>
+				<secure_key><![CDATA[]]></secure_key>
 				<deleted><![CDATA[0]]></deleted>
-				<passwd><![CDATA[$2y$10$AOkyMKJc7eEe1XIu.Ubv6O5trepAR0K.lglaoCpurqGu36NWV8nly]]></passwd>
-				<lastname><![CDATA[Strout]]></lastname>
-				<firstname><![CDATA[Lea]]></firstname>
-				<email><![CDATA[contact@mcitys.com]]></email>
+				<passwd><![CDATA[]]></passwd>
+				<lastname><![CDATA[]]></lastname>
+				<firstname><![CDATA[]]></firstname>
+				<email><![CDATA[]]></email>
 				<id_gender><![CDATA[2]]></id_gender>
 				<birthday><![CDATA[0000-00-00]]></birthday>
 				<newsletter><![CDATA[0]]></newsletter>
