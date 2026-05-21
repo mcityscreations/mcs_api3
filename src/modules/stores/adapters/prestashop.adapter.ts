@@ -15,8 +15,8 @@ import {
 	PrestashopInvoiceSchema,
 	PrestashopInvoiceListSchema,
 } from '../schemas/prestashop/invoices.schema.js';
-import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order.schema.js';
-import { PrestashopOrderDetailsResponseSchema } from '../schemas/prestashop/order.schema.js';
+import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
+import { PrestashopOrderDetailsResponseSchema } from '../schemas/prestashop/order-detail.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {

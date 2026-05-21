@@ -4,7 +4,7 @@ import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
 import type { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
 import { IMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
-import { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order.schema.js';
+import { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
 import { mapPrestashopInvoiceToMcitysInvoice } from '../../accounting/schemas/mappers/invoice.mapper.js';
 
 @Injectable()

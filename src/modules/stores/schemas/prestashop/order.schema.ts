@@ -1,223 +1,148 @@
 import z from 'zod';
+import { ZodStringToInteger } from '../../../../common/utils/stringToInteger.js';
+import { ZodPriceToCents } from '../../../../common/utils/priceToCents.js';
 
 /**
- * @see https://devdocs.prestashop-project.org/9/webservice/resources/order_details/
+ * Order schema based on PrestaShop API response structure.
+ * @see https://devdocs.prestashop-project.org/9/webservice/resources/orders/
  * <prestashop xmlns:xlink="http://www.w3.org/1999/xlink">
-  <order_detail>
-    <id><![CDATA[]]></id>
-    <id_order><![CDATA[]]></id_order>
-    <product_id><![CDATA[]]></product_id>
-    <product_attribute_id><![CDATA[]]></product_attribute_id>
-    <product_quantity_reinjected><![CDATA[]]></product_quantity_reinjected>
-    <group_reduction><![CDATA[]]></group_reduction>
-    <discount_quantity_applied><![CDATA[]]></discount_quantity_applied>
-    <download_hash><![CDATA[]]></download_hash>
-    <download_deadline><![CDATA[]]></download_deadline>
-    <id_order_invoice><![CDATA[]]></id_order_invoice>
-    <id_warehouse><![CDATA[]]></id_warehouse>
-    <id_shop><![CDATA[]]></id_shop>
-    <id_customization><![CDATA[]]></id_customization>
-    <product_name><![CDATA[]]></product_name>
-    <product_quantity><![CDATA[]]></product_quantity>
-    <product_quantity_in_stock><![CDATA[]]></product_quantity_in_stock>
-    <product_quantity_return><![CDATA[]]></product_quantity_return>
-    <product_quantity_refunded><![CDATA[]]></product_quantity_refunded>
-    <product_price><![CDATA[]]></product_price>
-    <reduction_percent><![CDATA[]]></reduction_percent>
-    <reduction_amount><![CDATA[]]></reduction_amount>
-    <reduction_amount_tax_incl><![CDATA[]]></reduction_amount_tax_incl>
-    <reduction_amount_tax_excl><![CDATA[]]></reduction_amount_tax_excl>
-    <product_quantity_discount><![CDATA[]]></product_quantity_discount>
-    <product_ean13><![CDATA[]]></product_ean13>
-    <product_isbn><![CDATA[]]></product_isbn>
-    <product_upc><![CDATA[]]></product_upc>
-    <product_mpn><![CDATA[]]></product_mpn>
-    <product_reference><![CDATA[]]></product_reference>
-    <product_supplier_reference><![CDATA[]]></product_supplier_reference>
-    <product_weight><![CDATA[]]></product_weight>
-    <tax_computation_method><![CDATA[]]></tax_computation_method>
-    <id_tax_rules_group><![CDATA[]]></id_tax_rules_group>
-    <ecotax><![CDATA[]]></ecotax>
-    <ecotax_tax_rate><![CDATA[]]></ecotax_tax_rate>
-    <download_nb><![CDATA[]]></download_nb>
-    <unit_price_tax_incl><![CDATA[]]></unit_price_tax_incl>
-    <unit_price_tax_excl><![CDATA[]]></unit_price_tax_excl>
-    <total_price_tax_incl><![CDATA[]]></total_price_tax_incl>
-    <total_price_tax_excl><![CDATA[]]></total_price_tax_excl>
-    <total_shipping_price_tax_excl><![CDATA[]]></total_shipping_price_tax_excl>
-    <total_shipping_price_tax_incl><![CDATA[]]></total_shipping_price_tax_incl>
-    <purchase_supplier_price><![CDATA[]]></purchase_supplier_price>
-    <original_product_price><![CDATA[]]></original_product_price>
-    <original_wholesale_price><![CDATA[]]></original_wholesale_price>
-    <total_refunded_tax_excl><![CDATA[]]></total_refunded_tax_excl>
-    <total_refunded_tax_incl><![CDATA[]]></total_refunded_tax_incl>
-    <associations>
-      <taxes>
-        <tax>
-          <id><![CDATA[]]></id>
-        </tax>
-      </taxes>
-    </associations>
-  </order_detail>
-</prestashop>
+    <order>
+        <id><![CDATA[]]></id>
+        <id_address_delivery><![CDATA[]]></id_address_delivery>
+        <id_address_invoice><![CDATA[]]></id_address_invoice>
+        <id_cart><![CDATA[]]></id_cart>
+        <id_currency><![CDATA[]]></id_currency>
+        <id_lang><![CDATA[]]></id_lang>
+        <id_customer><![CDATA[]]></id_customer>
+        <id_carrier><![CDATA[]]></id_carrier>
+        <current_state><![CDATA[]]></current_state>
+        <module><![CDATA[]]></module>
+        <invoice_number><![CDATA[]]></invoice_number>
+        <invoice_date><![CDATA[]]></invoice_date>
+        <delivery_number><![CDATA[]]></delivery_number>
+        <delivery_date><![CDATA[]]></delivery_date>
+        <valid><![CDATA[]]></valid>
+        <date_add><![CDATA[]]></date_add>
+        <date_upd><![CDATA[]]></date_upd>
+        <shipping_number><![CDATA[]]></shipping_number>
+        <note><![CDATA[]]></note>
+        <id_shop_group><![CDATA[]]></id_shop_group>
+        <id_shop><![CDATA[]]></id_shop>
+        <secure_key><![CDATA[]]></secure_key>
+        <payment><![CDATA[]]></payment>
+        <recyclable><![CDATA[]]></recyclable>
+        <gift><![CDATA[]]></gift>
+        <gift_message><![CDATA[]]></gift_message>
+        <mobile_theme><![CDATA[]]></mobile_theme>
+        <total_discounts><![CDATA[]]></total_discounts>
+        <total_discounts_tax_incl><![CDATA[]]></total_discounts_tax_incl>
+        <total_discounts_tax_excl><![CDATA[]]></total_discounts_tax_excl>
+        <total_paid><![CDATA[]]></total_paid>
+        <total_paid_tax_incl><![CDATA[]]></total_paid_tax_incl>
+        <total_paid_tax_excl><![CDATA[]]></total_paid_tax_excl>
+        <total_paid_real><![CDATA[]]></total_paid_real>
+        <total_products><![CDATA[]]></total_products>
+        <total_products_wt><![CDATA[]]></total_products_wt>
+        <total_shipping><![CDATA[]]></total_shipping>
+        <total_shipping_tax_incl><![CDATA[]]></total_shipping_tax_incl>
+        <total_shipping_tax_excl><![CDATA[]]></total_shipping_tax_excl>
+        <carrier_tax_rate><![CDATA[]]></carrier_tax_rate>
+        <total_wrapping><![CDATA[]]></total_wrapping>
+        <total_wrapping_tax_incl><![CDATA[]]></total_wrapping_tax_incl>
+        <total_wrapping_tax_excl><![CDATA[]]></total_wrapping_tax_excl>
+        <round_mode><![CDATA[]]></round_mode>
+        <round_type><![CDATA[]]></round_type>
+        <conversion_rate><![CDATA[]]></conversion_rate>
+        <reference><![CDATA[]]></reference>
+        <associations>
+        <order_rows>
+            <order_row>
+            <id><![CDATA[]]></id>
+            <product_id><![CDATA[]]></product_id>
+            <product_attribute_id><![CDATA[]]></product_attribute_id>
+            <product_quantity><![CDATA[]]></product_quantity>
+            <product_name><![CDATA[]]></product_name>
+            <product_reference><![CDATA[]]></product_reference>
+            <product_ean13><![CDATA[]]></product_ean13>
+            <product_isbn><![CDATA[]]></product_isbn>
+            <product_upc><![CDATA[]]></product_upc>
+            <product_price><![CDATA[]]></product_price>
+            <id_customization><![CDATA[]]></id_customization>
+            <unit_price_tax_incl><![CDATA[]]></unit_price_tax_incl>
+            <unit_price_tax_excl><![CDATA[]]></unit_price_tax_excl>
+            </order_row>
+        </order_rows>
+        </associations>
+    </order>
+    </prestashop>
 
  */
 
-// Helper to convert decimal price strings from PrestaShop into integer cents (e.g. "12.34" -> 1234)
-const prestashopPriceToCents = z.preprocess((val) => {
-	if (typeof val !== 'string' || val.trim() === '') return 0;
-	const floatValue = parseFloat(val);
-	return isNaN(floatValue) ? 0 : Math.round(floatValue * 100);
-}, z.number().int().nonnegative());
-
-// Helper to convert numeric strings into integers (e.g. "2" -> 2)
-const stringToInteger = z.preprocess((val) => {
-	if (typeof val !== 'string' || val.trim() === '') return 0;
-	const intValue = parseInt(val, 10);
-	return isNaN(intValue) ? 0 : intValue;
-}, z.number().int().nonnegative());
-
-// Helper to handle PrestaShop "zero" dates
-const prestashopDateOrNull = z.preprocess((val) => {
-	if (typeof val !== 'string' || val.startsWith('0000-00-00')) return null;
-	return val;
-}, z.string().nullable());
-
-export const PrestashopOrderItemSchema = z.object({
-	// Technical and association fields
-	id: z.string().min(1),
-	id_order: z.string().min(1),
-	product_id: z.string().min(1),
-	product_attribute_id: stringToInteger,
-	id_order_invoice: z.string().nullable().optional(),
-	id_warehouse: stringToInteger,
-	id_shop: stringToInteger,
-	id_customization: stringToInteger,
-
-	// Product information
-	product_name: z.string().min(1),
-	product_reference: z.string().nullable().optional(),
-	product_supplier_reference: z.string().nullable().optional(),
-	product_ean13: z.string().nullable().optional(),
-	product_isbn: z.string().nullable().optional(),
-	product_upc: z.string().nullable().optional(),
-	product_mpn: z.string().nullable().optional(),
-	product_weight: stringToInteger.optional(), // Often a float in string, optional here
-
-	// Quantities (Converted to strict Integers)
-	product_quantity: stringToInteger,
-	product_quantity_in_stock: stringToInteger,
-	product_quantity_reinjected: stringToInteger,
-	product_quantity_return: stringToInteger,
-	product_quantity_refunded: stringToInteger,
-
-	// Unit prices (Converted to CENTS at parse time)
-	product_price: prestashopPriceToCents,
-	unit_price_tax_excl: prestashopPriceToCents,
-	unit_price_tax_incl: prestashopPriceToCents,
-	purchase_supplier_price: prestashopPriceToCents,
-	original_product_price: prestashopPriceToCents,
-	original_wholesale_price: prestashopPriceToCents,
-
-	// Discounts
-	reduction_percent: prestashopPriceToCents, //conversion to PBS later
-	reduction_amount: prestashopPriceToCents,
-	reduction_amount_tax_excl: prestashopPriceToCents,
-	reduction_amount_tax_incl: prestashopPriceToCents,
-	group_reduction: z.string().optional(),
-	discount_quantity_applied: stringToInteger,
-	product_quantity_discount: stringToInteger,
-
-	// Line totals (Converted to CENTS)
-	total_price_tax_excl: prestashopPriceToCents,
-	total_price_tax_incl: prestashopPriceToCents,
-	total_shipping_price_tax_excl: prestashopPriceToCents,
-	total_shipping_price_tax_incl: prestashopPriceToCents,
-	total_refunded_tax_excl: prestashopPriceToCents,
-	total_refunded_tax_incl: prestashopPriceToCents,
-
-	// Taxes
-	tax_computation_method: stringToInteger,
-	id_tax_rules_group: stringToInteger,
-	ecotax: prestashopPriceToCents,
-	ecotax_tax_rate: z.string().optional(),
-
-	// Downloads (virtual products)
-	download_hash: z.string().nullable().optional(),
-	download_deadline: prestashopDateOrNull.nullable().optional(),
-	download_nb: stringToInteger,
-
-	// Associations (Taxes applied to this line)
-	associations: z
-		.object({
-			taxes: z
-				.object({
-					tax: z
-						.union([
-							z.object({ id: z.string() }),
-							z.array(z.object({ id: z.string() })),
-						]) // Can be a single tax object or an array of tax objects
-						.optional(),
-				})
-				.optional(),
-		})
-		.optional(),
-});
-
-/** Huge transformations required here because Prestashop API responses are inconsistent.
- *  There is no Array type in XML. To compensate, in case there are multiple items,
- *  Prestashop encapsulates items into an "<order_details>" block. The following code normalizes
- * the structure for consistent processing. We will always end up with an array of items,
- * even if there is only one item in the order.
- */
-export const PrestashopOrderDetailsResponseSchema = z.preprocess(
-	(rawData: unknown) => {
-		// Étape de normalisation avant validation
-		if (
-			!rawData ||
-			typeof rawData !== 'object' ||
-			rawData === null ||
-			!('prestashop' in rawData) ||
-			!rawData.prestashop
-		)
-			return rawData;
-
-		const prestashopNode = rawData.prestashop;
-		let normalizedItems: any[] = [];
-
-		// Option A : There are multiple items (<order_details><order_detail>...)
-		if (
-			typeof prestashopNode === 'object' &&
-			prestashopNode !== null &&
-			'order_details' in prestashopNode &&
-			prestashopNode.order_details &&
-			typeof prestashopNode.order_details === 'object' &&
-			'order_detail' in prestashopNode.order_details
-		) {
-			const details = prestashopNode.order_details.order_detail;
-			normalizedItems = Array.isArray(details) ? details : [details];
-		}
-		// Option B : There is only one item (<order_detail>)
-		else if (
-			typeof prestashopNode === 'object' &&
-			prestashopNode !== null &&
-			'order_detail' in prestashopNode
-		) {
-			const detail = prestashopNode.order_detail;
-			normalizedItems = Array.isArray(detail) ? detail : [detail];
-		}
-
-		// Reconstruct a clean object for Zod
-		return {
-			items: normalizedItems,
-		};
-	},
-	z.object({
-		// Zod now validates a consistently predictable array of items
-		items: z.array(PrestashopOrderItemSchema),
+export const PrestashopOrderSchema = z.object({
+	id: ZodStringToInteger.nullable().optional(),
+	id_address_delivery: ZodStringToInteger,
+	id_address_invoice: ZodStringToInteger,
+	id_cart: ZodStringToInteger,
+	id_currency: ZodStringToInteger,
+	id_lang: ZodStringToInteger,
+	id_customer: ZodStringToInteger,
+	id_carrier: ZodStringToInteger,
+	current_state: ZodStringToInteger.nullable().optional(),
+	module: z.string(),
+	invoice_number: ZodStringToInteger.nullable().optional(),
+	invoice_date: z.string().nullable().optional(),
+	delivery_number: z.string().nullable().optional(),
+	delivery_date: z.string().nullable().optional(),
+	valid: z.number().nullable().optional(),
+	date_add: z.string().nullable().optional(),
+	date_upd: z.string().nullable().optional(),
+	shipping_number: z.string().nullable().optional(),
+	note: z.string().nullable().optional(),
+	id_shop_group: z.number().nullable().optional(),
+	id_shop: z.number().nullable().optional(),
+	secure_key: z.string().nullable().optional(),
+	payment: z.string(),
+	recyclable: ZodStringToInteger.nullable().optional(),
+	gift: ZodStringToInteger.nullable().optional(),
+	gift_message: z.string().nullable().optional(),
+	mobile_theme: ZodStringToInteger.nullable().optional(),
+	total_discounts: ZodPriceToCents.nullable().optional(),
+	total_discounts_tax_incl: ZodPriceToCents.nullable().optional(),
+	total_discounts_tax_excl: ZodPriceToCents.nullable().optional(),
+	total_paid: ZodPriceToCents.nullable().optional(),
+	total_paid_tax_incl: ZodPriceToCents.nullable().optional(),
+	total_paid_tax_excl: ZodPriceToCents.nullable().optional(),
+	total_paid_real: ZodPriceToCents.nullable().optional(),
+	total_products: ZodPriceToCents.nullable().optional(),
+	total_products_wt: ZodPriceToCents.nullable().optional(),
+	total_shipping: ZodPriceToCents.nullable().optional(),
+	total_shipping_tax_incl: ZodPriceToCents.nullable().optional(),
+	total_shipping_tax_excl: ZodPriceToCents.nullable().optional(),
+	carrier_tax_rate: ZodPriceToCents.nullable().optional(),
+	total_wrapping: ZodPriceToCents.nullable().optional(),
+	total_wrapping_tax_incl: ZodPriceToCents.nullable().optional(),
+	total_wrapping_tax_excl: ZodPriceToCents.nullable().optional(),
+	round_mode: ZodPriceToCents.nullable().optional(),
+	round_type: z.number().nullable().optional(),
+	conversion_rate: z.number().nullable().optional(),
+	reference: z.string().nullable().optional(),
+	associations: z.object({
+		order_rows: z.array(
+			z.object({
+				id: z.number().nullable().optional(),
+				product_id: z.number().nullable().optional(),
+				product_attribute_id: z.number().nullable().optional(),
+				product_quantity: z.number().nullable().optional(),
+				product_name: z.string().nullable().optional(),
+				product_reference: z.string().nullable().optional(),
+				product_ean13: z.string().nullable().optional(),
+				product_isbn: z.string().nullable().optional(),
+				product_upc: z.string().nullable().optional(),
+				product_price: z.number().nullable().optional(),
+				id_customization: z.number().nullable().optional(),
+				unit_price_tax_incl: z.number().nullable().optional(),
+				unit_price_tax_excl: z.number().nullable().optional(),
+			}),
+		),
 	}),
-);
-
-export type IPrestashopOrderDetailsNormalized = z.infer<
-	typeof PrestashopOrderDetailsResponseSchema
->;
+});

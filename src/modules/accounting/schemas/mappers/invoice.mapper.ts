@@ -1,6 +1,6 @@
 import type { IMcitysInvoice } from '../mcitys/invoice.schema.js';
 import type { IPrestashopInvoice } from '../../../stores/schemas/prestashop/invoices.schema.js';
-import { IPrestashopOrderDetailsNormalized } from '../../../stores/schemas/prestashop/order.schema.js';
+import { IPrestashopOrderDetailsNormalized } from '../../../stores/schemas/prestashop/order-detail.schema.js';
 
 /** Mapper function to convert a PrestaShop invoice to a Mcitys invoice */
 export function mapPrestashopInvoiceToMcitysInvoice(
