@@ -7,6 +7,7 @@ import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
 import { StoreAdapter } from '../interfaces/stores.interface.js';
 import { StoresRepository } from '../repository/stores.repository.js';
 import { PrestashopConfigService } from '../configs/prestashop/prestashop.config.js';
+// Invoice schemas
 import type {
 	IPrestashopInvoice,
 	IPrestashopInvoiceList,
@@ -15,8 +16,20 @@ import {
 	PrestashopInvoiceSchema,
 	PrestashopInvoiceListSchema,
 } from '../schemas/prestashop/invoices.schema.js';
+// Order schemas
 import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
 import { PrestashopOrderDetailsResponseSchema } from '../schemas/prestashop/order-detail.schema.js';
+import type { IPrestashopOrder } from '../schemas/prestashop/order.schema.js';
+import { PrestashopOrdersResponseSchema } from '../schemas/prestashop/order.schema.js';
+// Address schema
+import type {
+	IPrestashopAddressesResponse,
+	IPrestashopAddress,
+} from '../schemas/prestashop/address.schema.js';
+import { PrestashopAddressesResponseSchema } from '../schemas/prestashop/address.schema.js';
+// Customer schema
+import type { IPrestashopCustomer } from '../schemas/prestashop/customer.schema.js';
+import { PrestashopCustomersResponseSchema } from '../schemas/prestashop/customer.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -67,6 +80,46 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	getProductAttributes(): void {
 		// The logic to retrieve product attributes from PrestaShop
+	}
+
+	async getMainOrderDataByInvoiceID(
+		invoiceID: number,
+	): Promise<IPrestashopOrder> {
+		if (!invoiceID || Number.isNaN(invoiceID)) {
+			this.logger.error(
+				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
+			);
+			throw new InternalServerErrorException(
+				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
+			);
+		}
+		const response = await axios.get(
+			`${this.apiEndpoint}/orders/${invoiceID}`,
+			{
+				headers: {
+					Authorization: this.authorizationKey,
+				},
+			},
+		);
+		// Parse XML response
+		const parsedResponse = xmlToJsonConverter(response.data as string);
+		if (!PrestashopOrdersResponseSchema.safeParse(parsedResponse).success) {
+			this.logger.error('Invalid order data format received from PrestaShop');
+			throw new InternalServerErrorException(
+				'Invalid order data format received from PrestaShop',
+			);
+		}
+		const finalData =
+			PrestashopOrdersResponseSchema.safeParse(parsedResponse).data;
+		if (!finalData || !finalData.orders || finalData.orders.length === 0) {
+			this.logger.error(
+				`No order data found for invoice ID ${invoiceID} in PrestaShop response.`,
+			);
+			throw new InternalServerErrorException(
+				`No order data found for invoice ID ${invoiceID} in PrestaShop response.`,
+			);
+		}
+		return finalData.orders[0];
 	}
 
 	async getOrderDetailsByInvoiceID(
@@ -255,5 +308,68 @@ export class PrestashopAdapter extends StoreAdapter {
 				`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}`,
 			);
 		}
+	}
+
+	async getCustomerDataByID(customerID: number): Promise<IPrestashopCustomer> {
+		if (!customerID || Number.isNaN(customerID)) {
+			this.logger.error(
+				`Wrong type for customer ID. Expecting NUMBER, ${typeof customerID} given.`,
+			);
+			throw new InternalServerErrorException(
+				`Wrong type for customer ID. Expecting NUMBER, ${typeof customerID} given.`,
+			);
+		}
+		const response = await axios.get(
+			`${this.apiEndpoint}/customers/${customerID}`,
+			{
+				headers: {
+					Authorization: this.authorizationKey,
+				},
+			},
+		);
+		// Parse XML response
+		const parsedResponse = xmlToJsonConverter(response.data as string);
+		if (!PrestashopCustomersResponseSchema.safeParse(parsedResponse).success) {
+			this.logger.error(
+				'Invalid customer data format received from PrestaShop',
+			);
+			throw new InternalServerErrorException(
+				'Invalid customer data format received from PrestaShop',
+			);
+		}
+		const finalData =
+			PrestashopCustomersResponseSchema.safeParse(parsedResponse).data;
+		return finalData?.customers[0] as IPrestashopCustomer;
+	}
+
+	async getAddressDataByID(addressID: number): Promise<IPrestashopAddress> {
+		if (!addressID || Number.isNaN(addressID)) {
+			this.logger.error(
+				`Wrong type for address ID. Expecting NUMBER, ${typeof addressID} given.`,
+			);
+			throw new InternalServerErrorException(
+				`Wrong type for address ID. Expecting NUMBER, ${typeof addressID} given.`,
+			);
+		}
+		const response = await axios.get(
+			`${this.apiEndpoint}/addresses/${addressID}`,
+			{
+				headers: {
+					Authorization: this.authorizationKey,
+				},
+			},
+		);
+		// Parse XML response
+		const parsedResponse = xmlToJsonConverter(response.data as string);
+		if (!PrestashopAddressesResponseSchema.safeParse(parsedResponse).success) {
+			this.logger.error('Invalid address data format received from PrestaShop');
+			throw new InternalServerErrorException(
+				'Invalid address data format received from PrestaShop',
+			);
+		}
+		const finalData = PrestashopAddressesResponseSchema.safeParse(
+			parsedResponse,
+		).data as IPrestashopAddressesResponse;
+		return finalData.addresses[0];
 	}
 }

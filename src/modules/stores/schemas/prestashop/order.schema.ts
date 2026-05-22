@@ -146,3 +146,71 @@ export const PrestashopOrderSchema = z.object({
 		),
 	}),
 });
+
+export type IPrestashopOrder = z.infer<typeof PrestashopOrderSchema>;
+
+// Reusable TypeScript type guards
+function isRecord(val: unknown): val is Record<string, unknown> {
+	return typeof val === 'object' && val !== null;
+}
+
+export const PrestashopOrdersResponseSchema = z.preprocess(
+	(rawData: unknown) => {
+		if (
+			!isRecord(rawData) ||
+			!('prestashop' in rawData) ||
+			!isRecord(rawData.prestashop)
+		)
+			return rawData;
+
+		const prestashopNode = rawData.prestashop;
+		let rawOrders: unknown[] = [];
+
+		// Step A: Normalization of the order envelope (Single vs Multiple)
+		if (
+			'orders' in prestashopNode &&
+			isRecord(prestashopNode.orders) &&
+			'order' in prestashopNode.orders
+		) {
+			const orders = prestashopNode.orders.order;
+			rawOrders = Array.isArray(orders) ? orders : [orders];
+		} else if ('order' in prestashopNode) {
+			const order = prestashopNode.order;
+			rawOrders = Array.isArray(order) ? order : [order];
+		}
+
+		// Step B: Normalization of the lines of each detected credit note
+		const normalizedOrders = rawOrders.map((order) => {
+			if (!isRecord(order)) return order;
+
+			let normalizedItems: unknown[] = [];
+
+			// Descend into associations -> order_slip_details -> order_slip_detail
+			if (
+				'associations' in order &&
+				isRecord(order.associations) &&
+				'order_rows' in order.associations &&
+				isRecord(order.associations.order_rows) &&
+				'order_row' in order.associations.order_rows
+			) {
+				const orderRows = order.associations.order_rows.order_row;
+				normalizedItems = Array.isArray(orderRows) ? orderRows : [orderRows];
+			}
+
+			// Extract items at the top level to simplify mapping
+			return {
+				...order,
+				items: normalizedItems,
+			};
+		});
+
+		return { orders: normalizedOrders };
+	},
+	z.object({
+		orders: z.array(PrestashopOrderSchema),
+	}),
+);
+
+export type IPrestashopOrderList = z.infer<
+	typeof PrestashopOrdersResponseSchema
+>;

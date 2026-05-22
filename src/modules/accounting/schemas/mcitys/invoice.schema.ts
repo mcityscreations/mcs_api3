@@ -40,7 +40,9 @@ export const McitysInvoiceSchema = z.object({
 	issue_date: z.number().int().positive(), // Issue date of the invoice as a timestamp (UNIX timestamp)
 	due_date: z.number().int().positive(), // Due date of the invoice as a timestamp (UNIX timestamp)
 	currency: currenciesEnum, // Currency of the invoice (e.g. EUR, USD, etc.)
-	document_type: z.enum(['INVOICE', 'CREDIT_NOTE']).default('INVOICE'),
+	document_type: z
+		.enum(['INVOICE', 'CREDIT_NOTE', 'PROFORMA'])
+		.default('INVOICE'),
 	emitter: z
 		.object({
 			id: z.string(),
@@ -49,7 +51,10 @@ export const McitysInvoiceSchema = z.object({
 		.optional(),
 	customer: z.object({
 		id: z.string(), // Technical ID of the customer in the third party system (Qonto, Prestashop, etc.)
-		email: z.email().optional(), // Email of the customer
+		firstname: z.string(), // First name of the customer
+		lastname: z.string(), // Last name of the customer
+		company_name: z.string().optional(), // Company name of the customer
+		email: z.email(), // Email of the customer
 		legal_number: z.string().optional(), // Legal number of the customer (e.g. SIRET in France)
 		country_code: z.string().length(2).default('FR'),
 	}),
@@ -64,6 +69,7 @@ export const McitysInvoiceSchema = z.object({
 				.object({
 					type: z.enum(['percentage', 'absolute']), // Type of the discount (e.g. percentage, absolute)
 					value: z.number().int().positive(), // Value of the discount in Basis Points (e.g. 1000 for 10%) or in cents if 'absolute'
+					discount_amount_tax_excl: z.number().int().nonnegative().optional(), // Amount of the discount in cents excluding tax (only for absolute discounts)
 				})
 				.optional(),
 			unit_price_tax_excl_discount: z.number().int().nonnegative().optional(), // Reduced unit price in cents of the item excluding tax
