@@ -2,9 +2,11 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { isNestHttpException } from '../../../../common/validators/error.validators.js';
+import { WinstonLoggerService } from '../../../logger/logger-service/winston-logger.service.js';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+	constructor(private readonly logger: WinstonLoggerService) {}
 	catch(exception: unknown, host: ArgumentsHost) {
 		const ctx = host.switchToHttp();
 		const response = ctx.getResponse<Response>();
@@ -23,11 +25,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 				const msgValue = (res as Record<string, unknown>).message;
 				message = typeof msgValue === 'string' ? msgValue : JSON.stringify(res);
 			} else {
-				message = res as unknown as string;
+				message = res;
 			}
 		} else if (exception instanceof Error) {
 			message = exception.message;
 		}
+		this.logger.error(
+			`HTTP Route Error: ${request.method} ${request.url} - Status: ${status} - Error: ${message}`,
+			exception instanceof Error ? exception.stack : undefined,
+		);
 
 		const errorObject = {
 			success: false,

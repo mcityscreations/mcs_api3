@@ -1,17 +1,10 @@
 // src/system/logger/logger-factory/winston-logger.factory.ts
 
 import { transports, format, createLogger, Logger } from 'winston';
-import { MongoDB, MongoDBConnectionOptions } from 'winston-mongodb';
+import { MongoDB } from 'winston-mongodb';
 import { LoggerConfigService } from '../logger-config/logger-config.service.js';
 import { InternalServerErrorException } from '@nestjs/common';
 import DailyRotateFile from 'winston-daily-rotate-file';
-
-// MongoDB transport interface
-interface WinstonMongoDBOptions extends MongoDBConnectionOptions {
-	level: string;
-	db: string;
-	format?: any;
-}
 
 // The injection token of the Winston Logger to be used accross the whole app.
 export const WINSTON_LOGGER = 'WINSTON_LOGGER';
@@ -51,25 +44,26 @@ export const winstonLoggerFactory = {
 				maxSize: '10m',
 				maxFiles: '5d',
 				level: 'info',
+				format: format.json(),
 			}),
 			// 2. MongoDB transport for production mode.
 			new MongoDB({
 				db: mongoUri,
 				collection: 'application_logs',
-				options: {
-					useUnifiedTopology: true,
-				},
-				level: 'warn',
+				level: 'info',
 				capped: true, // Creates a limited size collection
 				cappedSize: 20000000, // 20 MB
 				format: format.combine(format.timestamp(), format.json()),
-			} as WinstonMongoDBOptions),
+			}),
 		];
 
 		return createLogger({
 			// Global format for all transports
 			format: format.combine(
 				format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+				format.metadata({
+					fillWith: ['correlationId', 'context', 'timestamp', 'trace'],
+				}),
 			),
 			transports: transportsList,
 		});
