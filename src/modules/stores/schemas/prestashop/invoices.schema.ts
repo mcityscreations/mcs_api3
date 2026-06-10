@@ -38,7 +38,7 @@ import { z } from 'zod';
  */
 
 export const PrestashopInvoiceSchema = z.object({
-	id: z.number().optional(),
+	id: z.number(),
 	id_order: z.number(),
 	number: z.number(),
 	delivery_number: z.number().optional(),
@@ -80,6 +80,23 @@ export const PrestashopInvoiceListSchema = z.object({
 });
 export type IPrestashopInvoiceList = z.infer<
 	typeof PrestashopInvoiceListSchema
+>;
+
+export const PrestashopInvoiceListSchemaFull = z.object({
+	prestashop: z.object({
+		order_invoices: z.object({
+			// If there is only one invoice, Prestashop will return an object
+			// instead of an array of objects. For an easier data parsing, it's
+			// better to store a single object into an array.
+			order_invoice: z.preprocess(
+				(val): unknown[] => (Array.isArray(val) ? val : [val]),
+				z.array(PrestashopInvoiceSchema),
+			),
+		}),
+	}),
+});
+export type IPrestashopInvoiceListFull = z.infer<
+	typeof PrestashopInvoiceListSchemaFull
 >;
 
 export const PrestashopInvoiceIDSchema = z.object({

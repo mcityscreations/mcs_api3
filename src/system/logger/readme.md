@@ -4,7 +4,7 @@
 
 **The ALS**: This is the invisible notebook that carries this tag throughout the code, without having to pass it from function to function.
 
-**The Factory**: It configures the Winston machine to send logs to the console (for you) and to MongoDB (for future reference).
+**The Factory**: It configures the Winston machine to send logs to the console and to MongoDB (for future reference).
 
 **The Service**: This is the universal translator. It ensures that even if NestJS sends it internal logs, they are enriched with custom metadata.
 

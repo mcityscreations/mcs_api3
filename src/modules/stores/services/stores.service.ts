@@ -1,4 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+	Inject,
+	Injectable,
+	InternalServerErrorException,
+} from '@nestjs/common';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
@@ -27,8 +31,6 @@ export class StoresService {
 			}
 			const invoiceDetails: IMcitysInvoice[] = [];
 			for (const invoice of invoices.prestashop.order_invoices.order_invoice) {
-				const invoiceGlobalDetails: IPrestashopInvoice =
-					await this.prestashopStoreAdapter.getInvoiceDetail(invoice.id);
 				const mainOrderData: IPrestashopOrder =
 					await this.prestashopStoreAdapter.getMainOrderDataByInvoiceID(
 						invoice.id,
@@ -46,7 +48,7 @@ export class StoresService {
 						mainOrderData.id_address_invoice,
 					);
 				const mappedInvoice = mapPrestashopInvoiceToMcitysInvoice(
-					invoiceGlobalDetails,
+					invoice,
 					mainOrderData,
 					detailedOrderData,
 					customerData,
@@ -57,7 +59,10 @@ export class StoresService {
 			return invoiceDetails.sort((a, b) => a.issue_date - b.issue_date); // Sort invoices by issue date in ascending order
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
-			throw new Error('Failed to download last invoices: ' + errorMessage);
+			this.logger.error('Failed to download last invoices', errorMessage);
+			throw new InternalServerErrorException(
+				'Failed to download last invoices: ' + errorMessage,
+			);
 		}
 	}
 }

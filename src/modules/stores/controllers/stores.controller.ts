@@ -7,24 +7,24 @@ import { PrestashopInvoiceIDDto } from '../dto/invoiceParam.dto.js';
 @Controller('stores')
 export class StoresController {
 	constructor(
-		private readonly PrestashopAdapter: PrestashopAdapter,
+		private readonly prestashopAdapter: PrestashopAdapter,
 		private readonly storesService: StoresService,
 	) {}
 
 	@Get('prestashop/invoices/date-period')
 	async getInvoicesByDatePeriod(@Query() datePeriod: DateFilterDto) {
-		return this.PrestashopAdapter.getInvoicesByDatePeriod(datePeriod);
+		return this.prestashopAdapter.getInvoicesByDatePeriod(datePeriod);
+	}
+
+	@Get('prestashop/invoices/last')
+	async getLastInvoice() {
+		return this.storesService.downloadLastInvoices();
 	}
 
 	@Get('prestashop/invoices/:invoiceID')
 	async getInvoiceByID(
 		@Param('invoiceID') { invoiceID }: PrestashopInvoiceIDDto,
 	) {
-		return this.PrestashopAdapter.getInvoiceDetail(invoiceID);
-	}
-
-	@Get('prestashop/invoices/last')
-	async getLastInvoice() {
-		return this.storesService.downloadLastInvoices();
+		return this.prestashopAdapter.getInvoiceDetail(invoiceID);
 	}
 }

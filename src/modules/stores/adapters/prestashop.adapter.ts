@@ -11,10 +11,12 @@ import { PrestashopConfigService } from '../configs/prestashop/prestashop.config
 import type {
 	IPrestashopInvoice,
 	IPrestashopInvoiceList,
+	IPrestashopInvoiceListFull,
 } from '../schemas/prestashop/invoices.schema.js';
 import {
 	PrestashopInvoiceSchema,
 	PrestashopInvoiceListSchema,
+	PrestashopInvoiceListSchemaFull,
 } from '../schemas/prestashop/invoices.schema.js';
 // Order schemas
 import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
@@ -167,7 +169,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 	}
 
-	async getLastInvoices(): Promise<IPrestashopInvoiceList> {
+	async getLastInvoices(): Promise<IPrestashopInvoiceListFull> {
 		// Retrieve last invoice ID stored in Postgres
 		const lastInvoiceID =
 			await this.storesRepository.getLastPrestashopInvoiceID();
@@ -179,7 +181,11 @@ export class PrestashopAdapter extends StoreAdapter {
 					`${this.apiEndpoint}/order_invoices`,
 					{
 						params: {
-							'filter[id]': [30, 999999],
+							'filter[id]': '[1, 999999]',
+							display: 'full',
+						},
+						paramsSerializer: {
+							indexes: null,
 						},
 						headers: {
 							Authorization: this.authorizationKey,
@@ -189,7 +195,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				// Parse response
 				const parsedResponse = xmlValidator(
 					response.data,
-					PrestashopInvoiceListSchema,
+					PrestashopInvoiceListSchemaFull,
 					'invoice list',
 					'PrestaShop',
 				);
@@ -213,6 +219,7 @@ export class PrestashopAdapter extends StoreAdapter {
 					{
 						params: {
 							'filter[id]': [nextInvoiceID, 999999],
+							display: 'full',
 						},
 						headers: {
 							Authorization: this.authorizationKey,
@@ -222,7 +229,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				// Parse response
 				const parsedResponse = xmlValidator(
 					response.data,
-					PrestashopInvoiceListSchema,
+					PrestashopInvoiceListSchemaFull,
 					'invoice list',
 					'PrestaShop',
 				);
