@@ -6,7 +6,6 @@ import {
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
-import type { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
 import type { IPrestashopOrder } from '../schemas/prestashop/order.schema.js';
 import { IMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
 import { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
@@ -56,7 +55,7 @@ export class StoresService {
 				);
 				invoiceDetails.push(mappedInvoice);
 			}
-			return invoiceDetails.sort((a, b) => a.issue_date - b.issue_date); // Sort invoices by issue date in ascending order
+			return invoiceDetails;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error('Failed to download last invoices', errorMessage);
@@ -64,5 +63,10 @@ export class StoresService {
 				'Failed to download last invoices: ' + errorMessage,
 			);
 		}
+	}
+
+	saveInvoicesToDatabase(invoices: IMcitysInvoice[]) {
+		// Placeholder for saving invoices to the database
+		this.logger.log(`Saving ${invoices.length} invoices to the database.`);
 	}
 }

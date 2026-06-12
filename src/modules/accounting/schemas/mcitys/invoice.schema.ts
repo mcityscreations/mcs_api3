@@ -37,8 +37,14 @@ const currenciesEnum = z.enum([
 export const McitysInvoiceSchema = z.object({
 	id_technical: z.string(), // Technical ID of the invoice in the third party system (Qonto, Prestashop, etc.)
 	reference: z.string(), // Reference of the invoice (e.g. invoice number)
-	issue_date: z.number().int().positive(), // Issue date of the invoice as a timestamp (UNIX timestamp)
-	due_date: z.number().int().positive(), // Due date of the invoice as a timestamp (UNIX timestamp)
+	issue_date: z.coerce
+		.date()
+		.transform((date) => date.toISOString())
+		.pipe(z.iso.datetime()), // Issue date of the invoice as string in UTC timezone (e.g. "2023-11-21T22:35:14Z")
+	due_date: z.coerce
+		.date()
+		.transform((date) => date.toISOString())
+		.pipe(z.iso.datetime()), // Due date of the invoice as string in UTC timezone (e.g. "2023-11-21T22:35:14Z")
 	currency: currenciesEnum, // Currency of the invoice (e.g. EUR, USD, etc.)
 	document_type: z
 		.enum(['INVOICE', 'CREDIT_NOTE', 'PROFORMA'])
