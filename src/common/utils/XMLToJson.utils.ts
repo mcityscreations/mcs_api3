@@ -10,7 +10,6 @@ export function xmlToJsonConverter(xml: string): unknown {
 	const parser = new XMLParser({
 		ignoreAttributes: false,
 		attributeNamePrefix: '',
-		cdataPropName: '#',
 	});
 	const jsonObj = parser.parse(xml) as unknown;
 	return jsonObj;

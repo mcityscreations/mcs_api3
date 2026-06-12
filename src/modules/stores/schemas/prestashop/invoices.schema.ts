@@ -37,29 +37,42 @@ import { z } from 'zod';
     </prestashop>
  */
 
+/** In case PrestaShop returns prices as strings with a comma as the decimal separator.
+ * This schema preprocesses the string to replace the comma with a dot and then coerces it to a number.
+ * Example: "19,99" will be converted to 19.99
+ * It avoids issues with price parsing and ensures that all prices are stored as numbers in the application,
+ * regardless of the format returned by PrestaShop.
+ */
+export const priceSchema = z.preprocess(
+	(val) => (typeof val === 'string' ? val.replace(',', '.') : val),
+	z.coerce.number(),
+);
+export type IPrestashopPrice = z.infer<typeof priceSchema>;
+
 export const PrestashopInvoiceSchema = z.object({
-	id: z.number(),
-	id_order: z.number(),
-	number: z.number(),
-	delivery_number: z.number().optional(),
+	id: z.coerce.number(),
+	id_order: z.coerce.number(),
+	number: z.coerce.number(),
+	delivery_number: z.coerce.number().optional(),
 	delivery_date: z.string().optional(),
-	total_discount_tax_excl: z.number().optional(),
-	total_discount_tax_incl: z.number().optional(),
-	total_paid_tax_excl: z.number().optional(),
-	total_paid_tax_incl: z.number().optional(),
-	total_products: z.number().optional(),
-	total_products_wt: z.number().optional(),
-	total_shipping_tax_excl: z.number().optional(),
-	total_shipping_tax_incl: z.number().optional(),
-	shipping_tax_computation_method: z.string().optional(),
-	total_wrapping_tax_excl: z.number().optional(),
-	total_wrapping_tax_incl: z.number().optional(),
+	total_discount_tax_excl: priceSchema.optional(),
+	total_discount_tax_incl: priceSchema.optional(),
+	total_paid_tax_excl: priceSchema.optional(),
+	total_paid_tax_incl: priceSchema.optional(),
+	total_products: priceSchema.optional(),
+	total_products_wt: priceSchema.optional(),
+	total_shipping_tax_excl: priceSchema.optional(),
+	total_shipping_tax_incl: priceSchema.optional(),
+	shipping_tax_computation_method: z.coerce.number().optional(),
+	total_wrapping_tax_excl: priceSchema.optional(),
+	total_wrapping_tax_incl: priceSchema.optional(),
 	shop_address: z.string().max(1000).optional(),
 	note: z.string().max(65000).optional(),
 	date_add: z.string().optional(),
 });
 export type IPrestashopInvoice = z.infer<typeof PrestashopInvoiceSchema>;
 
+/** Simplified schema for a list of PrestaShop invoices */
 export const PrestashopInvoiceListSchema = z.object({
 	prestashop: z.object({
 		order_invoices: z.object({
@@ -82,6 +95,7 @@ export type IPrestashopInvoiceList = z.infer<
 	typeof PrestashopInvoiceListSchema
 >;
 
+/** Full schema for a list of PrestaShop invoices, including all invoice details */
 export const PrestashopInvoiceListSchemaFull = z.object({
 	prestashop: z.object({
 		order_invoices: z.object({
@@ -99,6 +113,9 @@ export type IPrestashopInvoiceListFull = z.infer<
 	typeof PrestashopInvoiceListSchemaFull
 >;
 
+/**
+ * Schema for validating the invoice ID parameter when fetching invoice details.
+ */
 export const PrestashopInvoiceIDSchema = z.object({
 	invoiceID: z.coerce.number(), // Using .coerce to transform the type of the param from string to number
 });
