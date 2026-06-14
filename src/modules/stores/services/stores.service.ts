@@ -10,13 +10,17 @@ import type { IPrestashopOrder } from '../schemas/prestashop/order.schema.js';
 import { IMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
 import { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
 import { mapPrestashopInvoiceToMcitysInvoice } from '../../accounting/schemas/mappers/invoice.mapper.js';
+import { PostgreSQLService } from '../../../system/database/postgresql/postgresql.service.js';
+import { StoresRepository } from '../repository/stores.repository.js';
 
 @Injectable()
 export class StoresService {
 	constructor(
 		@Inject('PRESTASHOP_STORE')
 		private readonly prestashopStoreAdapter: PrestashopAdapter,
+		private readonly storesRepository: StoresRepository,
 		private readonly logger: WinstonLoggerService,
+		private readonly sqlEngine: PostgreSQLService,
 	) {}
 
 	async downloadLastInvoices() {
@@ -66,7 +70,8 @@ export class StoresService {
 	}
 
 	saveInvoicesToDatabase(invoices: IMcitysInvoice[]) {
-		// Placeholder for saving invoices to the database
 		this.logger.log(`Saving ${invoices.length} invoices to the database.`);
+		// Start a transaction to save all invoices to the database
+		//const transaction = await this.sqlEngine.beginTransaction();
 	}
 }

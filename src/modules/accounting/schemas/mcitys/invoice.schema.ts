@@ -37,6 +37,7 @@ const currenciesEnum = z.enum([
 export const McitysInvoiceSchema = z.object({
 	id_technical: z.string(), // Technical ID of the invoice in the third party system (Qonto, Prestashop, etc.)
 	reference: z.string(), // Reference of the invoice (e.g. invoice number)
+	source_system: z.enum(['QONTO', 'PRESTASHOP']), // Source system of the invoice (e.g. Qonto, Prestashop, etc.)
 	issue_date: z.coerce
 		.date()
 		.transform((date) => date.toISOString())
