@@ -9,6 +9,10 @@ import { WinstonLoggerService } from '../../../system/logger/logger-service/wins
 import { IPersonBase } from './types/person.interface.js';
 import { IndividualSchema } from './schemas/individual.schema.js';
 import type { IIndividual } from './schemas/individual.schema.js';
+import { OrganizationSchemaDB } from './schemas/organization.schema.js';
+import type { IOrganizationDB } from './schemas/organization.schema.js';
+import { OrganizationSchemaPublic } from './schemas/organization.schema.js';
+import type { IOrganizationPublic } from './schemas/organization.schema.js';
 
 @Injectable()
 export class PeopleService {
@@ -77,6 +81,49 @@ export class PeopleService {
 			this.logger.error('Failed to add individual', getErrorMessage(error));
 			throw new InternalServerErrorException(
 				'Failed to add individual. Please try again later.',
+			);
+		}
+	}
+
+	async addOrganization(payload: IOrganizationPublic): Promise<string | null> {
+		if (!payload) {
+			throw new InternalServerErrorException(
+				'Payload is required to add an organization.',
+			);
+		}
+		// Check for required fields in the payload
+		if (!OrganizationSchemaPublic.safeParse(payload).success) {
+			throw new InternalServerErrorException(
+				'Invalid payload. Please ensure that all required fields are provided and meet the required criteria.',
+			);
+		}
+		//Start transaction
+		const transaction: PoolClient = await this.dbService.beginTransaction();
+		try {
+			const idPerson = await this.peopleRepository.addPerson(true, transaction);
+			if (!idPerson) {
+				throw new InternalServerErrorException(
+					'Failed to add organization. Please try again later.',
+				);
+			}
+			await this.peopleRepository.addOrganization(
+				idPerson,
+				payload.legalName,
+				payload.registrationCountry.id,
+				payload.idRegistration,
+				payload.idVAT,
+				payload.category.id,
+				transaction,
+			);
+			await this.dbService.commit(transaction);
+			return idPerson.toString();
+		} catch (error) {
+			if (transaction) {
+				await this.dbService.rollback(transaction);
+			}
+			this.logger.error('Failed to add organization', getErrorMessage(error));
+			throw new InternalServerErrorException(
+				'Failed to add organization. Please try again later.',
 			);
 		}
 	}
