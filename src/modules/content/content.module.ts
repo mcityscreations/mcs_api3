@@ -7,7 +7,7 @@ import { KeywordsModule } from './taxonomy/keywords/keywords.module.js';
 import { TranslationsModule } from './translations/translations.module.js';
 import { WeatherModule } from './weather/weather.module.js';
 import { ArtworksModule } from './artworks/artworks.module.js';
-import { CountryModule } from './taxonomy/country/country.module';
+import { CountryModule } from './taxonomy/country/country.module.js';
 
 /** Module wrapper for content */
 @Module({
