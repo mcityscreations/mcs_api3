@@ -2,9 +2,11 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
+import { CategoriesRepository } from './categories.repository.js';
 
 @Injectable()
 export class CategoriesService {
+	constructor(private readonly categoriesRepository: CategoriesRepository) {}
 	create(createCategoryDto: CreateCategoryDto) {
 		return 'This action adds a new category';
 	}
@@ -23,5 +25,9 @@ export class CategoriesService {
 
 	remove(id: number) {
 		return `This action removes a #${id} category`;
+	}
+
+	async findInternalIdByUuid(uuid: string): Promise<number | null> {
+		return this.categoriesRepository.findInternalIdByUuid(uuid);
 	}
 }
