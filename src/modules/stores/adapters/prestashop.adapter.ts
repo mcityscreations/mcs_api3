@@ -228,11 +228,6 @@ export class PrestashopAdapter extends StoreAdapter {
 					'invoice list',
 					'PrestaShop',
 				);
-				if (
-					parsedResponse.prestashop.order_invoices.order_invoice.length === 0
-				) {
-					this.logger.log('No new invoices found in PrestaShop.');
-				}
 				return parsedResponse;
 			} catch (error) {
 				const errorMessage = getErrorMessage(error);
