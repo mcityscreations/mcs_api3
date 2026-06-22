@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CountryRepository } from '../repository/country.repository.js';
 
 @Injectable()

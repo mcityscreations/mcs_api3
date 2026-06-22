@@ -134,7 +134,7 @@ export class JwtService {
 				}
 			}
 			// Handle unexpected errors
-			this._winstonLogger.error(error as Error);
+			this._winstonLogger.error(error);
 			throw new InternalServerErrorException(
 				'An unexpected error occurred during token verification',
 			);
