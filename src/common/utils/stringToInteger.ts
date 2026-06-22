@@ -7,6 +7,6 @@ import { z } from 'zod';
  */
 export const ZodStringToInteger = z.preprocess((val) => {
 	if (typeof val !== 'string' || val.trim() === '') return 0;
-	const intValue = parseInt(val, 10);
-	return isNaN(intValue) ? 0 : intValue;
+	const intValue = Number.parseInt(val, 10);
+	return Number.isNaN(intValue) ? 0 : intValue;
 }, z.number().int().nonnegative());
