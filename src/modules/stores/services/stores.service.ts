@@ -37,9 +37,4 @@ export class StoresService {
 			);
 		}
 	}
-
-	saveInvoicesToDatabase(invoices: IMcitysInvoice[]) {
-		// Placeholder for saving invoices to the database
-		this.logger.log(`Saving ${invoices.length} invoices to the database.`);
-	}
 }
