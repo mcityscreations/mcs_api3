@@ -18,6 +18,8 @@ import {
 	PrestashopInvoiceListSchema,
 	PrestashopInvoiceListSchemaFull,
 } from '../schemas/prestashop/invoices.schema.js';
+import { IMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
+import { mapPrestashopInvoiceToMcitysInvoice } from '../../accounting/schemas/mappers/invoice.mapper.js';
 // Order schemas
 import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
 import { PrestashopOrderDetailsResponseSchema } from '../schemas/prestashop/order-detail.schema.js';
@@ -80,6 +82,33 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	getProductAttributes(): void {
 		// The logic to retrieve product attributes from PrestaShop
+	}
+
+	async mapInvoices(
+		invoices: IPrestashopInvoiceListFull,
+	): Promise<IMcitysInvoice[]> {
+		const invoiceDetails: IMcitysInvoice[] = [];
+		for (const invoice of invoices.prestashop.order_invoices.order_invoice) {
+			const mainOrderData: IPrestashopOrder =
+				await this.getMainOrderDataByInvoiceID(invoice.id);
+			const detailedOrderData: IPrestashopOrderDetailsNormalized =
+				await this.getOrderDetailsByInvoiceID(invoice.id);
+			const customerData = await this.getCustomerDataByID(
+				mainOrderData.id_customer,
+			);
+			const addressData = await this.getAddressDataByID(
+				mainOrderData.id_address_invoice,
+			);
+			const mappedInvoice = mapPrestashopInvoiceToMcitysInvoice(
+				invoice,
+				mainOrderData,
+				detailedOrderData,
+				customerData,
+				addressData,
+			);
+			invoiceDetails.push(mappedInvoice);
+		}
+		return invoiceDetails;
 	}
 
 	async getMainOrderDataByInvoiceID(
@@ -218,7 +247,7 @@ export class PrestashopAdapter extends StoreAdapter {
 					`${this.apiEndpoint}/order_invoices`,
 					{
 						params: {
-							'filter[id]': [nextInvoiceID, 999999],
+							'filter[id]': `[${nextInvoiceID}, 999999]`,
 							display: 'full',
 						},
 						headers: {
