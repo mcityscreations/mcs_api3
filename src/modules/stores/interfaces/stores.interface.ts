@@ -9,7 +9,10 @@ export abstract class StoreAdapter {
 	abstract getProductCategories(): void;
 	abstract getProductAttributes(): void;
 	abstract mapInvoices(invoices: unknown): Promise<IMcitysInvoice[]>;
-	abstract getOrderDetailsByInvoiceID(invoiceID: number): Promise<unknown>;
+	abstract getOrderDetails(
+		elementID: number,
+		elementType: 'invoice' | 'order',
+	): Promise<unknown>;
 
 	abstract getLastInvoices(): Promise<unknown>;
 	abstract getInvoicesByDatePeriod(dateFilter: IDateFilter): Promise<unknown>;

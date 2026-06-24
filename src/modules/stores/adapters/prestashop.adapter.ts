@@ -92,7 +92,7 @@ export class PrestashopAdapter extends StoreAdapter {
 			const mainOrderData: IPrestashopOrder =
 				await this.getMainOrderDataByInvoiceID(invoice.id);
 			const detailedOrderData: IPrestashopOrderDetailsNormalized =
-				await this.getOrderDetailsByInvoiceID(invoice.id);
+				await this.getOrderDetails(invoice.id, 'invoice');
 			const customerData = await this.getCustomerDataByID(
 				mainOrderData.id_customer,
 			);
@@ -152,25 +152,30 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 	}
 
-	async getOrderDetailsByInvoiceID(
-		invoiceID: number,
+	async getOrderDetails(
+		elementID: number,
+		elementType: 'invoice' | 'order' = 'invoice',
 	): Promise<IPrestashopOrderDetailsNormalized> {
-		if (!invoiceID || Number.isNaN(invoiceID)) {
+		if (!elementID || Number.isNaN(elementID)) {
 			this.logger.error(
-				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
+				`Wrong type for ${elementType} ID. Expecting NUMBER, ${typeof elementID} given.`,
 				'PrestashopAdapter',
-				'getOrderDetailsByInvoiceID',
+				'getOrderDetails',
 			);
 			throw new InternalServerErrorException(
-				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
+				`Wrong type for ${elementType} ID. Expecting NUMBER, ${typeof elementID} given.`,
 			);
 		}
 		try {
+			const filterKey =
+				elementType === 'invoice'
+					? 'filter[id_order_invoice]'
+					: 'filter[id_order]';
 			const response = await axios.get<string>(
 				`${this.apiEndpoint}/order_details`,
 				{
 					params: {
-						'filter[id_order_invoice]': invoiceID,
+						[filterKey]: elementID,
 						display: 'full',
 					},
 					headers: {
