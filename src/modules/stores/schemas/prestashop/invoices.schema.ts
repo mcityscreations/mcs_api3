@@ -102,10 +102,13 @@ export const PrestashopInvoiceListSchemaFull = z.object({
 			// If there is only one invoice, Prestashop will return an object
 			// instead of an array of objects. For an easier data parsing, it's
 			// better to store a single object into an array.
-			order_invoice: z.preprocess(
-				(val): unknown[] => (Array.isArray(val) ? val : [val]),
-				z.array(PrestashopInvoiceSchema),
-			),
+			order_invoice: z
+				.preprocess(
+					(val): unknown[] => (Array.isArray(val) ? val : [val]),
+					z.array(PrestashopInvoiceSchema),
+				)
+				.optional()
+				.default([]),
 		}),
 	}),
 });

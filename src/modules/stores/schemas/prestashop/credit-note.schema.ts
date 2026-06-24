@@ -9,7 +9,7 @@ const prestashopDateTimeToTimestamp = z.preprocess((val) => {
 	)
 		return null;
 	const date = new Date(val.replace(' ', 'T')); // Conversion in partial ISO format for the Date constructor
-	return isNaN(date.getTime()) ? null : date.getTime();
+	return Number.isNaN(date.getTime()) ? null : date.getTime();
 }, z.number().int().positive());
 
 // Reusable TypeScript type guards
@@ -22,17 +22,17 @@ const PrestashopOrderSlipDetailSchema = z.object({
 	id: z.string().min(1),
 	id_order_detail: z.string().min(1), // Direct link to the original order line (e.g., 53)
 	product_quantity: z.preprocess(
-		(val) => parseInt(val as string, 10),
+		(val) => Number.parseInt(val as string, 10),
 		z.number().int().positive(),
 	),
 
 	// Line amounts converted to cents
 	amount_tax_excl: z.preprocess(
-		(val) => Math.round(parseFloat(val as string) * 100),
+		(val) => Math.round(Number.parseFloat(val as string) * 100),
 		z.number().int().nonnegative(),
 	),
 	amount_tax_incl: z.preprocess(
-		(val) => Math.round(parseFloat(val as string) * 100),
+		(val) => Math.round(Number.parseFloat(val as string) * 100),
 		z.number().int().nonnegative(),
 	),
 });
@@ -45,23 +45,23 @@ const PrestashopOrderSlipSchema = z.object({
 
 	// Global totals of the credit note converted to cents
 	total_products_tax_excl: z.preprocess(
-		(val) => Math.round(parseFloat(val as string) * 100),
+		(val) => Math.round(Number.parseFloat(val as string) * 100),
 		z.number().int().nonnegative(),
 	),
 	total_products_tax_incl: z.preprocess(
-		(val) => Math.round(parseFloat(val as string) * 100),
+		(val) => Math.round(Number.parseFloat(val as string) * 100),
 		z.number().int().nonnegative(),
 	),
 	total_shipping_tax_excl: z.preprocess(
-		(val) => Math.round(parseFloat(val as string) * 100),
+		(val) => Math.round(Number.parseFloat(val as string) * 100),
 		z.number().int().nonnegative(),
 	),
 	total_shipping_tax_incl: z.preprocess(
-		(val) => Math.round(parseFloat(val as string) * 100),
+		(val) => Math.round(Number.parseFloat(val as string) * 100),
 		z.number().int().nonnegative(),
 	),
 	amount: z.preprocess(
-		(val) => Math.round(parseFloat(val as string) * 100),
+		(val) => Math.round(Number.parseFloat(val as string) * 100),
 		z.number().int().nonnegative(),
 	), // Total refunded amount
 
