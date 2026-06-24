@@ -4,6 +4,9 @@ import type { IPrestashopOrderDetailsNormalized } from '../../../stores/schemas/
 import type { IPrestashopOrder } from '../../../stores/schemas/prestashop/order.schema.js';
 import type { IPrestashopAddress } from '../../../stores/schemas/prestashop/address.schema.js';
 import type { IPrestashopCustomer } from '../../../stores/schemas/prestashop/customer.schema.js';
+import { DateService } from '../../../../common/dates/dates.service.js';
+
+const dateService = new DateService();
 
 /** Mapper function to convert a PrestaShop invoice to a Mcitys invoice */
 export function mapPrestashopInvoiceToMcitysInvoice(
@@ -21,12 +24,17 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	return {
 		id_technical: prestashopInvoice.id?.toString() ?? '0',
 		reference: prestashopInvoice.number.toString(),
+		source_system: 'PRESTASHOP',
 		issue_date: prestashopInvoice.date_add
-			? new Date(prestashopInvoice.date_add).getTime()
-			: Date.now(),
+			? dateService
+					.stringDateToUtcDate(prestashopInvoice.date_add)
+					.toISOString()
+			: new Date().toISOString(),
 		due_date: prestashopInvoice.date_add
-			? new Date(prestashopInvoice.date_add).getTime()
-			: Date.now(),
+			? dateService
+					.stringDateToUtcDate(prestashopInvoice.date_add)
+					.toISOString()
+			: new Date().toISOString(),
 		currency: 'EUR',
 		document_type: 'INVOICE',
 		emitter: {

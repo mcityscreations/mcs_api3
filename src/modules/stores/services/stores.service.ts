@@ -13,7 +13,9 @@ export class StoresService {
 	constructor(
 		@Inject('PRESTASHOP_STORE')
 		private readonly prestashopStoreAdapter: PrestashopAdapter,
+		private readonly storesRepository: StoresRepository,
 		private readonly logger: WinstonLoggerService,
+		private readonly sqlEngine: PostgreSQLService,
 	) {}
 
 	async downloadLastInvoices() {
