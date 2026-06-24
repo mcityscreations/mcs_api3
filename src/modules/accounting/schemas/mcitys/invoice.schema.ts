@@ -38,6 +38,7 @@ export const McitysInvoiceSchema = z.object({
 	id_technical: z.string(), // Technical ID of the invoice in the third party system (Qonto, Prestashop, etc.)
 	reference: z.string(), // Reference of the invoice (e.g. invoice number)
 	source_system: z.enum(['QONTO', 'PRESTASHOP']), // Source system of the invoice (e.g. Qonto, Prestashop, etc.)
+	invoice_type: z.enum(['invoice', 'credit_note', 'proforma']), // Type of the invoice (e.g. invoice, credit note, proforma)
 	issue_date: z.coerce
 		.date()
 		.transform((date) => date.toISOString())
@@ -46,6 +47,11 @@ export const McitysInvoiceSchema = z.object({
 		.date()
 		.transform((date) => date.toISOString())
 		.pipe(z.iso.datetime()), // Due date of the invoice as string in UTC timezone (e.g. "2023-11-21T22:35:14Z")
+	paid_at: z.coerce
+		.date()
+		.transform((date) => date.toISOString())
+		.pipe(z.iso.datetime())
+		.optional(), // Payment date of the invoice as string in UTC timezone (e.g. "2023-11-21T22:35:14Z")
 	currency: currenciesEnum, // Currency of the invoice (e.g. EUR, USD, etc.)
 	document_type: z
 		.enum(['INVOICE', 'CREDIT_NOTE', 'PROFORMA'])
@@ -56,7 +62,7 @@ export const McitysInvoiceSchema = z.object({
 			legal_number: z.string(), // SIRET
 		})
 		.optional(),
-	customer: z.object({
+	recipient: z.object({
 		id: z.string(), // Technical ID of the customer in the third party system (Qonto, Prestashop, etc.)
 		firstname: z.string(), // First name of the customer
 		lastname: z.string(), // Last name of the customer
@@ -91,5 +97,6 @@ export const McitysInvoiceSchema = z.object({
 	vat_amount: z.number().int().nonnegative(), // Total amount in cents of the VAT of the invoice
 	discount_amount: z.number().int().nonnegative(), // Total amount in cents of the discount of the invoice
 	payment_status: z.enum(['paid', 'unpaid', 'draft']), // Payment status of the invoice
+	payment_direction: z.enum(['debit', 'credit']), // Payment direction of the invoice
 });
 export type IMcitysInvoice = z.infer<typeof McitysInvoiceSchema>;
