@@ -32,7 +32,11 @@ import { StoresService } from './services/stores.service.js';
 	imports: [
 		SystemModule,
 		BullModule.registerQueue({
-			name: 'store-queue',
+			name: 'store.fetch-invoice-detail',
+			defaultJobOptions: {
+				removeOnComplete: 100, // Keep only the last 100 successful jobs in Redis
+				removeOnFail: 500, // Keep the last 500 failed jobs for debugging
+			},
 		}),
 	],
 	exports: ['PRESTASHOP_STORE'],

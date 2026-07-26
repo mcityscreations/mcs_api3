@@ -6,7 +6,8 @@ import { Queue } from 'bullmq';
 import { JobDispatcher } from '../interfaces/jobdispatcher.interface.js';
 import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
 import type { IJobOptions } from '../schemas/job-option.schema.js';
-import type { IBulkJob } from '../schemas/bulk-job.schema.js';
+import type { IJobDescriptor } from '../schemas/job.schema.js';
+import type { IMessageEnvelope } from '../../common/contracts/base-event.contract.js';
 
 @Injectable()
 export class BullMqAdapter extends JobDispatcher {
@@ -45,7 +46,7 @@ export class BullMqAdapter extends JobDispatcher {
 	public async dispatch<T>(
 		queueName: string,
 		jobName: string,
-		payload: T,
+		payload: IMessageEnvelope<T>,
 		options?: IJobOptions,
 	): Promise<void> {
 		const queue = this.resolveQueue(queueName);
@@ -62,7 +63,7 @@ export class BullMqAdapter extends JobDispatcher {
 
 	public async dispatchBulk(
 		queueName: string,
-		jobs: IBulkJob[],
+		jobs: IJobDescriptor[],
 	): Promise<void> {
 		const queue = this.resolveQueue(queueName);
 
@@ -84,7 +85,7 @@ export class BullMqAdapter extends JobDispatcher {
 	public async schedule<T>(
 		queueName: string,
 		jobName: string,
-		payload: T,
+		payload: IMessageEnvelope<T>,
 		cronExpression: string,
 		options?: { jobId?: string },
 	): Promise<void> {

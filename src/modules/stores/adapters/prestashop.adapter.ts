@@ -84,30 +84,26 @@ export class PrestashopAdapter extends StoreAdapter {
 		// The logic to retrieve product attributes from PrestaShop
 	}
 
-	async mapInvoices(
-		invoices: IPrestashopInvoiceListFull,
-	): Promise<IMcitysInvoice[]> {
+	async mapInvoices(invoice: IPrestashopInvoice): Promise<IMcitysInvoice[]> {
 		const invoiceDetails: IMcitysInvoice[] = [];
-		for (const invoice of invoices.prestashop.order_invoices.order_invoice) {
-			const mainOrderData: IPrestashopOrder =
-				await this.getMainOrderDataByInvoiceID(invoice.id);
-			const detailedOrderData: IPrestashopOrderDetailsNormalized =
-				await this.getOrderDetails(invoice.id, 'invoice');
-			const customerData = await this.getCustomerDataByID(
-				mainOrderData.id_customer,
-			);
-			const addressData = await this.getAddressDataByID(
-				mainOrderData.id_address_invoice,
-			);
-			const mappedInvoice = mapPrestashopInvoiceToMcitysInvoice(
-				invoice,
-				mainOrderData,
-				detailedOrderData,
-				customerData,
-				addressData,
-			);
-			invoiceDetails.push(mappedInvoice);
-		}
+		const mainOrderData: IPrestashopOrder =
+			await this.getMainOrderDataByInvoiceID(invoice.id);
+		const detailedOrderData: IPrestashopOrderDetailsNormalized =
+			await this.getOrderDetails(invoice.id, 'invoice');
+		const customerData = await this.getCustomerDataByID(
+			mainOrderData.id_customer,
+		);
+		const addressData = await this.getAddressDataByID(
+			mainOrderData.id_address_invoice,
+		);
+		const mappedInvoice = mapPrestashopInvoiceToMcitysInvoice(
+			invoice,
+			mainOrderData,
+			detailedOrderData,
+			customerData,
+			addressData,
+		);
+		invoiceDetails.push(mappedInvoice);
 		return invoiceDetails;
 	}
 
