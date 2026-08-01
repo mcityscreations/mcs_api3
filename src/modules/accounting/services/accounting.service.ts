@@ -13,7 +13,7 @@ export class AccountingService {
 		private readonly logger: WinstonLoggerService,
 		private readonly dbService: PostgreSQLService,
 		private readonly accountingRepository: AccountingRepository,
-	){}
+	) {}
 	public generateEReportingForPeriod(startDate: Date, endDate: Date) {
 		// The logic to generate the e-reporting file based
 		// on the invoices data stored in the database for a specific period
@@ -28,22 +28,23 @@ export class AccountingService {
 	}
 
 	public async saveInvoicesToDatabase(
-		invoices: IMcitysInvoice[]
+		invoices: IMcitysInvoice[],
 	): Promise<void> {
 		this.logger.log(`Saving ${invoices.length} invoices to the database.`);
 
-		const transactionClient = await this.dbService.beginTransaction();
+		const transactionClient: PoolClient =
+			await this.dbService.beginTransaction();
 
 		try {
 			for (const invoice of invoices) {
 				const idInvoice = await this.accountingRepository.saveMainInvoiceData(
 					invoice,
-					transactionClient
+					transactionClient,
 				);
 
 				if (idInvoice === null) {
 					throw new InternalServerErrorException(
-						'Problem while saving main invoice data.'
+						'Problem while saving main invoice data.',
 					);
 				}
 			}

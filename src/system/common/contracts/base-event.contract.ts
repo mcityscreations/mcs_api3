@@ -9,7 +9,7 @@ export const createMessageEnvelopeSchema = <T extends z.ZodTypeAny>(
 		pattern: z.string().min(1),
 		timestamp: z.iso.datetime(),
 		version: z.string().default('1.0.0'),
-		requestId: z.string().min(1),
+		correlationId: z.string().min(1),
 		data: dataSchema,
 	});
 
@@ -18,6 +18,6 @@ export type IMessageEnvelope<T = unknown> = {
 	pattern: string;
 	timestamp: string;
 	version: string;
-	requestId: string;
+	correlationId: string;
 	data: T;
 };

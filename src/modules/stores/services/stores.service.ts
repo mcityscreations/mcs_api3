@@ -41,7 +41,7 @@ export class StoresService {
 						pattern: 'store.fetch-invoice-detail',
 						timestamp: new Date().toISOString(),
 						version: '1.0.0',
-						requestId: correlationId,
+						correlationId: correlationId,
 						data: invoice,
 					},
 					options: {

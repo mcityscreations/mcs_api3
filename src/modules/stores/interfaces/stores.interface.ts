@@ -8,7 +8,7 @@ export abstract class StoreAdapter {
 
 	abstract getProductCategories(): void;
 	abstract getProductAttributes(): void;
-	abstract mapInvoices(invoices: unknown): Promise<IMcitysInvoice[]>;
+	abstract mapInvoice(invoice: unknown): Promise<IMcitysInvoice>;
 	abstract getOrderDetails(
 		elementID: number,
 		elementType: 'invoice' | 'order',
