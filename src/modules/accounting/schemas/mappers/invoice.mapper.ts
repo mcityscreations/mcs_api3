@@ -25,7 +25,7 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	return {
 		id_technical: prestashopInvoice.id?.toString() ?? '0',
 		reference: prestashopInvoice.number.toString(),
-		source_system: 'PRESTASHOP',
+		source_system: 'prestashop',
 		invoice_type: invoiceType,
 		issue_date: prestashopInvoice.date_add
 			? dateService
@@ -42,6 +42,9 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 		emitter: {
 			id: '019b8af6-d80c-7aec-b2af-ce615fc092a5',
 			legal_number: '84478363900017',
+			company_name: 'Mcitys', // Company name of the emitter
+			email: 'contact@mcitys.com', // Email of the emitter
+			country_code: 'FR', // Country code of the emitter
 		},
 		recipient: {
 			id: prestashopMainOrderData.id_customer.toString(),
@@ -50,7 +53,7 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 			company_name: prestashopAddressData.company?.trim() || undefined,
 			email: customerData.email,
 			legal_number: prestashopAddressData.vat_number?.trim() || undefined,
-			country_code: countryIsoCode, // 'FR' au lieu de l'ID '8'
+			country_code: countryIsoCode,
 		},
 		order_details: prestashopOrderDetails.items.map((orderDetail) => {
 			const priceExcl = Number(orderDetail.unit_price_tax_excl ?? 0);

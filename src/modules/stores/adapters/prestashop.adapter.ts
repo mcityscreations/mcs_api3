@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	InternalServerErrorException,
+} from '@nestjs/common';
 import axios from 'axios';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
@@ -30,7 +34,16 @@ import type { IPrestashopAddress } from '../schemas/prestashop/address.schema.js
 import { PrestashopAddressesResponseSchema } from '../schemas/prestashop/address.schema.js';
 // Customer schema
 import type { IPrestashopCustomer } from '../schemas/prestashop/customer.schema.js';
-import { PrestashopCustomersResponseSchema } from '../schemas/prestashop/customer.schema.js';
+import {
+	PrestashopCustomerSchema,
+	PrestashopCustomersResponseSchema,
+} from '../schemas/prestashop/customer.schema.js';
+// Person service
+import { PeopleService } from '../../content/people/people.service.js';
+import {
+	IPrestashopCountryList,
+	PrestashopCountryListSchema,
+} from '../schemas/prestashop/country.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -41,6 +54,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		private readonly configService: PrestashopConfigService,
 		private readonly logger: WinstonLoggerService,
 		private readonly storesRepository: StoresRepository,
+		private readonly peopleService: PeopleService,
 	) {
 		super();
 		this.initializeStore();
@@ -408,6 +422,40 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 	}
 
+	async syncCustomerDataToMcitys(
+		customerData: IPrestashopCustomer,
+	): Promise<number | null> {
+		if (!PrestashopCustomerSchema.safeParse(customerData).success) {
+			this.logger.error(
+				`Wrong type for customer data.`,
+				'PrestashopAdapter',
+				'syncCustomerDataToMcitys',
+			);
+			throw new InternalServerErrorException(`Wrong type for customer data.`);
+		}
+		// Is the customer already in Mcitys?
+		const customerID = customerData.id?.toString() || 'unknown';
+		const existingMcitysID = await this.peopleService.getMcitysID(
+			customerID,
+			'prestashop',
+		);
+		// 1. If yes, return the existing Mcitys ID
+		if (existingMcitysID) return existingMcitysID;
+		// 2. If no, create a new person in Mcitys and return the new Mcitys ID
+		if (customerData.siret && customerData.siret !== '') {
+			const getCountryISOCode = await this.getCountryISOCode(customerD);
+			const customerID = await this.peopleService.addOrganization({
+				type: 'organization',
+				legalName: customerData.company,
+				idRegistration: customerData.siret,
+				idVAT: 'N/A',
+				category: { id: 3, name: 'administration' },
+				registrationCountry: { id: 8, name: 'France' },
+			});
+		}
+		// 3. Add contact information (email, phone, etc.) to the person in Mcitys
+	}
+
 	async getAddressDataByID(addressID: number): Promise<IPrestashopAddress> {
 		if (!addressID || Number.isNaN(addressID)) {
 			this.logger.error(
@@ -446,5 +494,29 @@ export class PrestashopAdapter extends StoreAdapter {
 				`Error fetching address data from PrestaShop for address ID ${addressID}`,
 			);
 		}
+	}
+
+	public async getCountryISOCode(prestashopID: number): Promise<string | null> {
+		// Retrieve country code by requesting customer's address data from Prestashop API
+		if (!prestashopID || Number.isNaN(prestashopID)) {
+			throw new BadRequestException(
+				`Prestashop country ID must be a string. ${typeof prestashopID} given.`,
+			);
+		}
+		const { data } = await axios.get<string>(
+			`${this.apiEndpoint}/countries/${prestashopID}`,
+			{
+				headers: {
+					Authorization: this.authorizationKey,
+				},
+			},
+		);
+		const parsedResponse = xmlValidator(
+			data,
+			PrestashopCountryListSchema,
+			'country',
+			'prestashop',
+		);
+		return parsedResponse.prestashop.country[0].iso_code || 'FRA';
 	}
 }

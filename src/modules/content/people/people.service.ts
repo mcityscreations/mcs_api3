@@ -29,8 +29,8 @@ export class PeopleService {
 
 	async getMcitysID(
 		externalID: string,
-		systemSource: string,
-	): Promise<string | null> {
+		systemSource: string, // mcitys, prestashop, qonto
+	): Promise<number | null> {
 		if (!externalID || !systemSource) {
 			throw new InternalServerErrorException(
 				'Both externalID and systemSource are required to retrieve the Mcitys ID.',

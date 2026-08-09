@@ -23,9 +23,9 @@ export class PeopleRepository {
 	async getMcitysID(
 		externalID: string,
 		systemSource: string,
-	): Promise<string | null> {
-		const sqlRequest = `SELECT id_person FROM content.people_mapper WHERE id_customer_source = $1 AND system_source = $2;`;
-		const data: { id_person: string }[] = await this.dbService.execute(
+	): Promise<number | null> {
+		const sqlRequest = `SELECT id_person FROM content.people_mapper WHERE id_person_source = $1 AND system_source = $2;`;
+		const data: { id_person: number }[] = await this.dbService.execute(
 			sqlRequest,
 			[externalID, systemSource],
 			'standard',

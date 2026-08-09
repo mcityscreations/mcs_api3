@@ -58,12 +58,15 @@ export const McitysInvoiceSchema = z.object({
 		.default('INVOICE'),
 	emitter: z
 		.object({
-			id: z.string(),
+			id: z.string(), // Mcitys person ID
 			legal_number: z.string(), // SIRET
+			company_name: z.string().optional(), // Company name of the emitter
+			email: z.email(), // Email of the emitter
+			country_code: z.string().length(2).default('FR'), // Country code of the emitter (e.g. FR, US, etc.)
 		})
 		.optional(),
 	recipient: z.object({
-		id: z.string(), // Technical ID of the customer in the third party system (Qonto, Prestashop, etc.)
+		id: z.string(), // Mcitys person ID
 		firstname: z.string(), // First name of the customer
 		lastname: z.string(), // Last name of the customer
 		company_name: z.string().optional(), // Company name of the customer
