@@ -1,28 +1,22 @@
 import z from 'zod';
-import { IndividualSchema } from './individual.schema.js';
 import {
-	OrganizationSchemaDB,
-	OrganizationSchemaPublic,
+	IndividualSchema,
+	CreateIndividualSchema,
+} from './individual.schema.js';
+import {
+	OrganizationSchema,
+	CreateOrganizationSchema,
 } from './organization.schema.js';
 
-const idPublic = z.uuidv7();
-const idPrivate = z.number().int().positive();
+export const PersonSchema = z.discriminatedUnion('type', [
+	IndividualSchema,
+	OrganizationSchema,
+]);
 
-export const PersonSchemaPrivate = z.object({
-	id: idPrivate,
-	details: z.discriminatedUnion('type', [
-		IndividualSchema,
-		OrganizationSchemaDB,
-	]),
-});
+export type IPerson = z.infer<typeof PersonSchema>;
 
-export const PersonSchemaPublic = z.object({
-	id: idPublic,
-	details: z.discriminatedUnion('type', [
-		IndividualSchema,
-		OrganizationSchemaPublic,
-	]),
-});
-
-export type IPersonPrivate = z.infer<typeof PersonSchemaPrivate>;
-export type IPersonPublic = z.infer<typeof PersonSchemaPublic>;
+export const CreatePersonSchema = z.discriminatedUnion('type', [
+	CreateIndividualSchema,
+	CreateOrganizationSchema,
+]);
+export type ICreatePersonInput = z.infer<typeof CreatePersonSchema>;
