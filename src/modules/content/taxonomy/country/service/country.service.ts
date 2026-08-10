@@ -5,7 +5,7 @@ import { CountryRepository } from '../repository/country.repository.js';
 export class CountryService {
 	constructor(private readonly countryRepository: CountryRepository) {}
 
-	public async mapCountryIDToInternalID(
+	public async mapExternalIDToInternalID(
 		countryID: string,
 		systemSource: string,
 	): Promise<number | null> {
@@ -14,6 +14,15 @@ export class CountryService {
 				'Country ID and system source must be provided',
 			);
 		}
-		return this.countryRepository.findInternalIdByUuid(countryID, systemSource);
+		return this.countryRepository.mapExternalIDToInternalID(
+			countryID,
+			systemSource,
+		);
+	}
+
+	public async convertPublicIDtoPrivateID(id: string): Promise<number | null> {
+		if (!id || id === 'undefined')
+			throw new BadRequestException('Country ID must be provided');
+		return this.countryRepository.convertPublicIDtoPrivateID(id);
 	}
 }
