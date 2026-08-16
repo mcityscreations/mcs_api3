@@ -22,7 +22,10 @@ import {
 	PrestashopInvoiceListSchema,
 	PrestashopInvoiceListSchemaFull,
 } from '../schemas/prestashop/invoices.schema.js';
-import { IMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
+import {
+	IMcitysInvoice,
+	McitysInvoiceSchema,
+} from '../../accounting/schemas/mcitys/invoice.schema.js';
 import { mapPrestashopInvoiceToMcitysInvoice } from '../../accounting/schemas/mappers/invoice.mapper.js';
 // Order schemas
 import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
@@ -40,10 +43,8 @@ import {
 } from '../schemas/prestashop/customer.schema.js';
 // Person service
 import { PeopleService } from '../../content/people/people.service.js';
-import {
-	IPrestashopCountryList,
-	PrestashopCountryListSchema,
-} from '../schemas/prestashop/country.schema.js';
+import { PrestashopCountryListSchema } from '../schemas/prestashop/country.schema.js';
+import { CountryService } from '../../content/taxonomy/country/service/country.service.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -55,6 +56,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		private readonly logger: WinstonLoggerService,
 		private readonly storesRepository: StoresRepository,
 		private readonly peopleService: PeopleService,
+		private readonly countryService: CountryService,
 	) {
 		super();
 		this.initializeStore();
@@ -109,6 +111,12 @@ export class PrestashopAdapter extends StoreAdapter {
 		const addressData = await this.getAddressDataByID(
 			mainOrderData.id_address_invoice,
 		);
+		const countryCode = await this.countryService.mapExternalIDToInternalID(
+			addressData.id_country,
+			'prestashop',
+		);
+		// Update with mapped country code
+		addressData.id_country = countryCode as number;
 		const mappedInvoice = mapPrestashopInvoiceToMcitysInvoice(
 			invoice,
 			mainOrderData,
@@ -423,18 +431,22 @@ export class PrestashopAdapter extends StoreAdapter {
 	}
 
 	async syncCustomerDataToMcitys(
-		customerData: IPrestashopCustomer,
+		invoiceData: IMcitysInvoice,
 	): Promise<number | null> {
-		if (!PrestashopCustomerSchema.safeParse(customerData).success) {
+		if (!PrestashopCustomerSchema.safeParse(McitysInvoiceSchema).success) {
 			this.logger.error(
-				`Wrong type for customer data.`,
+				`Wrong type for invoice data.`,
 				'PrestashopAdapter',
 				'syncCustomerDataToMcitys',
 			);
-			throw new InternalServerErrorException(`Wrong type for customer data.`);
+			throw new InternalServerErrorException(`Wrong type for invoice data.`);
 		}
 		// Is the customer already in Mcitys?
-		const customerID = customerData.id?.toString() || 'unknown';
+		const customerID: string = !Number.isNaN(
+			invoiceData.recipient.id_source_system,
+		)
+			? String(invoiceData.recipient.id_source_system)
+			: invoiceData.recipient.id_source_system;
 		const existingMcitysID = await this.peopleService.getMcitysID(
 			customerID,
 			'prestashop',
@@ -442,18 +454,34 @@ export class PrestashopAdapter extends StoreAdapter {
 		// 1. If yes, return the existing Mcitys ID
 		if (existingMcitysID) return existingMcitysID;
 		// 2. If no, create a new person in Mcitys and return the new Mcitys ID
-		if (customerData.siret && customerData.siret !== '') {
-			const getCountryISOCode = await this.getCountryISOCode(customerD);
-			const customerID = await this.peopleService.addOrganization({
+
+		const isCompany: boolean = !!invoiceData?.recipient?.legal_number;
+		if (isCompany) {
+			// Check company name
+			const newMcitysID = await this.peopleService.addOrganization({
 				type: 'organization',
-				legalName: customerData.company,
-				idRegistration: customerData.siret,
-				idVAT: 'N/A',
-				category: { id: 3, name: 'administration' },
-				registrationCountry: { id: 8, name: 'France' },
+				details: {
+					legalName: invoiceData.recipient.company_name as string,
+					idRegistration: invoiceData.recipient.legal_number,
+					idVAT: invoiceData.recipient.vat_number ?? 'N/A',
+					category: 3,
+					registrationCountry:
+						invoiceData.recipient.billing_address.country_code,
+				},
 			});
+			return Number.parseInt(newMcitysID as string);
+		} else {
+			const newMcitysID = await this.peopleService.addIndividual({
+				type: 'individual',
+				details: {
+					firstName: invoiceData.recipient.firstname,
+					lastName: invoiceData.recipient.lastname,
+				},
+			});
+			return Number.parseInt(newMcitysID as string);
 		}
 		// 3. Add contact information (email, phone, etc.) to the person in Mcitys
+		return null;
 	}
 
 	async getAddressDataByID(addressID: number): Promise<IPrestashopAddress> {
@@ -496,7 +524,9 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 	}
 
-	public async getCountryISOCode(prestashopID: number): Promise<string | null> {
+	public async getCountryISOCode2(
+		prestashopID: number,
+	): Promise<string | null> {
 		// Retrieve country code by requesting customer's address data from Prestashop API
 		if (!prestashopID || Number.isNaN(prestashopID)) {
 			throw new BadRequestException(
@@ -517,6 +547,6 @@ export class PrestashopAdapter extends StoreAdapter {
 			'country',
 			'prestashop',
 		);
-		return parsedResponse.prestashop.country[0].iso_code || 'FRA';
+		return parsedResponse.prestashop.country[0].iso_code || 'FR';
 	}
 }

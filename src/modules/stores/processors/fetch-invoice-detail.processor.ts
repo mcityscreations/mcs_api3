@@ -47,6 +47,17 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 			// Retrieving detailed invoice data from PrestaShop
 			const invoiceDetails: IMcitysInvoice =
 				await this.prestashopStoreAdapter.mapInvoice(invoice);
+			// Synchronize customer data
+			const mcitysPersonID: number | null =
+				await this.prestashopStoreAdapter.syncCustomerDataToMcitys(
+					invoiceDetails,
+				);
+			if (!mcitysPersonID)
+				throw new Error(
+					`Unable to synchronize customer data for Prestashop customer ${invoiceDetails.recipient.id_source_system}`,
+				);
+			// Record Mcitys Person ID into the invoice
+			invoiceDetails.recipient.id = mcitysPersonID.toString();
 
 			this.logger.log(
 				`[Worker Store] Invoice ${invoice.id} standardized successfully. Sending to accounting...`,

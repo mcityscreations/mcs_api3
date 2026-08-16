@@ -66,13 +66,23 @@ export const McitysInvoiceSchema = z.object({
 		})
 		.optional(),
 	recipient: z.object({
-		id: z.string(), // Mcitys person ID
+		id: z.string().nullable().optional(), // Mcitys person ID
+		id_source_system: z.string(),
 		firstname: z.string(), // First name of the customer
 		lastname: z.string(), // Last name of the customer
 		company_name: z.string().optional(), // Company name of the customer
 		email: z.email(), // Email of the customer
 		legal_number: z.string().optional(), // Legal number of the customer (e.g. SIRET in France)
+		vat_number: z.string().optional(),
 		country_code: z.string().length(2).default('FR'),
+		billing_address: z.object({
+			address1: z.string(),
+			address2: z.string().nullable().optional(),
+			address3: z.string().nullable().optional(),
+			city: z.string(),
+			zip_code: z.string().nullable().optional(),
+			country_code: z.string(),
+		}),
 	}),
 	order_details: z.array(
 		z.object({
