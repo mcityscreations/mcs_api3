@@ -100,7 +100,10 @@ export class PrestashopAdapter extends StoreAdapter {
 		// The logic to retrieve product attributes from PrestaShop
 	}
 
-	async mapInvoice(invoice: IPrestashopInvoice): Promise<IMcitysInvoice> {
+	async mapInvoice(
+		invoice: IPrestashopInvoice,
+		documentType: 'invoice' | 'credit_note' | 'proforma' = 'invoice',
+	): Promise<IMcitysInvoice> {
 		const mainOrderData: IPrestashopOrder =
 			await this.getMainOrderDataByInvoiceID(invoice.id);
 		const detailedOrderData: IPrestashopOrderDetailsNormalized =
@@ -123,6 +126,7 @@ export class PrestashopAdapter extends StoreAdapter {
 			detailedOrderData,
 			customerData,
 			addressData,
+			documentType,
 		);
 		return mappedInvoice;
 	}

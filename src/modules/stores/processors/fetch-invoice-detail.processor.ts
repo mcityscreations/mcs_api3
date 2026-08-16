@@ -46,7 +46,7 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 		try {
 			// Retrieving detailed invoice data from PrestaShop
 			const invoiceDetails: IMcitysInvoice =
-				await this.prestashopStoreAdapter.mapInvoice(invoice);
+				await this.prestashopStoreAdapter.mapInvoice(invoice, 'invoice');
 			// Synchronize customer data
 			const mcitysPersonID: number | null =
 				await this.prestashopStoreAdapter.syncCustomerDataToMcitys(

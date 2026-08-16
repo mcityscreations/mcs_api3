@@ -15,7 +15,6 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	prestashopOrderDetails: IPrestashopOrderDetailsNormalized,
 	customerData: IPrestashopCustomer,
 	prestashopAddressData: IPrestashopAddress,
-	countryIsoCode: string = 'FR',
 	invoiceType: 'invoice' | 'credit_note' | 'proforma' = 'invoice',
 ): IMcitysInvoice {
 	// Secure parsing of invoice totals with fallback to 0 if values are missing or invalid
