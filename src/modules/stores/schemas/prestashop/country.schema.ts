@@ -6,7 +6,7 @@ import { z } from 'zod';
     <id_zone><![CDATA[]]></id_zone>
     <id_currency><![CDATA[]]></id_currency>
     <call_prefix><![CDATA[]]></call_prefix>
-    <iso_code><![CDATA[]]></iso_code>
+    <iso_code><![CDATA[]]></iso_code> ISO2 !
     <active><![CDATA[]]></active>
     <contains_states><![CDATA[]]></contains_states>
     <need_identification_number><![CDATA[]]></need_identification_number>

@@ -6,7 +6,7 @@ export class CountryService {
 	constructor(private readonly countryRepository: CountryRepository) {}
 
 	public async mapExternalIDToInternalID(
-		countryID: string,
+		countryID: string | number,
 		systemSource: string,
 	): Promise<number | null> {
 		if (!countryID || !systemSource) {
@@ -14,8 +14,10 @@ export class CountryService {
 				'Country ID and system source must be provided',
 			);
 		}
+		const parsedID =
+			typeof countryID === 'string' ? countryID : String(countryID);
 		return this.countryRepository.mapExternalIDToInternalID(
-			countryID,
+			parsedID,
 			systemSource,
 		);
 	}
