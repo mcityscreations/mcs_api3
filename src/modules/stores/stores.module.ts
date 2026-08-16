@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
 import { PrestashopConfigService } from './configs/prestashop/prestashop.config.js';
 import { PrestashopAdapter } from './adapters/prestashop.adapter.js';
 import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
@@ -28,7 +29,16 @@ import { StoresService } from './services/stores.service.js';
 		StoresService,
 	],
 	controllers: [StoresController],
-	imports: [SystemModule],
+	imports: [
+		SystemModule,
+		BullModule.registerQueue({
+			name: 'store.fetch-invoice-detail',
+			defaultJobOptions: {
+				removeOnComplete: 100, // Keep only the last 100 successful jobs in Redis
+				removeOnFail: 500, // Keep the last 500 failed jobs for debugging
+			},
+		}),
+	],
 	exports: ['PRESTASHOP_STORE'],
 })
 export class StoresModule {}

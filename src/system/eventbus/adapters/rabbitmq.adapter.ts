@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import * as amqp from 'amqp-connection-manager';
 import { ChannelWrapper } from 'amqp-connection-manager';
-import { ConfirmChannel } from 'amqplib';
+import type { ConfirmChannel } from 'amqplib';
 import { EventBus } from '../interfaces/eventbus.interface.js';
 import { RabbitMqConfig } from '../configs/rabbit-mq/rabbit-mq.config.js';
 import { AlsService } from '../../als/als.service.js';
@@ -19,8 +19,8 @@ export class RabbitMqAdapter
 	extends EventBus
 	implements OnModuleInit, OnModuleDestroy
 {
-	private connection: amqp.AmqpConnectionManager;
-	private channelWrapper: ChannelWrapper;
+	private connection!: amqp.AmqpConnectionManager;
+	private channelWrapper!: ChannelWrapper;
 	private readonly exchangeName: string;
 
 	constructor(

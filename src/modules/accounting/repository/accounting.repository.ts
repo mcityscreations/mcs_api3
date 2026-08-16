@@ -7,6 +7,30 @@ import type { IMcitysInvoice } from '../schemas/mcitys/invoice.schema.js';
 export class AccountingRepository {
 	constructor(private readonly dbService: PostgreSQLService) {}
 
+	public async doesInvoiceExist({
+		reference,
+		systemSource,
+	}: {
+		reference: string;
+		systemSource: string;
+	}): Promise<boolean> {
+		const sqlRequest = `
+            SELECT EXISTS (
+                SELECT 1 
+                FROM accounting.invoice 
+                WHERE reference = $1 AND system_source = $2
+            ) as "exists";
+        `;
+		const result = await this.dbService.execute<{ exists: boolean }>(
+			sqlRequest,
+			[reference, systemSource],
+			'standard',
+			false,
+			null,
+		);
+		return result.length > 0 ? result[0].exists : false;
+	}
+
 	public async saveMainInvoiceData(
 		data: IMcitysInvoice,
 		transactionClient: PoolClient,
@@ -15,7 +39,7 @@ export class AccountingRepository {
         (system_source, reference, id_technical_erp, amount_wt, amount_vat, amount_at, 
         issue_date, due_date, paid_at, emitter, recipient, currency, payment_direction, invoice_type) 
         
-        VALUES ($1) RETURNING id_invoice`;
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id_invoice`;
 		const result = await this.dbService.execute<{ id_invoice: number }>(
 			sqlRequest,
 			[

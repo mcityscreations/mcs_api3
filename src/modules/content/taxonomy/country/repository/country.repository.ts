@@ -4,7 +4,7 @@ import { PostgreSQLService } from '../../../../../system/database/postgresql/pos
 @Injectable()
 export class CountryRepository {
 	constructor(private readonly postgresqlService: PostgreSQLService) {}
-	public async findInternalIdByUuid(
+	public async mapExternalIDToInternalID(
 		externalID: string,
 		systemSource: string,
 	): Promise<number | null> {
@@ -14,6 +14,13 @@ export class CountryRepository {
 				externalID,
 				systemSource,
 			]);
+		return result.length > 0 ? result[0].id_country : null;
+	}
+
+	public async convertPublicIDtoPrivateID(id: string): Promise<number | null> {
+		const sqlRequest = `SELECT id_country FROM taxonomy.country tc WHERE tc.id_public = $1`;
+		const result: { id_country: number }[] =
+			await this.postgresqlService.execute(sqlRequest, [id], 'standard', false);
 		return result.length > 0 ? result[0].id_country : null;
 	}
 }

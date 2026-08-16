@@ -15,7 +15,6 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	prestashopOrderDetails: IPrestashopOrderDetailsNormalized,
 	customerData: IPrestashopCustomer,
 	prestashopAddressData: IPrestashopAddress,
-	countryIsoCode: string = 'FR',
 	invoiceType: 'invoice' | 'credit_note' | 'proforma' = 'invoice',
 ): IMcitysInvoice {
 	// Secure parsing of invoice totals with fallback to 0 if values are missing or invalid
@@ -25,7 +24,7 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	return {
 		id_technical: prestashopInvoice.id?.toString() ?? '0',
 		reference: prestashopInvoice.number.toString(),
-		source_system: 'PRESTASHOP',
+		source_system: 'prestashop',
 		invoice_type: invoiceType,
 		issue_date: prestashopInvoice.date_add
 			? dateService
@@ -42,15 +41,26 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 		emitter: {
 			id: '019b8af6-d80c-7aec-b2af-ce615fc092a5',
 			legal_number: '84478363900017',
+			company_name: 'Mcitys', // Company name of the emitter
+			email: 'contact@mcitys.com', // Email of the emitter
+			country_code: 'FR', // Country code of the emitter
 		},
 		recipient: {
-			id: prestashopMainOrderData.id_customer.toString(),
+			id_source_system: prestashopMainOrderData.id_customer.toString(),
 			firstname: prestashopAddressData.firstname,
 			lastname: prestashopAddressData.lastname,
 			company_name: prestashopAddressData.company?.trim() || undefined,
 			email: customerData.email,
-			legal_number: prestashopAddressData.vat_number?.trim() || undefined,
-			country_code: countryIsoCode, // 'FR' au lieu de l'ID '8'
+			legal_number: customerData.siret?.trim() || undefined,
+			vat_number: prestashopAddressData.vat_number?.trim() || undefined,
+			country_code: countryIsoCode,
+			billing_address: {
+				address1: prestashopAddressData.address1,
+				address2: prestashopAddressData.address2,
+				city: prestashopAddressData.city,
+				zip_code: prestashopAddressData.postcode,
+				country_code: countryIsoCode,
+			},
 		},
 		order_details: prestashopOrderDetails.items.map((orderDetail) => {
 			const priceExcl = Number(orderDetail.unit_price_tax_excl ?? 0);

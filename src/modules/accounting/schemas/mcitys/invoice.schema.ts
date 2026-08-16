@@ -37,7 +37,7 @@ const currenciesEnum = z.enum([
 export const McitysInvoiceSchema = z.object({
 	id_technical: z.string(), // Technical ID of the invoice in the third party system (Qonto, Prestashop, etc.)
 	reference: z.string(), // Reference of the invoice (e.g. invoice number)
-	source_system: z.enum(['QONTO', 'PRESTASHOP']), // Source system of the invoice (e.g. Qonto, Prestashop, etc.)
+	source_system: z.enum(['qonto', 'prestashop']), // Source system of the invoice (e.g. Qonto, Prestashop, etc.)
 	invoice_type: z.enum(['invoice', 'credit_note', 'proforma']), // Type of the invoice (e.g. invoice, credit note, proforma)
 	issue_date: z.coerce
 		.date()
@@ -58,18 +58,31 @@ export const McitysInvoiceSchema = z.object({
 		.default('INVOICE'),
 	emitter: z
 		.object({
-			id: z.string(),
+			id: z.string(), // Mcitys person ID
 			legal_number: z.string(), // SIRET
+			company_name: z.string().optional(), // Company name of the emitter
+			email: z.email(), // Email of the emitter
+			country_code: z.string().length(2).default('FR'), // Country code of the emitter (e.g. FR, US, etc.)
 		})
 		.optional(),
 	recipient: z.object({
-		id: z.string(), // Technical ID of the customer in the third party system (Qonto, Prestashop, etc.)
+		id: z.string().nullable().optional(), // Mcitys person ID
+		id_source_system: z.string(),
 		firstname: z.string(), // First name of the customer
 		lastname: z.string(), // Last name of the customer
 		company_name: z.string().optional(), // Company name of the customer
 		email: z.email(), // Email of the customer
 		legal_number: z.string().optional(), // Legal number of the customer (e.g. SIRET in France)
+		vat_number: z.string().optional(),
 		country_code: z.string().length(2).default('FR'),
+		billing_address: z.object({
+			address1: z.string(),
+			address2: z.string().nullable().optional(),
+			address3: z.string().nullable().optional(),
+			city: z.string(),
+			zip_code: z.string().nullable().optional(),
+			country_code: z.string(),
+		}),
 	}),
 	order_details: z.array(
 		z.object({
