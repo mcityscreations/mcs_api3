@@ -6,6 +6,7 @@ import {
 import axios from 'axios';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
+import { IIds } from '../../../common/schemas/ids.schema.js';
 import { xmlValidator } from '../../../common/validators/xml.validators.js';
 import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
 import { StoreAdapter } from '../interfaces/stores.interface.js';
@@ -254,11 +255,11 @@ export class PrestashopAdapter extends StoreAdapter {
 					'PrestaShop',
 				);
 				return parsedResponse;
-			} catch (error) {
+			} catch (error: unknown) {
 				const errorMessage = getErrorMessage(error);
 				this.logger.error(
-					'Error fetching invoices from PrestaShop',
-					errorMessage,
+					`Error fetching invoices from PrestaShop: ${errorMessage}`,
+					String((error as Error)?.stack),
 				);
 				throw new InternalServerErrorException(
 					'Error fetching invoices from PrestaShop',
@@ -288,11 +289,11 @@ export class PrestashopAdapter extends StoreAdapter {
 					'PrestaShop',
 				);
 				return parsedResponse;
-			} catch (error) {
+			} catch (error: unknown) {
 				const errorMessage = getErrorMessage(error);
 				this.logger.error(
-					'Error fetching invoices from PrestaShop',
-					errorMessage,
+					`Error fetching invoices from PrestaShop: ${errorMessage}`,
+					String((error as Error)?.stack),
 				);
 				throw new InternalServerErrorException(
 					'Error fetching invoices from PrestaShop',
@@ -312,7 +313,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				`PrestashopAdapter`,
 				`getInvoicesByDatePeriod`,
 			);
-			throw new InternalServerErrorException(
+			throw new BadRequestException(
 				`Please provide a correct startDate and/or endDate value.`,
 			);
 		}
@@ -385,8 +386,8 @@ export class PrestashopAdapter extends StoreAdapter {
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error(
-				`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}`,
-				errorMessage,
+				`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}: ${errorMessage}`,
+				String((error as Error).stack),
 			);
 			throw new InternalServerErrorException(
 				`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}`,
@@ -425,8 +426,8 @@ export class PrestashopAdapter extends StoreAdapter {
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error(
-				`Error fetching customer data from PrestaShop for customer ID ${customerID}`,
-				errorMessage,
+				`Error fetching customer data from PrestaShop for customer ID ${customerID}: ${errorMessage}`,
+				String((error as Error).stack),
 			);
 			throw new InternalServerErrorException(
 				`Error fetching customer data from PrestaShop for customer ID ${customerID}`,
@@ -436,7 +437,7 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	async syncCustomerDataToMcitys(
 		invoiceData: IMcitysInvoice,
-	): Promise<number | null> {
+	): Promise<IIds | null> {
 		if (!PrestashopCustomerSchema.safeParse(McitysInvoiceSchema).success) {
 			this.logger.error(
 				`Wrong type for invoice data.`,
@@ -462,7 +463,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		const isCompany: boolean = !!invoiceData?.recipient?.legal_number;
 		if (isCompany) {
 			// Check company name
-			const newMcitysID = await this.peopleService.addOrganization({
+			const newMcitysIDs = await this.peopleService.addOrganization({
 				type: 'organization',
 				details: {
 					legalName: invoiceData.recipient.company_name as string,
@@ -473,16 +474,17 @@ export class PrestashopAdapter extends StoreAdapter {
 						invoiceData.recipient.billing_address.country_code,
 				},
 			});
-			return Number.parseInt(newMcitysID as string);
+			// Add person to person mapper
+			return newMcitysIDs;
 		} else {
-			const newMcitysID = await this.peopleService.addIndividual({
+			const newMcitysIDs = await this.peopleService.addIndividual({
 				type: 'individual',
 				details: {
 					firstName: invoiceData.recipient.firstname,
 					lastName: invoiceData.recipient.lastname,
 				},
 			});
-			return Number.parseInt(newMcitysID as string);
+			return newMcitysIDs;
 		}
 		// 3. Add contact information (email, phone, etc.) to the person in Mcitys
 		return null;
