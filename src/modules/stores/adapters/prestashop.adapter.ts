@@ -164,8 +164,8 @@ export class PrestashopAdapter extends StoreAdapter {
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error(
-				`Error fetching main order data from PrestaShop for invoice ID ${invoiceID}`,
-				errorMessage,
+				`Error fetching main order data from PrestaShop for invoice ID ${invoiceID}: ${errorMessage}`,
+				String((error as Error).stack),
 			);
 			throw new InternalServerErrorException(
 				`Error fetching main order data from PrestaShop for invoice ID ${invoiceID}`,
@@ -215,8 +215,8 @@ export class PrestashopAdapter extends StoreAdapter {
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error(
-				'Error fetching order details from PrestaShop',
-				errorMessage,
+				`Error fetching order details from PrestaShop : ${errorMessage}`,
+				String((error as Error).stack),
 			);
 			throw new InternalServerErrorException(
 				'Error fetching order details from PrestaShop',
@@ -342,8 +342,8 @@ export class PrestashopAdapter extends StoreAdapter {
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error(
-				'Error fetching invoices from PrestaShop',
-				errorMessage,
+				`Error fetching invoices from PrestaShop: ${errorMessage}`,
+				String((error as Error).stack),
 			);
 			throw new InternalServerErrorException(
 				'Error fetching invoices from PrestaShop',
@@ -521,8 +521,8 @@ export class PrestashopAdapter extends StoreAdapter {
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			this.logger.error(
-				`Error fetching address data from PrestaShop for address ID ${addressID}`,
-				errorMessage,
+				`Error fetching address data from PrestaShop for address ID ${addressID}: ${errorMessage}`,
+				String((error as Error).stack),
 			);
 			throw new InternalServerErrorException(
 				`Error fetching address data from PrestaShop for address ID ${addressID}`,
@@ -539,20 +539,31 @@ export class PrestashopAdapter extends StoreAdapter {
 				`Prestashop country ID must be a string. ${typeof prestashopID} given.`,
 			);
 		}
-		const { data } = await axios.get<string>(
-			`${this.apiEndpoint}/countries/${prestashopID}`,
-			{
-				headers: {
-					Authorization: this.authorizationKey,
+		try {
+			const { data } = await axios.get<string>(
+				`${this.apiEndpoint}/countries/${prestashopID}`,
+				{
+					headers: {
+						Authorization: this.authorizationKey,
+					},
 				},
-			},
-		);
-		const parsedResponse = xmlValidator(
-			data,
-			PrestashopCountryListSchema,
-			'country',
-			'prestashop',
-		);
-		return parsedResponse.prestashop.country[0].iso_code || 'FR';
+			);
+			const parsedResponse = xmlValidator(
+				data,
+				PrestashopCountryListSchema,
+				'country',
+				'prestashop',
+			);
+			return parsedResponse.prestashop.country[0].iso_code || 'FR';
+		} catch (error) {
+			const errorMessage = getErrorMessage(error);
+			this.logger.error(
+				`Unable to get country ISO code 2 from Prestashop: ${errorMessage}`,
+				String((error as Error).stack),
+			);
+			throw new InternalServerErrorException(
+				`Unable to get country ISO code 2 from Prestashop`,
+			);
+		}
 	}
 }
