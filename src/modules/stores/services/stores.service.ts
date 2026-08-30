@@ -32,7 +32,7 @@ export class StoresService {
 				return [];
 			}
 			// Prepare bulk jobs for fetching invoice details
-			const correlationId = this.alsService.getCorrelationId() || uuidv7();
+			const correlationId = AlsService.correlationId || uuidv7();
 			const bulkJobs = invoices.prestashop.order_invoices.order_invoice.map(
 				(invoice: IPrestashopInvoice) => ({
 					jobName: 'fetch-detail',

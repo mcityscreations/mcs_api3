@@ -1,12 +1,8 @@
 // src/system/eventbus/interfaces/eventbus.interface.ts
 import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
-import { AlsService } from '../../als/als.service.js';
 
 export abstract class EventBus {
-	constructor(
-		protected readonly alsService: AlsService,
-		protected readonly logger: WinstonLoggerService,
-	) {}
+	constructor(protected readonly logger: WinstonLoggerService) {}
 	abstract emit<T>(
 		exchange: string,
 		routingKey: string,

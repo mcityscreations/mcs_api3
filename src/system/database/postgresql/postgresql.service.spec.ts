@@ -6,7 +6,26 @@ describe('PostgreSQLService', () => {
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [PostgreSQLService],
+			providers: [
+				PostgreSQLService,
+				{
+					provide: 'PG_STANDARD_CONFIG',
+					useValue: {},
+				},
+				{
+					provide: 'PG_SECURITY_CONFIG',
+					useValue: {},
+				},
+				{
+					provide: 'WinstonLoggerService',
+					useValue: {
+						log: jest.fn(),
+						error: jest.fn(),
+						warn: jest.fn(),
+						debug: jest.fn(),
+					},
+				},
+			],
 		}).compile();
 
 		service = module.get<PostgreSQLService>(PostgreSQLService);
