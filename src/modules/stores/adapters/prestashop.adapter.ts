@@ -3,7 +3,6 @@ import axios from 'axios';
 import {
 	InternalError,
 	BadRequestError,
-	NotFoundError,
 } from '../../../system/errors/index.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
@@ -24,8 +23,6 @@ import {
 	PrestashopInvoiceListSchema,
 	PrestashopInvoiceListSchemaFull,
 } from '../schemas/prestashop/invoices.schema.js';
-import { ICreateMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
-import { mapPrestashopInvoiceToMcitysInvoice } from '../../accounting/schemas/mappers/invoice.mapper.js';
 // Order schemas
 import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
 import { PrestashopOrderDetailsResponseSchema } from '../schemas/prestashop/order-detail.schema.js';
@@ -95,38 +92,6 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	getProductAttributes(): void {
 		// The logic to retrieve product attributes from PrestaShop
-	}
-
-	async mapInvoice(
-		invoice: IPrestashopInvoice,
-		documentType: 'invoice' | 'credit_note' | 'proforma' = 'invoice',
-	): Promise<ICreateMcitysInvoice> {
-		const customerData = await this.getCustomerDataByID(
-			mainOrderData.id_customer,
-		);
-		if (!mainOrderData.id_address_invoice) {
-			throw new InternalError(
-				`PrestashopAdapter : Missing invoice address ID in main order data for invoice ID ${invoice.id}`,
-			);
-		}
-		const addressData = await this.getAddressDataByID(
-			mainOrderData.id_address_invoice,
-		);
-		const countryCode = await this.countryService.mapExternalIDToInternalID(
-			addressData.id_country,
-			'prestashop',
-		);
-		// Update with mapped country code
-		addressData.id_country = countryCode as number;
-		const mappedInvoice = mapPrestashopInvoiceToMcitysInvoice(
-			invoice,
-			mainOrderData,
-			detailedOrderData,
-			customerData,
-			addressData,
-			documentType,
-		);
-		return mappedInvoice;
 	}
 
 	async getMainOrderDataByInvoiceID(
