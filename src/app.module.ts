@@ -18,7 +18,6 @@ import { CommonModule } from './common/common.module.js';
 import { ContentModule } from './modules/content/content.module.js';
 import { StoresModule } from './modules/stores/stores.module.js';
 import { AccountingModule } from './modules/accounting/accounting.module.js';
-import { AddressModule } from './src/content/address/address.module';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 
@@ -34,7 +33,6 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 		ContentModule,
 		StoresModule,
 		AccountingModule,
-		AddressModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PostgreSQLService } from './postgresql.service.js';
+import { jest } from '@jest/globals';
 
 describe('PostgreSQLService', () => {
 	let service: PostgreSQLService;
@@ -10,11 +11,21 @@ describe('PostgreSQLService', () => {
 				PostgreSQLService,
 				{
 					provide: 'PG_STANDARD_CONFIG',
-					useValue: {},
+					useValue: {
+						log: jest.fn(),
+						error: jest.fn(),
+						warn: jest.fn(),
+						debug: jest.fn(),
+					},
 				},
 				{
 					provide: 'PG_SECURITY_CONFIG',
-					useValue: {},
+					useValue: {
+						log: jest.fn(),
+						error: jest.fn(),
+						warn: jest.fn(),
+						debug: jest.fn(),
+					},
 				},
 				{
 					provide: 'WinstonLoggerService',
@@ -26,7 +37,8 @@ describe('PostgreSQLService', () => {
 					},
 				},
 			],
-		}).compile();
+		})
+			.compile();
 
 		service = module.get<PostgreSQLService>(PostgreSQLService);
 	});

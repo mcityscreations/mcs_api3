@@ -6,9 +6,10 @@ export const AddressSchema = z.object({
 	address3: z.string().optional(),
 	city: z.string().optional(),
 	state: z.string().optional(),
-	zipCode: z.string().optional(),
+	zip_code: z.string().optional(),
 	country: z.object({
-		iso3: z.string().length(3),
+		iso2: z.string().length(2),
+		iso3: z.string().length(3).optional(),
 		name: z.string(),
 	}),
 	phone: z.string().optional(),

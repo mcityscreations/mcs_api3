@@ -8,6 +8,10 @@ import { StoresRepository } from './repository/stores.repository.js';
 import { SystemModule } from '../../system/system.module.js';
 import { StoresController } from './controllers/stores.controller.js';
 import { StoresService } from './services/stores.service.js';
+import { PeopleModule } from '../content/people/people.module.js';
+import { PeopleService } from '../content/people/people.service.js';
+import { CountryService } from '../content/taxonomy/country/service/country.service.js';
+import { AddressModule } from '../content/address/address.module.js';
 
 @Module({
 	providers: [
@@ -18,10 +22,24 @@ import { StoresService } from './services/stores.service.js';
 				configService: PrestashopConfigService,
 				logger: WinstonLoggerService,
 				storesRepository: StoresRepository,
+				peopleService: PeopleService,
+				countryService: CountryService,
 			) => {
-				return new PrestashopAdapter(configService, logger, storesRepository);
+				return new PrestashopAdapter(
+					configService,
+					logger,
+					storesRepository,
+					peopleService,
+					countryService,
+				);
 			},
-			inject: [PrestashopConfigService, WinstonLoggerService, StoresRepository],
+			inject: [
+				PrestashopConfigService,
+				WinstonLoggerService,
+				StoresRepository,
+				PeopleService,
+				CountryService,
+			],
 		},
 		PrestashopCronService,
 		StoresRepository,
@@ -38,6 +56,8 @@ import { StoresService } from './services/stores.service.js';
 				removeOnFail: 500, // Keep the last 500 failed jobs for debugging
 			},
 		}),
+		PeopleModule,
+		AddressModule,
 	],
 	exports: ['PRESTASHOP_STORE'],
 })

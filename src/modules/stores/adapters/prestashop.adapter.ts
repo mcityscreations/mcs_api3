@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
 	InternalError,
 	BadRequestError,
+	NotFoundError,
 } from '../../../system/errors/index.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
@@ -23,10 +24,7 @@ import {
 	PrestashopInvoiceListSchema,
 	PrestashopInvoiceListSchemaFull,
 } from '../schemas/prestashop/invoices.schema.js';
-import {
-	IMcitysInvoice,
-	McitysInvoiceSchema,
-} from '../../accounting/schemas/mcitys/invoice.schema.js';
+import { ICreateMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
 import { mapPrestashopInvoiceToMcitysInvoice } from '../../accounting/schemas/mappers/invoice.mapper.js';
 // Order schemas
 import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
@@ -44,8 +42,10 @@ import {
 } from '../schemas/prestashop/customer.schema.js';
 // Person service
 import { PeopleService } from '../../content/people/people.service.js';
+// Country service
 import { PrestashopCountryListSchema } from '../schemas/prestashop/country.schema.js';
 import { CountryService } from '../../content/taxonomy/country/service/country.service.js';
+import type { ICountry } from '../../content/taxonomy/country/schemas/country.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -100,16 +100,7 @@ export class PrestashopAdapter extends StoreAdapter {
 	async mapInvoice(
 		invoice: IPrestashopInvoice,
 		documentType: 'invoice' | 'credit_note' | 'proforma' = 'invoice',
-	): Promise<IMcitysInvoice> {
-		const mainOrderData: IPrestashopOrder =
-			await this.getMainOrderDataByInvoiceID(invoice.id);
-		const detailedOrderData: IPrestashopOrderDetailsNormalized =
-			await this.getOrderDetails(invoice.id, 'invoice');
-		if (!mainOrderData.id_customer) {
-			throw new InternalError(
-				`PrestashopAdapter : Missing customer ID in main order data for invoice ID ${invoice.id}`,
-			);
-		}
+	): Promise<ICreateMcitysInvoice> {
 		const customerData = await this.getCustomerDataByID(
 			mainOrderData.id_customer,
 		);
@@ -394,23 +385,22 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 	}
 
-	async syncCustomerDataToMcitys(
-		invoiceData: IMcitysInvoice,
-	): Promise<IIds | null> {
-		if (!PrestashopCustomerSchema.safeParse(McitysInvoiceSchema).success) {
-			this.logger.error(
-				`Wrong type for invoice data.`,
-				'PrestashopAdapter',
-				'syncCustomerDataToMcitys',
+	public async syncCustomerDataToMcitys(payload: {
+		customerData: IPrestashopCustomer;
+		addressData: IPrestashopAddress;
+		countryData: ICountry;
+	}): Promise<IIds | null> {
+		const { customerData, addressData } = payload;
+		if (!PrestashopCustomerSchema.safeParse(customerData).success) {
+			throw new InternalError(
+				`PrestashopAdapter - Wrong type for customer data.`,
 			);
-			throw new InternalError(`Wrong type for invoice data.`);
 		}
 		// Is the customer already in Mcitys?
-		const customerID: string = !Number.isNaN(
-			invoiceData.recipient.id_source_system,
-		)
-			? String(invoiceData.recipient.id_source_system)
-			: invoiceData.recipient.id_source_system;
+		const customerID: string =
+			typeof customerData.id === 'number'
+				? String(customerData.id)
+				: (customerData.id as unknown as string);
 		const existingMcitysID = await this.peopleService.getMcitysID(
 			customerID,
 			'prestashop',
@@ -419,30 +409,41 @@ export class PrestashopAdapter extends StoreAdapter {
 		if (existingMcitysID) return existingMcitysID;
 		// 2. If no, create a new person in Mcitys and return the new Mcitys ID
 
-		const isCompany: boolean = !!invoiceData?.recipient?.legal_number;
+		// Get country data
+		const idCountry = payload.countryData.id;
+		const isCompany: boolean = !!customerData?.siret;
 		if (isCompany) {
 			// Check company name
 			const newMcitysIDs = await this.peopleService.addOrganization({
 				type: 'organization',
 				details: {
-					legalName: invoiceData.recipient.company_name as string,
-					idRegistration: invoiceData.recipient.legal_number,
-					idVAT: invoiceData.recipient.vat_number ?? 'N/A',
+					legalName: customerData.company as string,
+					idRegistration: customerData.siret as string,
+					idVAT: addressData.vat_number as string,
 					category: 3,
-					registrationCountry:
-						invoiceData.recipient.billing_address.country_code,
+					registrationCountry: idCountry,
 				},
 			});
 			// Add person to person mapper
+			if (!newMcitysIDs)
+				throw new InternalError(
+					`Unable to synchronize Prestashop customer data :` +
+						JSON.stringify(payload),
+				);
 			return newMcitysIDs;
 		} else {
 			const newMcitysIDs = await this.peopleService.addIndividual({
 				type: 'individual',
 				details: {
-					firstName: invoiceData.recipient.firstname,
-					lastName: invoiceData.recipient.lastname,
+					firstName: customerData.firstname,
+					lastName: customerData.lastname,
 				},
 			});
+			if (!newMcitysIDs)
+				throw new InternalError(
+					`Unable to synchronize Prestashop customer data :` +
+						JSON.stringify(payload),
+				);
 			return newMcitysIDs;
 		}
 		// 3. Add contact information (email, phone, etc.) to the person in Mcitys
@@ -480,9 +481,9 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 	}
 
-	public async getCountryISOCode2(
+	public async getCountryData(
 		prestashopID: number,
-	): Promise<string | null> {
+	): Promise<{ iso3: string; name: string } | null> {
 		// Retrieve country code by requesting customer's address data from Prestashop API
 		if (!prestashopID || Number.isNaN(Number.parseInt(String(prestashopID)))) {
 			throw new BadRequestError(
@@ -504,7 +505,12 @@ export class PrestashopAdapter extends StoreAdapter {
 				'country',
 				'prestashop',
 			);
-			return parsedResponse.prestashop.country[0].iso_code || 'FR';
+			return {
+				iso3: parsedResponse.prestashop.country[0].iso_code || 'FRA',
+				name:
+					parsedResponse.prestashop.country[0].name.language?.[0]?.value ||
+					'Unknown',
+			};
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			throw new InternalError(
