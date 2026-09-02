@@ -1,14 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PostgreSQLService } from '../../../system/database/postgresql/postgresql.service.js';
-import { ICreateMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
 
 @Injectable()
 export class StoresRepository {
 	constructor(private readonly postgreSQLService: PostgreSQLService) {}
-
-	saveInvoice(invoiceData: ICreateMcitysInvoice): void {
-		// The logic to save the invoice data into the database
-	}
 
 	/** Retrieves the ID of the last Prestashop invoice recorded in the Mcitys database */
 	async getLastPrestashopInvoiceID(): Promise<number> {
