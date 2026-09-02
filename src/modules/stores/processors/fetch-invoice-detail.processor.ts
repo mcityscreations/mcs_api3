@@ -1,20 +1,18 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { uuidv7 } from 'uuidv7';
-import { InternalError, NotFoundError, ValidationError } from '../../../system/errors/index.js';
+import {
+	InternalError,
+	ValidationError,
+} from '../../../system/errors/index.js';
 import { BullMqAdapter } from '../../../system/jobdispatcher/adapters/bullmq.adapter.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import type { IJobDescriptor } from '../../../system/jobdispatcher/schemas/job.schema.js';
 import { createJobDescriptorSchema } from '../../../system/jobdispatcher/schemas/job.schema.js';
-import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
-import type { IMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
+import type { ICreateMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
 import type { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
 import { PrestashopInvoiceSchema } from '../schemas/prestashop/invoices.schema.js';
-import type { IPrestashopOrder } from '../schemas/prestashop/order.schema.js';
-import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
-import { AddressService } from '../../content/address/service/address.service.js';
-import { mapPrestashopInvoiceToMcitysInvoice } from '../../accounting/schemas/mappers/invoice.mapper.js';
-import { CountryService } from '../../content/taxonomy/country/service/country.service.js';
+import { PrestashopAgregator } from '../agregators/prestashop/prestashop.agregator.js';
 
 @Processor('store.fetch-invoice-detail', {
 	limiter: {
@@ -24,11 +22,9 @@ import { CountryService } from '../../content/taxonomy/country/service/country.s
 })
 export class FetchInvoiceDetailProcessor extends WorkerHost {
 	constructor(
-		private readonly prestashopStoreAdapter: PrestashopAdapter,
 		private readonly jobDispatcher: BullMqAdapter,
 		private readonly logger: WinstonLoggerService,
-		private readonly addressService: AddressService,
-		private readonly countryService: CountryService,
+		private readonly prestashopAgregator: PrestashopAgregator,
 	) {
 		super();
 	}
@@ -47,9 +43,18 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 			`[Worker Store] Handling invoice ID : ${invoice.id} from PrestaShop for processing...`,
 		);
 
-
-			// Record Mcitys Person ID into the invoice
-
+		try {
+			// Agregate and synchronize invoice data from PrestaShop to Mcitys
+			const mcitysInvoice: ICreateMcitysInvoice | null =
+				await this.prestashopAgregator.agregateInvoiceData(
+					job.data.payload.data,
+				);
+			if (!mcitysInvoice) {
+				throw new InternalError(
+					`[Worker Store] Failed to aggregate invoice data for invoice ID : ${invoice.id} from PrestaShop.`,
+				);
+			}
+			// Success
 			this.logger.log(
 				`[Worker Store] Invoice ${invoice.id} standardized successfully. Sending to accounting...`,
 			);
@@ -65,7 +70,7 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 					timestamp: new Date().toISOString(),
 					version: '1.0.0',
 					correlationId: job.data.payload.correlationId || uuidv7(),
-					data: invoiceDetails,
+					data: mcitysInvoice,
 				},
 				{ jobId: `accounting-inv-PRESTASHOP-${invoice.id}` },
 			);
