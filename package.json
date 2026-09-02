@@ -135,6 +135,8 @@
     ],
     "moduleNameMapper": {
       "^(\\..*)\\.js$": "$1"
-    }
+    },
+    "watchman": false,
+    "onlyChanged": true
   }
 }

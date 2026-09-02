@@ -1,11 +1,13 @@
-import {
-	BadRequestException,
-	Injectable,
-	InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import {
+	InternalError,
+	BadRequestError,
+	NotFoundError,
+} from '../../../system/errors/index.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
+import { IIds } from '../../../common/schemas/ids.schema.js';
 import { xmlValidator } from '../../../common/validators/xml.validators.js';
 import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
 import { StoreAdapter } from '../interfaces/stores.interface.js';
@@ -22,10 +24,7 @@ import {
 	PrestashopInvoiceListSchema,
 	PrestashopInvoiceListSchemaFull,
 } from '../schemas/prestashop/invoices.schema.js';
-import {
-	IMcitysInvoice,
-	McitysInvoiceSchema,
-} from '../../accounting/schemas/mcitys/invoice.schema.js';
+import { ICreateMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
 import { mapPrestashopInvoiceToMcitysInvoice } from '../../accounting/schemas/mappers/invoice.mapper.js';
 // Order schemas
 import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
@@ -43,8 +42,10 @@ import {
 } from '../schemas/prestashop/customer.schema.js';
 // Person service
 import { PeopleService } from '../../content/people/people.service.js';
+// Country service
 import { PrestashopCountryListSchema } from '../schemas/prestashop/country.schema.js';
 import { CountryService } from '../../content/taxonomy/country/service/country.service.js';
+import type { ICountry } from '../../content/taxonomy/country/schemas/country.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -70,11 +71,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				'PrestaShop Adapter initialized with API Endpoint: ' + this.apiEndpoint,
 			);
 		} else {
-			this.logger.error(
-				'Failed to initialize PrestaShop Adapter. Missing API endpoint or authorization key.',
-				'PrestashopAdapter',
-			);
-			throw new InternalServerErrorException(
+			throw new InternalError(
 				'Failed to initialize PrestaShop Adapter. Missing API endpoint or authorization key.',
 			);
 		}
@@ -103,14 +100,15 @@ export class PrestashopAdapter extends StoreAdapter {
 	async mapInvoice(
 		invoice: IPrestashopInvoice,
 		documentType: 'invoice' | 'credit_note' | 'proforma' = 'invoice',
-	): Promise<IMcitysInvoice> {
-		const mainOrderData: IPrestashopOrder =
-			await this.getMainOrderDataByInvoiceID(invoice.id);
-		const detailedOrderData: IPrestashopOrderDetailsNormalized =
-			await this.getOrderDetails(invoice.id, 'invoice');
+	): Promise<ICreateMcitysInvoice> {
 		const customerData = await this.getCustomerDataByID(
 			mainOrderData.id_customer,
 		);
+		if (!mainOrderData.id_address_invoice) {
+			throw new InternalError(
+				`PrestashopAdapter : Missing invoice address ID in main order data for invoice ID ${invoice.id}`,
+			);
+		}
 		const addressData = await this.getAddressDataByID(
 			mainOrderData.id_address_invoice,
 		);
@@ -135,11 +133,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		invoiceID: number,
 	): Promise<IPrestashopOrder> {
 		if (!invoiceID || Number.isNaN(invoiceID)) {
-			this.logger.error(
-				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
-				'PrestashopAdapter',
-			);
-			throw new InternalServerErrorException(
+			throw new InternalError(
 				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
 			);
 		}
@@ -162,12 +156,8 @@ export class PrestashopAdapter extends StoreAdapter {
 			return parsedResponse.orders[0];
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
-			this.logger.error(
-				`Error fetching main order data from PrestaShop for invoice ID ${invoiceID}`,
-				errorMessage,
-			);
-			throw new InternalServerErrorException(
-				`Error fetching main order data from PrestaShop for invoice ID ${invoiceID}`,
+			throw new InternalError(
+				`Error fetching main order data from PrestaShop for invoice ID ${invoiceID}: ${errorMessage}`,
 			);
 		}
 	}
@@ -177,12 +167,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		elementType: 'invoice' | 'order' = 'invoice',
 	): Promise<IPrestashopOrderDetailsNormalized> {
 		if (!elementID || Number.isNaN(elementID)) {
-			this.logger.error(
-				`Wrong type for ${elementType} ID. Expecting NUMBER, ${typeof elementID} given.`,
-				'PrestashopAdapter',
-				'getOrderDetails',
-			);
-			throw new InternalServerErrorException(
+			throw new InternalError(
 				`Wrong type for ${elementType} ID. Expecting NUMBER, ${typeof elementID} given.`,
 			);
 		}
@@ -213,12 +198,8 @@ export class PrestashopAdapter extends StoreAdapter {
 			return parsedResponse;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
-			this.logger.error(
-				'Error fetching order details from PrestaShop',
-				errorMessage,
-			);
-			throw new InternalServerErrorException(
-				'Error fetching order details from PrestaShop',
+			throw new InternalError(
+				`Error fetching order details from PrestaShop : ${errorMessage}`,
 			);
 		}
 	}
@@ -254,14 +235,10 @@ export class PrestashopAdapter extends StoreAdapter {
 					'PrestaShop',
 				);
 				return parsedResponse;
-			} catch (error) {
+			} catch (error: unknown) {
 				const errorMessage = getErrorMessage(error);
-				this.logger.error(
-					'Error fetching invoices from PrestaShop',
-					errorMessage,
-				);
-				throw new InternalServerErrorException(
-					'Error fetching invoices from PrestaShop',
+				throw new InternalError(
+					`Error fetching invoices from PrestaShop: ${errorMessage}`,
 				);
 			}
 		} else {
@@ -288,14 +265,10 @@ export class PrestashopAdapter extends StoreAdapter {
 					'PrestaShop',
 				);
 				return parsedResponse;
-			} catch (error) {
+			} catch (error: unknown) {
 				const errorMessage = getErrorMessage(error);
-				this.logger.error(
-					'Error fetching invoices from PrestaShop',
-					errorMessage,
-				);
-				throw new InternalServerErrorException(
-					'Error fetching invoices from PrestaShop',
+				throw new InternalError(
+					`Error fetching invoices from PrestaShop: ${errorMessage}`,
 				);
 			}
 		}
@@ -307,13 +280,8 @@ export class PrestashopAdapter extends StoreAdapter {
 		// The logic to retrieve invoices from PrestaShop
 		const { startDate, endDate } = dateFilter;
 		if (!startDate || !endDate) {
-			this.logger.error(
-				`Please provide a correct startDate and/or endDate value.`,
-				`PrestashopAdapter`,
-				`getInvoicesByDatePeriod`,
-			);
-			throw new InternalServerErrorException(
-				`Please provide a correct startDate and/or endDate value.`,
+			throw new BadRequestError(
+				`PrestashopAdapter: Please provide a correct startDate and/or endDate value.`,
 			);
 		}
 		try {
@@ -340,12 +308,8 @@ export class PrestashopAdapter extends StoreAdapter {
 			return parsedResponse;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
-			this.logger.error(
-				'Error fetching invoices from PrestaShop',
-				errorMessage,
-			);
-			throw new InternalServerErrorException(
-				'Error fetching invoices from PrestaShop',
+			throw new InternalError(
+				`Error fetching invoices from PrestaShop: ${errorMessage}`,
 			);
 		}
 	}
@@ -355,13 +319,8 @@ export class PrestashopAdapter extends StoreAdapter {
 	): Promise<IPrestashopInvoice> {
 		const invoiceIDParsed = Number.parseInt(String(invoiceID));
 		if (!invoiceIDParsed || Number.isNaN(invoiceIDParsed)) {
-			this.logger.error(
-				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
-				'PrestashopAdapter',
-				'getInvoiceDetail',
-			);
-			throw new InternalServerErrorException(
-				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
+			throw new InternalError(
+				`PrestashopAdapter: Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
 			);
 		}
 		try {
@@ -384,12 +343,8 @@ export class PrestashopAdapter extends StoreAdapter {
 			return parsedResponse;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
-			this.logger.error(
-				`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}`,
-				errorMessage,
-			);
-			throw new InternalServerErrorException(
-				`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}`,
+			throw new InternalError(
+				`Error fetching invoice details from PrestaShop for invoice ID ${invoiceID}: ${errorMessage}`,
 			);
 		}
 	}
@@ -401,7 +356,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				'PrestashopAdapter',
 				'getCustomerDataByID',
 			);
-			throw new InternalServerErrorException(
+			throw new InternalError(
 				`Wrong type for customer ID. Expecting NUMBER, ${typeof customerID} given.`,
 			);
 		}
@@ -424,33 +379,28 @@ export class PrestashopAdapter extends StoreAdapter {
 			return parsedResponse.customers[0];
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
-			this.logger.error(
-				`Error fetching customer data from PrestaShop for customer ID ${customerID}`,
-				errorMessage,
-			);
-			throw new InternalServerErrorException(
-				`Error fetching customer data from PrestaShop for customer ID ${customerID}`,
+			throw new InternalError(
+				`Error fetching customer data from PrestaShop for customer ID ${customerID}: ${errorMessage}`,
 			);
 		}
 	}
 
-	async syncCustomerDataToMcitys(
-		invoiceData: IMcitysInvoice,
-	): Promise<number | null> {
-		if (!PrestashopCustomerSchema.safeParse(McitysInvoiceSchema).success) {
-			this.logger.error(
-				`Wrong type for invoice data.`,
-				'PrestashopAdapter',
-				'syncCustomerDataToMcitys',
+	public async syncCustomerDataToMcitys(payload: {
+		customerData: IPrestashopCustomer;
+		addressData: IPrestashopAddress;
+		countryData: ICountry;
+	}): Promise<IIds | null> {
+		const { customerData, addressData } = payload;
+		if (!PrestashopCustomerSchema.safeParse(customerData).success) {
+			throw new InternalError(
+				`PrestashopAdapter - Wrong type for customer data.`,
 			);
-			throw new InternalServerErrorException(`Wrong type for invoice data.`);
 		}
 		// Is the customer already in Mcitys?
-		const customerID: string = !Number.isNaN(
-			invoiceData.recipient.id_source_system,
-		)
-			? String(invoiceData.recipient.id_source_system)
-			: invoiceData.recipient.id_source_system;
+		const customerID: string =
+			typeof customerData.id === 'number'
+				? String(customerData.id)
+				: (customerData.id as unknown as string);
 		const existingMcitysID = await this.peopleService.getMcitysID(
 			customerID,
 			'prestashop',
@@ -459,30 +409,42 @@ export class PrestashopAdapter extends StoreAdapter {
 		if (existingMcitysID) return existingMcitysID;
 		// 2. If no, create a new person in Mcitys and return the new Mcitys ID
 
-		const isCompany: boolean = !!invoiceData?.recipient?.legal_number;
+		// Get country data
+		const idCountry = payload.countryData.id;
+		const isCompany: boolean = !!customerData?.siret;
 		if (isCompany) {
 			// Check company name
-			const newMcitysID = await this.peopleService.addOrganization({
+			const newMcitysIDs = await this.peopleService.addOrganization({
 				type: 'organization',
 				details: {
-					legalName: invoiceData.recipient.company_name as string,
-					idRegistration: invoiceData.recipient.legal_number,
-					idVAT: invoiceData.recipient.vat_number ?? 'N/A',
+					legalName: customerData.company as string,
+					idRegistration: customerData.siret as string,
+					idVAT: addressData.vat_number as string,
 					category: 3,
-					registrationCountry:
-						invoiceData.recipient.billing_address.country_code,
+					registrationCountry: idCountry,
 				},
 			});
-			return Number.parseInt(newMcitysID as string);
+			// Add person to person mapper
+			if (!newMcitysIDs)
+				throw new InternalError(
+					`Unable to synchronize Prestashop customer data :` +
+						JSON.stringify(payload),
+				);
+			return newMcitysIDs;
 		} else {
-			const newMcitysID = await this.peopleService.addIndividual({
+			const newMcitysIDs = await this.peopleService.addIndividual({
 				type: 'individual',
 				details: {
-					firstName: invoiceData.recipient.firstname,
-					lastName: invoiceData.recipient.lastname,
+					firstName: customerData.firstname,
+					lastName: customerData.lastname,
 				},
 			});
-			return Number.parseInt(newMcitysID as string);
+			if (!newMcitysIDs)
+				throw new InternalError(
+					`Unable to synchronize Prestashop customer data :` +
+						JSON.stringify(payload),
+				);
+			return newMcitysIDs;
 		}
 		// 3. Add contact information (email, phone, etc.) to the person in Mcitys
 		return null;
@@ -490,12 +452,7 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	async getAddressDataByID(addressID: number): Promise<IPrestashopAddress> {
 		if (!addressID || Number.isNaN(addressID)) {
-			this.logger.error(
-				`Wrong type for address ID. Expecting NUMBER, ${typeof addressID} given.`,
-				'PrestashopAdapter',
-				'getAddressDataByID',
-			);
-			throw new InternalServerErrorException(
+			throw new InternalError(
 				`Wrong type for address ID. Expecting NUMBER, ${typeof addressID} given.`,
 			);
 		}
@@ -518,39 +475,47 @@ export class PrestashopAdapter extends StoreAdapter {
 			return parsedResponse.addresses[0];
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
-			this.logger.error(
-				`Error fetching address data from PrestaShop for address ID ${addressID}`,
-				errorMessage,
-			);
-			throw new InternalServerErrorException(
-				`Error fetching address data from PrestaShop for address ID ${addressID}`,
+			throw new InternalError(
+				`Error fetching address data from PrestaShop for address ID ${addressID}: ${errorMessage}`,
 			);
 		}
 	}
 
-	public async getCountryISOCode2(
+	public async getCountryData(
 		prestashopID: number,
-	): Promise<string | null> {
+	): Promise<{ iso3: string; name: string } | null> {
 		// Retrieve country code by requesting customer's address data from Prestashop API
-		if (!prestashopID || Number.isNaN(prestashopID)) {
-			throw new BadRequestException(
+		if (!prestashopID || Number.isNaN(Number.parseInt(String(prestashopID)))) {
+			throw new BadRequestError(
 				`Prestashop country ID must be a string. ${typeof prestashopID} given.`,
 			);
 		}
-		const { data } = await axios.get<string>(
-			`${this.apiEndpoint}/countries/${prestashopID}`,
-			{
-				headers: {
-					Authorization: this.authorizationKey,
+		try {
+			const { data } = await axios.get<string>(
+				`${this.apiEndpoint}/countries/${prestashopID}`,
+				{
+					headers: {
+						Authorization: this.authorizationKey,
+					},
 				},
-			},
-		);
-		const parsedResponse = xmlValidator(
-			data,
-			PrestashopCountryListSchema,
-			'country',
-			'prestashop',
-		);
-		return parsedResponse.prestashop.country[0].iso_code || 'FR';
+			);
+			const parsedResponse = xmlValidator(
+				data,
+				PrestashopCountryListSchema,
+				'country',
+				'prestashop',
+			);
+			return {
+				iso3: parsedResponse.prestashop.country[0].iso_code || 'FRA',
+				name:
+					parsedResponse.prestashop.country[0].name.language?.[0]?.value ||
+					'Unknown',
+			};
+		} catch (error) {
+			const errorMessage = getErrorMessage(error);
+			throw new InternalError(
+				`Unable to get country ISO code 2 from Prestashop: ${errorMessage}`,
+			);
+		}
 	}
 }

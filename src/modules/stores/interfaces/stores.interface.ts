@@ -22,5 +22,5 @@ export abstract class StoreAdapter {
 	 * @param customerID as stored in the third party system
 	 * @return mcitys private ID
 	 */
-	abstract syncCustomerDataToMcitys(customerData: unknown);
+	abstract syncCustomerDataToMcitys(payload: unknown);
 }

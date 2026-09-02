@@ -1,9 +1,7 @@
-import type { IMcitysInvoice } from '../mcitys/invoice.schema.js';
+import type { ICreateMcitysInvoice } from '../mcitys/invoice.schema.js';
 import type { IPrestashopInvoice } from '../../../stores/schemas/prestashop/invoices.schema.js';
 import type { IPrestashopOrderDetailsNormalized } from '../../../stores/schemas/prestashop/order-detail.schema.js';
 import type { IPrestashopOrder } from '../../../stores/schemas/prestashop/order.schema.js';
-import type { IPrestashopAddress } from '../../../stores/schemas/prestashop/address.schema.js';
-import type { IPrestashopCustomer } from '../../../stores/schemas/prestashop/customer.schema.js';
 import { DateService } from '../../../../common/dates/dates.service.js';
 
 const dateService = new DateService();
@@ -13,10 +11,9 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	prestashopInvoice: IPrestashopInvoice,
 	prestashopMainOrderData: IPrestashopOrder,
 	prestashopOrderDetails: IPrestashopOrderDetailsNormalized,
-	customerData: IPrestashopCustomer,
-	prestashopAddressData: IPrestashopAddress,
 	invoiceType: 'invoice' | 'credit_note' | 'proforma' = 'invoice',
-): IMcitysInvoice {
+	modifiedData: { addressID: number; customerID: number },
+): ICreateMcitysInvoice {
 	// Secure parsing of invoice totals with fallback to 0 if values are missing or invalid
 	const invoiceTaxIncl = Number(prestashopInvoice.total_paid_tax_incl ?? 0);
 	const invoiceTaxExcl = Number(prestashopInvoice.total_paid_tax_excl ?? 0);
@@ -43,24 +40,11 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 			legal_number: '84478363900017',
 			company_name: 'Mcitys', // Company name of the emitter
 			email: 'contact@mcitys.com', // Email of the emitter
-			country_code: 'FR', // Country code of the emitter
+			country_code: 8, // Country code of the emitter
 		},
 		recipient: {
-			id_source_system: prestashopMainOrderData.id_customer.toString(),
-			firstname: prestashopAddressData.firstname,
-			lastname: prestashopAddressData.lastname,
-			company_name: prestashopAddressData.company?.trim() || undefined,
-			email: customerData.email,
-			legal_number: customerData.siret?.trim() || undefined,
-			vat_number: prestashopAddressData.vat_number?.trim() || undefined,
-			country_code: countryIsoCode,
-			billing_address: {
-				address1: prestashopAddressData.address1,
-				address2: prestashopAddressData.address2,
-				city: prestashopAddressData.city,
-				zip_code: prestashopAddressData.postcode,
-				country_code: countryIsoCode,
-			},
+			id: modifiedData.customerID, // Mcitys person ID
+			id_billing_address: modifiedData.addressID,
 		},
 		order_details: prestashopOrderDetails.items.map((orderDetail) => {
 			const priceExcl = Number(orderDetail.unit_price_tax_excl ?? 0);

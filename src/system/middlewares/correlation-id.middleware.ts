@@ -6,7 +6,7 @@ import { AlsService } from '../als/als.service.js';
 
 @Injectable()
 export class CorrelationIdMiddleware implements NestMiddleware {
-	constructor(private readonly alsService: AlsService) {}
+	constructor() {}
 
 	use(req: Request, res: Response, next: NextFunction) {
 		// Trying to retrieve the ID if it's already present in the headers
@@ -28,8 +28,8 @@ export class CorrelationIdMiddleware implements NestMiddleware {
 		res.setHeader('X-Request-ID', correlationId);
 
 		// Using the Asynchronous Local Storage service to store the ID
-		this.alsService.run(
-			{ correlationId: correlationId, ipAddress: ipString },
+		AlsService.run(
+			{ correlationId: correlationId, ipAddress: ipString, source: 'http' },
 			() => {
 				// 3. Proceeding to the next middleware/controller
 				next();

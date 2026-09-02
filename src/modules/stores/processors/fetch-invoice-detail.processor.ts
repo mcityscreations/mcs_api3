@@ -1,14 +1,18 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { uuidv7 } from 'uuidv7';
+import {
+	InternalError,
+	ValidationError,
+} from '../../../system/errors/index.js';
 import { BullMqAdapter } from '../../../system/jobdispatcher/adapters/bullmq.adapter.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import type { IJobDescriptor } from '../../../system/jobdispatcher/schemas/job.schema.js';
 import { createJobDescriptorSchema } from '../../../system/jobdispatcher/schemas/job.schema.js';
-import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
-import type { IMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
+import type { ICreateMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
 import type { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
 import { PrestashopInvoiceSchema } from '../schemas/prestashop/invoices.schema.js';
+import { PrestashopAgregator } from '../agregators/prestashop/prestashop.agregator.js';
 
 @Processor('store.fetch-invoice-detail', {
 	limiter: {
@@ -18,9 +22,9 @@ import { PrestashopInvoiceSchema } from '../schemas/prestashop/invoices.schema.j
 })
 export class FetchInvoiceDetailProcessor extends WorkerHost {
 	constructor(
-		private readonly prestashopStoreAdapter: PrestashopAdapter,
 		private readonly jobDispatcher: BullMqAdapter,
 		private readonly logger: WinstonLoggerService,
+		private readonly prestashopAgregator: PrestashopAgregator,
 	) {
 		super();
 	}
@@ -30,12 +34,8 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 		const zodSchema = createJobDescriptorSchema(PrestashopInvoiceSchema);
 		const checkedInvoice = zodSchema.safeParse(job.data);
 		if (!checkedInvoice.success) {
-			this.logger.error(
-				`[Worker Store] Invalid invoice data structure for invoice Job : ${job.id} in queue : ${job.queueName}`,
-				JSON.stringify(checkedInvoice.error),
-			);
-			throw new Error(
-				`Invalid invoice data structure for invoice Job : ${job.id} in queue : ${job.queueName}`,
+			throw new ValidationError(
+				`[Worker Store] Invalid invoice data structure for invoice Job : ${job.id} in queue : ${job.queueName}. ${JSON.stringify(checkedInvoice.error)}`,
 			);
 		}
 		const invoice = checkedInvoice.data.payload.data;
@@ -44,21 +44,17 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 		);
 
 		try {
-			// Retrieving detailed invoice data from PrestaShop
-			const invoiceDetails: IMcitysInvoice =
-				await this.prestashopStoreAdapter.mapInvoice(invoice, 'invoice');
-			// Synchronize customer data
-			const mcitysPersonID: number | null =
-				await this.prestashopStoreAdapter.syncCustomerDataToMcitys(
-					invoiceDetails,
+			// Agregate and synchronize invoice data from PrestaShop to Mcitys
+			const mcitysInvoice: ICreateMcitysInvoice | null =
+				await this.prestashopAgregator.agregateInvoiceData(
+					job.data.payload.data,
 				);
-			if (!mcitysPersonID)
-				throw new Error(
-					`Unable to synchronize customer data for Prestashop customer ${invoiceDetails.recipient.id_source_system}`,
+			if (!mcitysInvoice) {
+				throw new InternalError(
+					`[Worker Store] Failed to aggregate invoice data for invoice ID : ${invoice.id} from PrestaShop.`,
 				);
-			// Record Mcitys Person ID into the invoice
-			invoiceDetails.recipient.id = mcitysPersonID.toString();
-
+			}
+			// Success
 			this.logger.log(
 				`[Worker Store] Invoice ${invoice.id} standardized successfully. Sending to accounting...`,
 			);
@@ -74,7 +70,7 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 					timestamp: new Date().toISOString(),
 					version: '1.0.0',
 					correlationId: job.data.payload.correlationId || uuidv7(),
-					data: invoiceDetails,
+					data: mcitysInvoice,
 				},
 				{ jobId: `accounting-inv-PRESTASHOP-${invoice.id}` },
 			);

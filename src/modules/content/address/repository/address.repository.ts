@@ -29,7 +29,9 @@ export class AddressRepository {
 		return result.length > 0 ? result[0].address : null;
 	}
 
-	public async saveAddress(payload: ISaveAddress): Promise<number | null> {
+	public async saveAddress(
+		payload: ISaveAddress,
+	): Promise<{ idPrivate: number; idPublic: string } | null> {
 		const sqlRequest = payload.isDefault
 			? `
             WITH reset_defaults AS (
@@ -39,7 +41,7 @@ export class AddressRepository {
             )
             INSERT INTO content.address (id_person, name, value, is_default)
             VALUES ($1, $2, $3::jsonb, true)
-            RETURNING id_address;
+            RETURNING id_address as idPrivate, id_public as idPublic;
         `
 			: `
             INSERT INTO content.address (id_person, name, value, is_default)
@@ -55,13 +57,9 @@ export class AddressRepository {
 					false,
 				];
 
-		const result: { id_address: number }[] = await this.dbService.execute(
-			sqlRequest,
-			params,
-			'standard',
-			false,
-		);
+		const result: { idPrivate: number; idPublic: string }[] =
+			await this.dbService.execute(sqlRequest, params, 'standard', false);
 
-		return result.length > 0 ? result[0].id_address : null;
+		return result.length > 0 ? result[0] : null;
 	}
 }

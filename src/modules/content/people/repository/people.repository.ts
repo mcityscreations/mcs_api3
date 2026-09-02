@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { PoolClient } from 'pg';
 import { PostgreSQLService } from '../../../../system/database/postgresql/postgresql.service.js';
 import type { IPerson } from '../schemas/person.schema.js';
+import { IPersonMapper } from '../schemas/personmapper.schema.js';
+import { IIds } from '../../../../common/schemas/ids.schema.js';
 
 @Injectable()
 export class PeopleRepository {
@@ -40,31 +42,33 @@ export class PeopleRepository {
 	public async getMcitysID(
 		externalID: string,
 		systemSource: string,
-	): Promise<number | null> {
-		const sqlRequest = `SELECT id_person FROM content.people_mapper WHERE id_person_source = $1 AND system_source = $2;`;
-		const data: { id_person: number }[] = await this.dbService.execute(
-			sqlRequest,
-			[externalID, systemSource],
-			'standard',
-			true,
-		);
-		const result = data && data.length > 0 ? data[0].id_person : null;
+	): Promise<IIds | null> {
+		const sqlRequest = `SELECT id_person as idPrivate, id_public as idPublic FROM content.people_mapper WHERE id_person_source = $1 AND system_source = $2;`;
+		const data: { idPrivate: number; idPublic: string }[] =
+			await this.dbService.execute(
+				sqlRequest,
+				[externalID, systemSource],
+				'standard',
+				true,
+			);
+		const result = data && data.length > 0 ? data[0] : null;
 		return result;
 	}
 
 	public async addPerson(
 		isOrganization: boolean,
 		transactionClient: PoolClient,
-	): Promise<number | null> {
-		const sqlRequest = `INSERT INTO content.people (is_organization) VALUES ($1) RETURNING id_person;`;
-		const data: { id_person: string }[] = await this.dbService.execute(
-			sqlRequest,
-			[isOrganization],
-			'standard',
-			false,
-			transactionClient,
-		);
-		const result = data && data.length > 0 ? Number(data[0].id_person) : null;
+	): Promise<IIds | null> {
+		const sqlRequest = `INSERT INTO content.people (is_organization) VALUES ($1) RETURNING id_person AS "idPrivate", id_public AS "idPublic";`;
+		const data: { idPrivate: number; idPublic: string }[] =
+			await this.dbService.execute(
+				sqlRequest,
+				[isOrganization],
+				'standard',
+				false,
+				transactionClient,
+			);
+		const result = data && data.length > 0 ? data[0] : null;
 		return result;
 	}
 
@@ -122,5 +126,27 @@ export class PeopleRepository {
 			id_organization_category: number;
 		}>(sqlRequest, [uuid], 'standard', false);
 		return result.length > 0 ? result[0].id_organization_category : null;
+	}
+
+	public async addPersonMapper(payload: IPersonMapper): Promise<number | null> {
+		const sqlRequest = `INSERT INTO content.people_mapper 
+		(id_person, id_public, system_source, id_person_source, is_professional, is_abroad, source_data, is_verified)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, true) RETURNING id_person;`;
+		const data: { id_person: number }[] = await this.dbService.execute(
+			sqlRequest,
+			[
+				payload.idPerson,
+				payload.idPublic,
+				payload.systemSource,
+				payload.idPersonSource,
+				payload.isProfessional,
+				payload.isAbroad,
+				payload.sourceData,
+			],
+			'standard',
+			false,
+		);
+		const result = data && data.length > 0 ? data[0].id_person : null;
+		return result;
 	}
 }

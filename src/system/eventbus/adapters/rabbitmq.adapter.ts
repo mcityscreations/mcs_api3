@@ -5,6 +5,7 @@ import {
 	OnModuleDestroy,
 	OnModuleInit,
 } from '@nestjs/common';
+import * as crypto from 'node:crypto';
 import * as amqp from 'amqp-connection-manager';
 import { ChannelWrapper } from 'amqp-connection-manager';
 import type { ConfirmChannel } from 'amqplib';
@@ -24,11 +25,10 @@ export class RabbitMqAdapter
 	private readonly exchangeName: string;
 
 	constructor(
-		readonly alsService: AlsService,
 		readonly logger: WinstonLoggerService,
 		private readonly rabbitMqConfig: RabbitMqConfig,
 	) {
-		super(alsService, logger);
+		super(logger);
 		this.exchangeName = this.rabbitMqConfig.getRabbitMqConfig().exchangeName;
 	}
 
@@ -70,7 +70,7 @@ export class RabbitMqAdapter
 			);
 
 		// Retrieving correlation ID
-		const correlationId = this.alsService.getCorrelationId();
+		const correlationId = AlsService.correlationId;
 
 		// No need to use JSON.stringify nor  de Buffer.from with 'JSON: true'in the config params
 		const messagePayload = {

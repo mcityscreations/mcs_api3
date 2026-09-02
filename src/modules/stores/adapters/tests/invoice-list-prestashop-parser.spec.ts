@@ -1,6 +1,6 @@
-import { xmlToJsonConverter } from '../../../common/utils/XMLToJson.utils.js';
-import { PrestashopInvoiceListSchemaFull } from '../schemas/prestashop/invoices.schema.js';
-import { prestashopInvoiceListMock } from '../schemas/prestashop/invoice-list.mock.js';
+import { xmlToJsonConverter } from '../../../../common/utils/XMLToJson.utils.js';
+import { PrestashopInvoiceListSchemaFull } from '../../schemas/prestashop/invoices.schema.js';
+import { prestashopInvoiceListMock } from '../../schemas/prestashop/mocks/invoice-list.mock.js';
 
 describe('PrestaShop XML Parsing & Validation', () => {
 	it('should convert the XML and validate the Zod schema without errors', () => {
