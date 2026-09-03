@@ -91,7 +91,7 @@ export class PrestashopAgregator {
 				address2: addressData.address2 ?? undefined,
 				city: addressData.city,
 				state: addressData.id_state?.toString() ?? undefined,
-				zip_code: addressData.postcode as string,
+				zip_code: String(addressData.postcode),
 				phone: (addressData.phone || addressData.phone_mobile) ?? undefined,
 			},
 		});
