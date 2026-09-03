@@ -1,19 +1,19 @@
-import type { IMcitysInvoice } from '../mcitys/invoice.schema.js';
+import type { ICreateMcitysInvoice } from '../mcitys/invoice.schema.js';
 import type { IPrestashopInvoice } from '../../../stores/schemas/prestashop/invoices.schema.js';
 import type { IPrestashopOrderDetailsNormalized } from '../../../stores/schemas/prestashop/order-detail.schema.js';
 import type { IPrestashopOrder } from '../../../stores/schemas/prestashop/order.schema.js';
-import type { IPrestashopAddress } from '../../../stores/schemas/prestashop/address.schema.js';
-import type { IPrestashopCustomer } from '../../../stores/schemas/prestashop/customer.schema.js';
+import { DateService } from '../../../../common/dates/dates.service.js';
+
+const dateService = new DateService();
 
 /** Mapper function to convert a PrestaShop invoice to a Mcitys invoice */
 export function mapPrestashopInvoiceToMcitysInvoice(
 	prestashopInvoice: IPrestashopInvoice,
 	prestashopMainOrderData: IPrestashopOrder,
 	prestashopOrderDetails: IPrestashopOrderDetailsNormalized,
-	customerData: IPrestashopCustomer,
-	prestashopAddressData: IPrestashopAddress,
-	countryIsoCode: string = 'FR',
-): IMcitysInvoice {
+	invoiceType: 'invoice' | 'credit_note' | 'proforma' = 'invoice',
+	modifiedData: { addressID: number; customerID: number },
+): ICreateMcitysInvoice {
 	// Secure parsing of invoice totals with fallback to 0 if values are missing or invalid
 	const invoiceTaxIncl = Number(prestashopInvoice.total_paid_tax_incl ?? 0);
 	const invoiceTaxExcl = Number(prestashopInvoice.total_paid_tax_excl ?? 0);
@@ -21,26 +21,30 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	return {
 		id_technical: prestashopInvoice.id?.toString() ?? '0',
 		reference: prestashopInvoice.number.toString(),
+		source_system: 'prestashop',
+		invoice_type: invoiceType,
 		issue_date: prestashopInvoice.date_add
-			? new Date(prestashopInvoice.date_add).getTime()
-			: Date.now(),
+			? dateService
+					.stringDateToUtcDate(prestashopInvoice.date_add)
+					.toISOString()
+			: new Date().toISOString(),
 		due_date: prestashopInvoice.date_add
-			? new Date(prestashopInvoice.date_add).getTime()
-			: Date.now(),
+			? dateService
+					.stringDateToUtcDate(prestashopInvoice.date_add)
+					.toISOString()
+			: new Date().toISOString(),
 		currency: 'EUR',
 		document_type: 'INVOICE',
 		emitter: {
 			id: '019b8af6-d80c-7aec-b2af-ce615fc092a5',
 			legal_number: '84478363900017',
+			company_name: 'Mcitys', // Company name of the emitter
+			email: 'contact@mcitys.com', // Email of the emitter
+			country_code: 8, // Country code of the emitter
 		},
-		customer: {
-			id: prestashopMainOrderData.id_customer.toString(),
-			firstname: prestashopAddressData.firstname,
-			lastname: prestashopAddressData.lastname,
-			company_name: prestashopAddressData.company?.trim() || undefined,
-			email: customerData.email,
-			legal_number: prestashopAddressData.vat_number?.trim() || undefined,
-			country_code: countryIsoCode, // 'FR' au lieu de l'ID '8'
+		recipient: {
+			id: modifiedData.customerID, // Mcitys person ID
+			id_billing_address: modifiedData.addressID,
 		},
 		order_details: prestashopOrderDetails.items.map((orderDetail) => {
 			const priceExcl = Number(orderDetail.unit_price_tax_excl ?? 0);
@@ -92,5 +96,11 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 			Number(prestashopMainOrderData.total_paid ?? 0) >= invoiceTaxIncl
 				? 'paid'
 				: 'unpaid',
+		payment_direction: invoiceType === 'credit_note' ? 'credit' : 'debit',
+		paid_at: prestashopInvoice.date_add
+			? dateService
+					.stringDateToUtcDate(prestashopInvoice.date_add)
+					.toISOString()
+			: undefined,
 	};
 }

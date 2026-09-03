@@ -1,5 +1,6 @@
 import z from 'zod';
 import { ZodStringToInteger } from '../../../../common/utils/stringToInteger.js';
+import { ZodFilterAttribute } from '../../../../common/utils/filterAttribute.utils.js';
 import { ZodPriceToCents } from '../../../../common/utils/priceToCents.js';
 
 /**
@@ -78,6 +79,23 @@ import { ZodPriceToCents } from '../../../../common/utils/priceToCents.js';
 
  */
 
+export const OrderRowSchema = z.object({
+	id: ZodStringToInteger,
+	product_id: ZodStringToInteger,
+	product_attribute_id: ZodStringToInteger,
+	product_quantity: ZodStringToInteger,
+	product_name: z.string().nullable().optional(),
+	product_reference: z.string().nullable().optional(),
+	product_ean13: z.string().nullable().optional(),
+	product_isbn: z.string().nullable().optional(),
+	product_upc: z.string().nullable().optional(),
+	product_price: ZodPriceToCents,
+	id_customization: ZodStringToInteger,
+	unit_price_tax_incl: ZodPriceToCents,
+	unit_price_tax_excl: ZodPriceToCents,
+});
+export type IOrderRowSchema = z.infer<typeof OrderRowSchema>;
+
 export const PrestashopOrderSchema = z.object({
 	id: ZodStringToInteger.nullable().optional(),
 	id_address_delivery: ZodStringToInteger,
@@ -91,12 +109,12 @@ export const PrestashopOrderSchema = z.object({
 	module: z.string(),
 	invoice_number: ZodStringToInteger.nullable().optional(),
 	invoice_date: z.string().nullable().optional(),
-	delivery_number: z.string().nullable().optional(),
+	delivery_number: ZodStringToInteger.nullable().optional(),
 	delivery_date: z.string().nullable().optional(),
 	valid: z.number().nullable().optional(),
 	date_add: z.string().nullable().optional(),
 	date_upd: z.string().nullable().optional(),
-	shipping_number: z.string().nullable().optional(),
+	shipping_number: ZodFilterAttribute.nullable().optional(),
 	note: z.string().nullable().optional(),
 	id_shop_group: z.number().nullable().optional(),
 	id_shop: z.number().nullable().optional(),
@@ -127,23 +145,19 @@ export const PrestashopOrderSchema = z.object({
 	conversion_rate: z.number().nullable().optional(),
 	reference: z.string().nullable().optional(),
 	associations: z.object({
-		order_rows: z.array(
-			z.object({
-				id: z.number().nullable().optional(),
-				product_id: z.number().nullable().optional(),
-				product_attribute_id: z.number().nullable().optional(),
-				product_quantity: z.number().nullable().optional(),
-				product_name: z.string().nullable().optional(),
-				product_reference: z.string().nullable().optional(),
-				product_ean13: z.string().nullable().optional(),
-				product_isbn: z.string().nullable().optional(),
-				product_upc: z.string().nullable().optional(),
-				product_price: z.number().nullable().optional(),
-				id_customization: z.number().nullable().optional(),
-				unit_price_tax_incl: z.number().nullable().optional(),
-				unit_price_tax_excl: z.number().nullable().optional(),
-			}),
-		),
+		order_rows: z.preprocess((val: unknown) => {
+			if (!val || typeof val !== 'object') return [];
+
+			const node = val as Record<string, unknown>;
+			// Extracting the property `order_row` from `order_rows`
+			const rawRows: IOrderRowSchema = node['order_row'] ?? node;
+
+			// Normalizing : Always return an array
+			if (Array.isArray(rawRows)) return rawRows;
+			if (rawRows && typeof rawRows === 'object') return [rawRows];
+
+			return [];
+		}, z.array(OrderRowSchema)),
 	}),
 });
 

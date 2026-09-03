@@ -27,6 +27,10 @@ export class ContactRepository {
 	JOIN content.contact_category pc ON c.id_contact_category = pc.id_contact_category;
     `;
 
+	/**
+	 * @param personId Private Postgres ID used as foreign key
+	 * @returns contact list
+	 */
 	public async findContactsByPersonId(
 		personId: string | number,
 	): Promise<IContact[]> {
@@ -39,6 +43,10 @@ export class ContactRepository {
 		);
 	}
 
+	/**
+	 * @param publicId // Mcitys person public ID (uuid)
+	 * @returns contact list
+	 */
 	public async findContactsByPublicId(publicId: string): Promise<IContact[]> {
 		const sql = `
             ${this.baseSelect}
@@ -48,6 +56,16 @@ export class ContactRepository {
 		return await this.postgreSQLService.execute<IContact>(
 			sql,
 			[publicId],
+			'standard',
+			true,
+		);
+	}
+
+	public async findPersonByContact(contact: string): Promise<number[] | null> {
+		const request = `SELECT cc.id_person FROM content.contact AS cc WHERE cc.value = $1 AND cc.is_primary = true`;
+		return await this.postgreSQLService.execute<number>(
+			request,
+			[contact],
 			'standard',
 			true,
 		);

@@ -10,15 +10,14 @@ import { getErrorMessage } from '../../../common/utils/error.utils.js';
 @Injectable()
 export class LocalEventBus extends EventBus {
 	constructor(
-		readonly alsService: AlsService,
 		readonly logger: WinstonLoggerService,
 		private readonly eventEmitter: EventEmitter2,
 	) {
-		super(alsService, logger);
+		super(logger);
 	}
 
 	emit<T>(pattern: string, data: T): void {
-		const correlationId = this.alsService.getCorrelationId();
+		const correlationId = AlsService.correlationId;
 		const messageId = crypto.randomUUID();
 
 		this.logger.debug?.(`[LocalBus] Publishing event: ${pattern}`, {

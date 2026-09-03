@@ -6,6 +6,8 @@ import {
 	BadRequestException,
 	ForbiddenException,
 } from '@nestjs/common';
+import z from 'zod';
+import { arrayValidator } from '../../../common/validators/array.validator.js';
 import { SmsCommunicator } from './communicators/sms.communicator.js';
 import { EmailCommunicator } from './communicators/email.communicator.js';
 import { BaseMessageDto, SendEmailDto, SendSmsDto } from './dto/contact.dto.js';
@@ -120,5 +122,21 @@ export class ContactService {
 		throw new BadRequestException(
 			'Invalid Person ID format. Expected UUID v7 or positive number.',
 		);
+	}
+
+	/**
+	 * @param contact an array of email or phone numbers
+	 * @returns person private ID
+	 */
+	public async findPersonByContact(contacts: string[]): Promise<number | null> {
+		if (!arrayValidator(z.string(), contacts))
+			throw new BadRequestException('Invalid contacts array provided');
+		for (const contact of contacts) {
+			const result = await this.contactRepository.findPersonByContact(contact);
+			if (result && result.length > 0) {
+				return result[0];
+			}
+		}
+		return null;
 	}
 }

@@ -1,6 +1,6 @@
 CREATE VIEW content.v_people AS
 SELECT
-    p.id_public AS id,
+    p.id_public AS id_public,
     CASE
     WHEN p.is_organization THEN 'organization'
     ELSE 'individual'

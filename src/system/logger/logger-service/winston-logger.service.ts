@@ -13,10 +13,7 @@ type ContextOrMetadata = string | object;
 
 @Injectable()
 export class WinstonLoggerService implements LoggerService {
-	constructor(
-		@Inject(WINSTON_LOGGER) private readonly logger: Logger,
-		private readonly alsService: AlsService,
-	) {}
+	constructor(@Inject(WINSTON_LOGGER) private readonly logger: Logger) {}
 
 	// --- Private helpers ---
 
@@ -26,7 +23,7 @@ export class WinstonLoggerService implements LoggerService {
 	 * @returns An object of metadata enriched with the correlationId.
 	 */
 	private getEnhancedMeta(optionalMeta?: string | object): object {
-		const correlationId = this.alsService.getCorrelationId();
+		const correlationId = AlsService.correlationId;
 		let meta = {};
 
 		// If optionalMeta is a string (NestJS context), we map it
