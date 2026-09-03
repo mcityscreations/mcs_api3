@@ -8,10 +8,10 @@ export const prestashopAddressesMock = `
         <id_country xlink:href="https://mcitys.fr/api/countries/8"><![CDATA[8]]></id_country>
         <id_state><![CDATA[0]]></id_state>
         <id_warehouse><![CDATA[0]]></id_warehouse>
-        <alias><![CDATA[4 boulevard Dugommier]]></alias>
-        <company><![CDATA[Librairie Gibert Joseph]]></company>
-        <lastname><![CDATA[***REMOVED***]]></lastname>
-        <firstname><![CDATA[***REMOVED***]]></firstname>
+        <alias><![CDATA[XXXX]]></alias>
+        <company><![CDATA[XXXX]]></company>
+        <lastname><![CDATA[XXX]]></lastname>
+        <firstname><![CDATA[XXX]]></firstname>
         <vat_number><![CDATA[]]></vat_number>
         <address1><![CDATA[4 boulevard Dugommier]]></address1>
         <address2><![CDATA[]]></address2>
