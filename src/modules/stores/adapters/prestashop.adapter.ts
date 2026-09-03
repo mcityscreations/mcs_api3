@@ -316,11 +316,6 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	async getCustomerDataByID(customerID: number): Promise<IPrestashopCustomer> {
 		if (!customerID || Number.isNaN(customerID)) {
-			this.logger.error(
-				`Wrong type for customer ID. Expecting NUMBER, ${typeof customerID} given.`,
-				'PrestashopAdapter',
-				'getCustomerDataByID',
-			);
 			throw new InternalError(
 				`Wrong type for customer ID. Expecting NUMBER, ${typeof customerID} given.`,
 			);
