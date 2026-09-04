@@ -34,19 +34,27 @@ export class AddressRepository {
 	): Promise<{ idPrivate: number; idPublic: string } | null> {
 		const sqlRequest = payload.isDefault
 			? `
-            WITH reset_defaults AS (
-                UPDATE content.address
-                SET is_default = false
-                WHERE id_person = $1 AND is_default = true
-            )
-            INSERT INTO content.address (id_person, name, value, is_default)
-            VALUES ($1, $2, $3::jsonb, true)
-            RETURNING id_address as idPrivate, id_public as idPublic;
-        `
+        WITH target_person AS (
+            SELECT id_person FROM content.people WHERE id_public = $1
+        ),
+        reset_defaults AS (
+            UPDATE content.address
+            SET is_default = false
+            WHERE id_person = (SELECT id_person FROM target_person) 
+              AND is_default = true
+        )
+        INSERT INTO content.address (id_person, name, value, is_default)
+        SELECT id_person, $2, $3::jsonb, true
+        FROM target_person
+        RETURNING id_address AS "idPrivate", id_public AS "idPublic";
+    `
 			: `
-            INSERT INTO content.address (id_person, name, value, is_default)
-            VALUES ($1, $2, $3::jsonb, $4)
-        `;
+        INSERT INTO content.address (id_person, name, value, is_default)
+        SELECT id_person, $2, $3::jsonb, $4
+        FROM content.people
+        WHERE id_public = $1
+        RETURNING id_address AS "idPrivate", id_public AS "idPublic";
+    `;
 
 		const params = payload.isDefault
 			? [payload.idPerson, payload.name, JSON.stringify(payload.address)]
