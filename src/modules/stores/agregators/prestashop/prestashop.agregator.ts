@@ -78,7 +78,7 @@ export class PrestashopAgregator {
 
 		// Save address //
 		const addressID = await this.addressService.saveAddress({
-			idPerson: mcitysCustomerID.idPrivate,
+			idPerson: mcitysCustomerID.idPublic,
 			name: 'Invoicing address',
 			isDefault: false,
 			address: {
@@ -106,8 +106,8 @@ export class PrestashopAgregator {
 			detailedOrderData,
 			'invoice',
 			{
-				addressID: addressID.idPrivate,
-				customerID: mcitysCustomerID.idPrivate,
+				addressID: addressID.idPublic,
+				customerID: mcitysCustomerID.idPublic,
 			},
 		);
 		return mcitysInvoice;

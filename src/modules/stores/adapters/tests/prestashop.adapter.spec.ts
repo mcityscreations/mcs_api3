@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import axios from 'axios';
 import { PrestashopAdapter } from '../prestashop.adapter.js';
-import { InternalServerErrorException, Logger } from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 import { StoresRepository } from '../../repository/stores.repository.js';
 import { xmlValidator } from '../../../../common/validators/xml.validators.js';
 import { WinstonLoggerService } from '../../../../system/logger/logger-service/winston-logger.service.js';
@@ -26,7 +27,6 @@ describe('PrestashopAdapter', () => {
 // 1. Mocking external dependencies
 jest.mock('axios');
 jest.mock('../../../common/validators/xml.validators.js');
-jest.mock('../../../system/logger/logger-service/winston-logger.service.ts');
 
 describe('PrestashopAdapter - getLastInvoices', () => {
 	let service: PrestashopAdapter;
@@ -86,10 +86,10 @@ describe('PrestashopAdapter - getLastInvoices', () => {
 			const result = await service.getLastInvoices();
 
 			// Assert
-			expect(storesRepository.getLastPrestashopInvoiceID).toHaveBeenCalledTimes(
-				1,
-			);
-			expect(mockAxios.get).toHaveBeenCalledWith(
+			expect(
+				storesRepository.getLastPrestashopInvoiceID as jest.Mock,
+			).toHaveBeenCalledTimes(1);
+			expect(mockAxios.get as jest.Mock).toHaveBeenCalledWith(
 				'https://api.prestashop.com/order_invoices',
 				{
 					params: {

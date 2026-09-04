@@ -20,7 +20,6 @@ export class StoresService {
 		private readonly storesRepository: StoresRepository,
 		private readonly logger: WinstonLoggerService,
 		private readonly jobDispatcher: BullMqAdapter,
-		private readonly alsService: AlsService,
 	) {}
 
 	async downloadLastInvoices() {
@@ -67,7 +66,6 @@ export class StoresService {
 			return invoiceDetails;*/
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
-			this.logger.error('Failed to download last invoices', errorMessage);
 			throw new InternalServerErrorException(
 				'Failed to download last invoices: ' + errorMessage,
 			);
