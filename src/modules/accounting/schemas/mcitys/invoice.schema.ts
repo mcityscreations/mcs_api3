@@ -60,6 +60,7 @@ const orderDetailSchema = z.object({
 	total_price_tax_excl: z.number().int().nonnegative(),
 	total_price_tax_incl: z.number().int().nonnegative(),
 });
+export type IPrestashopOrderDetail = z.infer<typeof orderDetailSchema>;
 
 // 2. Base invoice schema containing the common structure for both objects
 const BaseInvoiceSchema = z.object({
@@ -112,11 +113,11 @@ export type IMcitysInvoice = z.infer<typeof McitysInvoiceSchema>;
 // 4. Extension for the creation (CreateMcitysInvoice)
 export const CreateMcitysInvoiceSchema = BaseInvoiceSchema.extend({
 	emitter: z.object({
-		id: z.number().nullable().optional(),
+		id: z.uuidv7(),
 	}),
 	recipient: z.object({
-		id: z.number().nullable().optional(),
-		id_billing_address: z.number().nullable().optional(),
+		id: z.uuidv7(),
+		id_billing_address: z.uuidv7(),
 	}),
 });
 export type ICreateMcitysInvoice = z.infer<typeof CreateMcitysInvoiceSchema>;

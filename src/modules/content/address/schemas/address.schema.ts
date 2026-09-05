@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const AddressSchema = z.object({
-	id: z.uuidv7(),
+	id: z.uuidv7().optional(),
 	address1: z.string().optional(),
 	address2: z.string().optional(),
 	address3: z.string().optional(),
