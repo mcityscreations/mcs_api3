@@ -1,10 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
+import { Job, UnrecoverableError } from 'bullmq';
 import { uuidv7 } from 'uuidv7';
-import {
-	InternalError,
-	ValidationError,
-} from '../../../system/errors/index.js';
+import { InternalError } from '../../../system/errors/index.js';
 import { BullMqAdapter } from '../../../system/jobdispatcher/adapters/bullmq.adapter.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import type { IJobDescriptor } from '../../../system/jobdispatcher/schemas/job.schema.js';
@@ -34,13 +31,13 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 		const zodSchema = createJobDescriptorSchema(PrestashopInvoiceSchema);
 		const checkedInvoice = zodSchema.safeParse(job.data);
 		if (!checkedInvoice.success) {
-			throw new ValidationError(
-				`[Worker Store] Invalid invoice data structure for invoice Job : ${job.id} in queue : ${job.queueName}. ${JSON.stringify(checkedInvoice.error)}`,
+			throw new UnrecoverableError(
+				`[Prestashop Invoicing Worker] Invalid invoice data structure for invoice Job : ${job.id} in queue : ${job.queueName}. ${JSON.stringify(checkedInvoice.error)}`,
 			);
 		}
 		const invoice = checkedInvoice.data.payload.data;
 		this.logger.log(
-			`[Worker Store] Handling invoice ID : ${invoice.id} from PrestaShop for processing...`,
+			`[Prestashop Invoicing Worker] Handling invoice ID : ${invoice.id} from PrestaShop for processing...`,
 		);
 
 		try {
@@ -50,13 +47,14 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 					job.data.payload.data,
 				);
 			if (!mcitysInvoice) {
-				throw new InternalError(
-					`[Worker Store] Failed to aggregate invoice data for invoice ID : ${invoice.id} from PrestaShop.`,
+				this.logger.warn(
+					`[Prestashop Invoicing Worker] Failed to aggregate invoice data for invoice ID : ${invoice.id} from PrestaShop.`,
 				);
+				return; // Skip processing this invoice if aggregation fails
 			}
 			// Success
 			this.logger.log(
-				`[Worker Store] Invoice ${invoice.id} standardized successfully. Sending to accounting...`,
+				`[Prestashop Invoicing Worker] Invoice ${invoice.id} standardized successfully. Sending to accounting...`,
 			);
 
 			// Sending the standardized invoice data to the Accounting module by dispatching a job to its dedicated queue
@@ -74,16 +72,18 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 				},
 				{ jobId: `accounting-inv-PRESTASHOP-${invoice.id}` },
 			);
-		} catch (error) {
+		} catch (error: unknown) {
 			this.logger.error(
-				`[Worker Store] Failed to process invoice PRESTASHOP-${invoice.id}`,
+				`[Prestashop Invoicing Worker] Failed to process invoice PRESTASHOP-${invoice.id}`,
 				error instanceof Error ? error.stack : String(error),
 			);
 
 			// When the job fails, we throw an Error to indicate
 			// that the processing of the invoice has failed. This will trigger the retry
 			// mechanism in BullMQ based on the backoff strategy defined in the job options.
-			throw new Error(`Failed to process invoice ${invoice.id}`);
+			throw new InternalError(
+				`[Prestashop Invoicing Worker] Failed to process invoice PRESTASHOP-${invoice.id}`,
+			);
 		}
 	}
 }
