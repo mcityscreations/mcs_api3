@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { jest, describe, beforeEach, it, expect } from '@jest/globals';
-import type { ICreateMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
 import { AccountingRepository } from '../repository/accounting.repository.js';
 import { ProcessInvoiceProcessor } from './process-invoice.processor.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
@@ -70,6 +69,7 @@ export function createValidMockJob(overrides = {}): Job {
 }
 describe('ProcessInvoiceProcessor', () => {
 	let processor: ProcessInvoiceProcessor;
+	let repository: AccountingRepository;
 
 	const mockAccountingRepository = {
 		saveMainInvoiceData: jest.fn(),
@@ -97,7 +97,7 @@ describe('ProcessInvoiceProcessor', () => {
 		}).compile();
 
 		processor = module.get(ProcessInvoiceProcessor);
-		repository = module.get(AccountingRepository);
+		repository = module.get<AccountingRepository>(AccountingRepository);
 	});
 
 	it('devrait lever UnrecoverableError si le payload est invalide', async () => {

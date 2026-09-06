@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { jest, describe, beforeEach, it, expect } from '@jest/globals';
 import { AddressService } from './address.service.js';
 import { AddressRepository } from '../repository/address.repository.js';
 
@@ -28,5 +29,6 @@ describe('AddressService', () => {
 
 	it('should be defined', () => {
 		expect(service).toBeDefined();
+		expect(repository).toBeDefined();
 	});
 });

@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { jest, describe, beforeEach, it, expect } from '@jest/globals';
 import { PeopleService } from './people.service.js';
 import { PeopleRepository } from './repository/people.repository.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
@@ -71,5 +72,9 @@ describe('PeopleService', () => {
 
 	it('should be defined', () => {
 		expect(service).toBeDefined();
+		expect(repository).toBeDefined();
+		expect(dbService).toBeDefined();
+		expect(logger).toBeDefined();
+		expect(countryService).toBeDefined();
 	});
 });
