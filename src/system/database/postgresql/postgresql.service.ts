@@ -1,17 +1,15 @@
 // src/database/postgresql/postgresql.service.ts
-import {
-	Injectable,
-	Inject,
-	InternalServerErrorException,
-	NotFoundException,
-	OnModuleInit,
-	ServiceUnavailableException,
-} from '@nestjs/common';
+import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import { Pool } from 'pg';
 import type { PoolClient, QueryResult, PoolConfig } from 'pg';
 import { isErrorWithMessage } from '../../../common/validators/error.validators.js';
 import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
 import { IDatabaseService } from '../database.interfaces.js';
+import {
+	InternalError,
+	ServiceUnavailableError,
+	NotFoundError,
+} from '../../errors/index.js';
 
 export type DatabasePool = 'standard' | 'security';
 
@@ -50,7 +48,7 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		}
 	}
 
-	private getPool(dbName: DatabasePool): Pool {
+	public getPool(dbName: DatabasePool): Pool {
 		return dbName === 'security' ? this.securityPool : this.defaultPool;
 	}
 
@@ -79,7 +77,7 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 			const data: T[] = result.rows as T[];
 
 			if (data.length === 0 && !isEmptyResultAllowed) {
-				throw new NotFoundException('No data matching your request.');
+				throw new NotFoundError('No data matching your request.');
 			}
 
 			return data;
@@ -104,7 +102,7 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 			const errorMessage = isErrorWithMessage(err)
 				? err.message
 				: 'Unknown error';
-			throw new ServiceUnavailableException(
+			throw new ServiceUnavailableError(
 				'Unable to start transaction ' + errorMessage,
 			);
 		}
@@ -135,24 +133,22 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 			}`,
 		);
 		if (errorCode === '57P03' || errorCode === '53300') {
-			throw new ServiceUnavailableException(
-				'Database connection limit reached.',
-			);
+			throw new ServiceUnavailableError('Database connection limit reached.');
 		}
 		if (errorCode === '28P01') {
-			throw new InternalServerErrorException('Database access denied.');
+			throw new InternalError('Database access denied.');
 		}
 		if (errorCode === '42601') {
-			throw new InternalServerErrorException('SQL Syntax Error.');
+			throw new InternalError('SQL Syntax Error.');
 		}
 		if (errorCode === '23505') {
-			throw new InternalServerErrorException('Duplicate entry violation.');
+			throw new InternalError('Duplicate entry violation.');
 		}
 		if (errorCode === '23503') {
-			throw new InternalServerErrorException('Foreign key violation.');
+			throw new InternalError('Foreign key violation.');
 		}
 		if (errorCode === '23502') {
-			throw new InternalServerErrorException('Not-null constraint violation.');
+			throw new InternalError('Not-null constraint violation.');
 		}
 	}
 }
