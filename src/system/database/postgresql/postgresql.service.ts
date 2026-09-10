@@ -48,7 +48,7 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		}
 	}
 
-	public getPool(dbName: DatabasePool): Pool {
+	private getPool(dbName: DatabasePool): Pool {
 		return dbName === 'security' ? this.securityPool : this.defaultPool;
 	}
 
