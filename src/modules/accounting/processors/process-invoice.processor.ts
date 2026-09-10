@@ -33,7 +33,7 @@ export class ProcessInvoiceProcessor extends WorkerHost {
 
 		try {
 			// 2. Atomic insertion (Duplicate handling managed directly in the DB via SQL)
-			const invoiceID = await this.accountingRepository.saveMainInvoiceData(
+			const invoiceID = await this.accountingRepository.saveInvoice(
 				invoice,
 				invoiceItems,
 			);

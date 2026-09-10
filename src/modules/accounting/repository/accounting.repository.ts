@@ -30,7 +30,7 @@ export class AccountingRepository {
 		return result.length > 0 ? result[0].exists : false;
 	}
 
-	public async saveMainInvoiceData(
+	public async saveInvoice(
 		data: ICreateMcitysInvoice,
 		items: string,
 	): Promise<number | null> {
