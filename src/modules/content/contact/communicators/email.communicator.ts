@@ -1,6 +1,6 @@
 // src/modules/content/contact/communicators/email.communicator.ts
 
-import { InternalServerErrorException } from '@nestjs/common';
+import { InternalError } from '../../../../system/errors/index.js';
 import { createTransport, Transporter } from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport/index.js';
 import { CommunicatorBase } from './base.communicator.js';
@@ -42,8 +42,8 @@ export class EmailCommunicator extends CommunicatorBase {
 		if (config?.auth?.user) {
 			this._senderAddress = config.auth.user;
 		} else {
-			throw new InternalServerErrorException(
-				"Email configuration incomplete: 'auth.user' missing.",
+			throw new InternalError(
+				"[Contact E-mail Communicator] Email configuration incomplete: 'auth.user' missing.",
 			);
 		}
 		this.instantiateTransporter();
@@ -52,11 +52,11 @@ export class EmailCommunicator extends CommunicatorBase {
 	// Instantiating the Nodemailer transporter
 	instantiateTransporter(): void {
 		this._logger.log(
-			`Instantiating transporter for mode: ${this._contactMode}`,
+			`[Contact E-mail Communicator] Instantiating transporter for mode: ${this._contactMode}`,
 		);
 		if (!this._config) {
-			throw new InternalServerErrorException(
-				`Email configuration is missing for mode: ${this._contactMode}.`,
+			throw new InternalError(
+				`[Contact E-mail Communicator] Email configuration is missing for mode: ${this._contactMode}.`,
 			);
 		}
 		const transporterConfig: SMTPTransport.Options = {
@@ -81,8 +81,8 @@ export class EmailCommunicator extends CommunicatorBase {
 
 		try {
 			if (!this._transporter) {
-				throw new InternalServerErrorException(
-					'Email transporter is not instantiated.',
+				throw new InternalError(
+					'[Contact E-mail Communicator] Email transporter is not instantiated.',
 				);
 			}
 
@@ -102,12 +102,8 @@ export class EmailCommunicator extends CommunicatorBase {
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error);
-			this._logger.error(
-				`Error sending email via mode ${this._contactMode}: ${errorMessage}`,
-			);
-
-			throw new InternalServerErrorException(
-				`Email sending failed for mode ${this._contactMode}: ${errorMessage}`,
+			throw new InternalError(
+				`[Contact E-mail Communicator] Email sending failed for mode ${this._contactMode}: ${errorMessage}`,
 			);
 		}
 	}
