@@ -28,7 +28,7 @@ describe('AccountingService', () => {
 					provide: AccountingRepository,
 					useValue: mockAccountingRepository,
 				},
-			], 
+			],
 		}).compile();
 
 		service = module.get<AccountingService>(AccountingService);
