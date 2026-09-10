@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InternalError } from '../../../system/errors/index.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
-import { PostgreSQLService } from '../../../system/database/postgresql/postgresql.service.js';
 import type { ICreateMcitysInvoice } from '../schemas/mcitys/invoice.schema.js';
 import { AccountingRepository } from '../repository/accounting.repository.js';
 
@@ -10,7 +9,6 @@ import { AccountingRepository } from '../repository/accounting.repository.js';
 export class AccountingService {
 	constructor(
 		private readonly logger: WinstonLoggerService,
-		private readonly dbService: PostgreSQLService,
 		private readonly accountingRepository: AccountingRepository,
 	) {}
 	public generateEReportingForPeriod(startDate: Date, endDate: Date) {
