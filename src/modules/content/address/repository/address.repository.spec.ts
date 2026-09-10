@@ -35,6 +35,7 @@ describe('AddressRepository Integration Tests', () => {
 			phone: '+33 1 98 76 54 32',
 		},
 		isDefault: true,
+		isBillingAddress: false,
 	};
 
 	beforeAll(async () => {
@@ -66,15 +67,9 @@ describe('AddressRepository Integration Tests', () => {
 	beforeEach(async () => {
 		// 1. Get dedicated client from the standard pool
 		client = await dbService.getPool('standard').connect();
-
-		// 2. Start explicit transaction
-		await client.query('BEGIN');
 	});
 
-	afterEach(async () => {
-		// 3. Rollback changes made during the test
-		await client.query('ROLLBACK');
-
+	afterEach(() => {
 		// 4. Release client back to the pool
 		client.release();
 	});
@@ -86,15 +81,42 @@ describe('AddressRepository Integration Tests', () => {
 
 	it('should insert address and rollback automatically', async () => {
 		// Execute request within the explicit transaction client context
-		const result = await repository.saveAddress(mockOrganizationAddress);
+		try {
+			const result = await repository.saveAddress(mockOrganizationAddress);
+			expect(result).not.toBeNull();
 
-		expect(result).not.toBeNull();
+			// Verify isolation directly on the transaction client
+			const checkRes = await client.query(
+				'SELECT * FROM content.address WHERE id_address = $1',
+				[result?.idPrivate],
+			);
+			expect(checkRes.rows).toHaveLength(1);
 
-		// Verify isolation directly on the transaction client
-		const checkRes = await client.query(
-			'SELECT * FROM content.address WHERE id_address = $1',
-			[result?.idPrivate],
-		);
-		expect(checkRes.rows).toHaveLength(1);
+			await repository.deleteAddressById(result?.idPublic as string);
+
+			const checkDel = await client.query(
+				'SELECT * FROM content.address WHERE id_address = $1',
+				[result?.idPrivate],
+			);
+			expect(checkDel.rows).toHaveLength(0);
+		} catch (err) {
+			if (err && Array.isArray(err.errors)) {
+				// Si c'est une AggregateError, on boucle sur chaque sous-erreur
+				err.errors.forEach((e: unknown, index: number) => {
+					process.stderr.write(
+						`[Erreur ${index + 1}]: ${e instanceof Error ? e.stack : JSON.stringify(e)}\n`,
+					);
+				});
+			} else if (err instanceof Error) {
+				process.stderr.write(`${err.stack}\n`);
+			} else {
+				process.stderr.write(`${JSON.stringify(err)}\n`);
+			}
+
+			process.stderr.write('========= FIN DETAIL ERREUR =========\n\n');
+
+			// On relance l'erreur pour que le test échoue correctement dans Jest
+			throw err;
+		}
 	});
 });
