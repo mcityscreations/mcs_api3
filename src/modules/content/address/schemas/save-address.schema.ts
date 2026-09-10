@@ -6,6 +6,7 @@ export const SaveAddressSchema = z.object({
 	name: z.string().trim().min(1).default('default'),
 	address: AddressSchema,
 	isDefault: z.boolean().optional().default(false),
+	isBillingAddress: z.boolean().optional().default(false),
 });
 
 export type ISaveAddress = z.infer<typeof SaveAddressSchema>;

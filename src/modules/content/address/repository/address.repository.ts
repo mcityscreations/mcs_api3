@@ -43,31 +43,42 @@ export class AddressRepository {
             WHERE id_person = (SELECT id_person FROM target_person) 
               AND is_default = true
         )
-        INSERT INTO content.address (id_person, name, value, is_default)
-        SELECT id_person, $2, $3::jsonb, true
+        INSERT INTO content.address (id_person, name, value, is_default, is_billing_address)
+        SELECT id_person, $2, $3::jsonb, true, $4
         FROM target_person
         RETURNING id_address AS "idPrivate", id_public AS "idPublic";
     `
 			: `
-        INSERT INTO content.address (id_person, name, value, is_default)
-        SELECT id_person, $2, $3::jsonb, $4
+        INSERT INTO content.address (id_person, name, value, is_default, is_billing_address)
+        SELECT id_person, $2, $3::jsonb, $4, $5
         FROM content.people
         WHERE id_public = $1
         RETURNING id_address AS "idPrivate", id_public AS "idPublic";
     `;
 
 		const params = payload.isDefault
-			? [payload.idPerson, payload.name, JSON.stringify(payload.address)]
+			? [
+					payload.idPerson,
+					payload.name,
+					JSON.stringify(payload.address),
+					payload.isBillingAddress,
+				]
 			: [
 					payload.idPerson,
 					payload.name,
 					JSON.stringify(payload.address),
 					false,
+					payload.isBillingAddress,
 				];
 
 		const result: { idPrivate: number; idPublic: string }[] =
 			await this.dbService.execute(sqlRequest, params, 'standard', false);
 
 		return result.length > 0 ? result[0] : null;
+	}
+
+	public async deleteAddressById(id: string): Promise<void> {
+		const sqlRequest = `DELETE FROM content.address WHERE id_public = $1`;
+		await this.dbService.execute(sqlRequest, [id], 'standard', true);
 	}
 }
