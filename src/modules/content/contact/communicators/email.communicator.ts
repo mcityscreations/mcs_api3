@@ -43,7 +43,7 @@ export class EmailCommunicator extends CommunicatorBase {
 			this._senderAddress = config.auth.user;
 		} else {
 			throw new InternalError(
-				"[Contact E-mail Communicator] Email configuration incomplete: 'auth.user' missing.",
+				`[Contact E-mail Communicator] Email configuration incomplete for mode ${contactMode}: 'auth.user' missing.`,
 			);
 		}
 		this.instantiateTransporter();
@@ -55,9 +55,10 @@ export class EmailCommunicator extends CommunicatorBase {
 			`[Contact E-mail Communicator] Instantiating transporter for mode: ${this._contactMode}`,
 		);
 		if (!this._config) {
-			throw new InternalError(
+			this._logger.error(
 				`[Contact E-mail Communicator] Email configuration is missing for mode: ${this._contactMode}.`,
 			);
+			process.exit(1); // At least one email account must be configured for the application to work properly
 		}
 		const transporterConfig: SMTPTransport.Options = {
 			host: this._config.host,
