@@ -59,11 +59,11 @@ export class PeopleRepository {
 		isOrganization: boolean,
 		transactionClient: PoolClient,
 	): Promise<IIds | null> {
-		const sqlRequest = `INSERT INTO content.people (is_organization) VALUES ($1) RETURNING id_person AS "idPrivate", id_public AS "idPublic";`;
+		const sqlRequest = `INSERT INTO content.people (is_organization, reference) VALUES ($1, $2) RETURNING id_person AS "idPrivate", id_public AS "idPublic";`;
 		const data: { idPrivate: number; idPublic: string }[] =
 			await this.dbService.execute(
 				sqlRequest,
-				[isOrganization],
+				[isOrganization, 'N/A'],
 				'standard',
 				false,
 				transactionClient,
@@ -78,7 +78,7 @@ export class PeopleRepository {
 		lastName: string,
 		transactionClient: PoolClient,
 	): Promise<void> {
-		const sqlRequest = `INSERT INTO content.people_individual (id_person, firstname, lastname) VALUES ($1, $2, $3);`;
+		const sqlRequest = `INSERT INTO content.people_individual_detail (id_person, firstname, lastname) VALUES ($1, $2, $3);`;
 		await this.dbService.execute(
 			sqlRequest,
 			[idPerson, firstName, lastName],
@@ -96,11 +96,11 @@ export class PeopleRepository {
 		idVAT: string,
 		idOrganizationCategory: number,
 		transactionClient: PoolClient,
-	): Promise<void> {
-		const sqlRequest = `INSERT INTO content.people_organization 
+	): Promise<number | null> {
+		const sqlRequest = `INSERT INTO content.people_organization_detail 
 		(id_person, legal_name, registration_country, id_registration, id_vat, id_organization_category) 
-		VALUES ($1, $2, SELECT(content.country.id_country WHERE content.country.id_public = $3), $4, $5, $6);`;
-		await this.dbService.execute(
+		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_person;`;
+		const result: { id_person: number }[] = await this.dbService.execute(
 			sqlRequest,
 			[
 				idPerson,
@@ -114,6 +114,9 @@ export class PeopleRepository {
 			false,
 			transactionClient,
 		);
+		const finalResult =
+			result && result.length > 0 ? result[0].id_person : null;
+		return finalResult;
 	}
 
 	public async getCategoryPrivateID(uuid: string): Promise<number | null> {
