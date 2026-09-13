@@ -30,4 +30,8 @@ export class CategoriesService {
 	async findInternalIdByUuid(uuid: string): Promise<number | null> {
 		return this.categoriesRepository.findInternalIdByUuid(uuid);
 	}
+
+	async getCategoryNamesById(
+		categoryId: string | number,
+	): Promise<{ idLanguage: string; name: string }[] | null> {}
 }
