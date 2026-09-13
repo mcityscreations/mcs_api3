@@ -6,6 +6,8 @@ import {
 	ValidationError,
 	InternalError,
 	BadRequestError,
+	ConflictError,
+	ServiceUnavailableError,
 } from './index.js';
 
 export const DOMAIN_ERROR_HTTP_MAP = new Map<
@@ -16,4 +18,6 @@ export const DOMAIN_ERROR_HTTP_MAP = new Map<
 	[ValidationError, HttpStatus.BAD_REQUEST],
 	[InternalError, HttpStatus.INTERNAL_SERVER_ERROR],
 	[BadRequestError, HttpStatus.BAD_REQUEST],
+	[ConflictError, HttpStatus.CONFLICT],
+	[ServiceUnavailableError, HttpStatus.SERVICE_UNAVAILABLE],
 ]);

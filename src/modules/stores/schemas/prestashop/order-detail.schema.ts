@@ -72,13 +72,24 @@ const prestashopDateOrNull = z.preprocess((val) => {
 	return val;
 }, z.string().nullable());
 
+const prestashopItemId = z.preprocess(
+	(val) =>
+		typeof val === 'object' &&
+		val !== null &&
+		'id' in val &&
+		typeof val.id === 'number'
+			? val.id
+			: 0,
+	z.number().int(),
+);
+
 export const PrestashopOrderItemSchema = z.object({
 	// Technical and association fields
-	id: z.string().min(1),
-	id_order: z.string().min(1),
-	product_id: z.string().min(1),
+	id: z.number().int().optional(), // PrestaShop order detail ID
+	id_order: prestashopItemId,
+	product_id: prestashopItemId,
 	product_attribute_id: ZodStringToInteger,
-	id_order_invoice: z.string().nullable().optional(),
+	id_order_invoice: ZodStringToInteger,
 	id_warehouse: ZodStringToInteger,
 	id_shop: ZodStringToInteger,
 	id_customization: ZodStringToInteger,
@@ -91,7 +102,10 @@ export const PrestashopOrderItemSchema = z.object({
 	product_isbn: z.string().nullable().optional(),
 	product_upc: z.string().nullable().optional(),
 	product_mpn: z.string().nullable().optional(),
-	product_weight: ZodStringToInteger.optional(), // Often a float in string, optional here
+	product_weight: z.preprocess((val) => {
+		const parsed = parseFloat(val as string);
+		return isNaN(parsed) ? 0 : parsed * 1000;
+	}, z.number().nullable().optional()), // Weight converted from kilos to grams
 
 	// Quantities (Converted to strict Integers)
 	product_quantity: ZodStringToInteger,
@@ -109,11 +123,11 @@ export const PrestashopOrderItemSchema = z.object({
 	original_wholesale_price: ZodPriceToCents,
 
 	// Discounts
-	reduction_percent: ZodPriceToCents, //conversion to PBS later
+	reduction_percent: ZodPriceToCents, //conversion to PBS eg 50% = 5000 PBS
 	reduction_amount: ZodPriceToCents,
 	reduction_amount_tax_excl: ZodPriceToCents,
 	reduction_amount_tax_incl: ZodPriceToCents,
-	group_reduction: z.string().optional(),
+	group_reduction: ZodStringToInteger,
 	discount_quantity_applied: ZodStringToInteger,
 	product_quantity_discount: ZodStringToInteger,
 
@@ -129,7 +143,7 @@ export const PrestashopOrderItemSchema = z.object({
 	tax_computation_method: ZodStringToInteger,
 	id_tax_rules_group: ZodStringToInteger,
 	ecotax: ZodPriceToCents,
-	ecotax_tax_rate: z.string().optional(),
+	ecotax_tax_rate: ZodPriceToCents, // PBS
 
 	// Downloads (virtual products)
 	download_hash: z.string().nullable().optional(),

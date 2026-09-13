@@ -12,7 +12,7 @@ export const prestashopCustomerMock = `
         <passwd><![CDATA[***REMOVED***]]></passwd>
         <lastname><![CDATA[***REMOVED***]]></lastname>
         <firstname><![CDATA[***REMOVED***]]></firstname>
-        <email><![CDATA[***REMOVED***]]></email>
+        <email><![CDATA[test@test.com]]></email>
         <id_gender><![CDATA[2]]></id_gender>
         <birthday><![CDATA[0000-00-00]]></birthday>
         <newsletter><![CDATA[1]]></newsletter>

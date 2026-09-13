@@ -1,17 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { InternalServerErrorException } from '@nestjs/common';
+import { InternalError } from '../../../system/errors/index.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
-import { PostgreSQLService } from '../../../system/database/postgresql/postgresql.service.js';
-import type { PoolClient } from 'pg';
-import type { IMcitysInvoice } from '../schemas/mcitys/invoice.schema.js';
+import type { ICreateMcitysInvoice } from '../schemas/mcitys/invoice.schema.js';
 import { AccountingRepository } from '../repository/accounting.repository.js';
 
 @Injectable()
 export class AccountingService {
 	constructor(
 		private readonly logger: WinstonLoggerService,
-		private readonly dbService: PostgreSQLService,
 		private readonly accountingRepository: AccountingRepository,
 	) {}
 	public generateEReportingForPeriod(startDate: Date, endDate: Date) {
@@ -28,34 +25,29 @@ export class AccountingService {
 	}
 
 	public async saveInvoicesToDatabase(
-		invoices: IMcitysInvoice[],
+		invoices: ICreateMcitysInvoice[],
 	): Promise<void> {
-		this.logger.log(`Saving ${invoices.length} invoices to the database.`);
-
-		const transactionClient: PoolClient =
-			await this.dbService.beginTransaction();
-
+		this.logger.log(
+			`[AccountingService] Saving ${invoices.length} invoices to the database.`,
+		);
 		try {
 			for (const invoice of invoices) {
-				const idInvoice = await this.accountingRepository.saveMainInvoiceData(
+				const idInvoice = await this.accountingRepository.saveInvoice(
 					invoice,
-					transactionClient,
+					JSON.stringify(invoice.order_details),
 				);
 
 				if (idInvoice === null) {
-					throw new InternalServerErrorException(
-						'Problem while saving main invoice data.',
+					throw new InternalError(
+						`[AccountingService] Problem while saving invoice n°${invoice.reference}. from source system ${invoice.source_system}.`,
 					);
 				}
+				this.logger.log(
+					`[AccountingService] Invoice n°${invoice.reference} from source system ${invoice.source_system} saved successfully with id ${idInvoice}.`,
+				);
 			}
-
-			await this.dbService.commit(transactionClient);
 		} catch (error) {
-			await this.dbService.rollback(transactionClient);
-			this.logger.error(getErrorMessage(error));
-			throw new InternalServerErrorException(getErrorMessage(error));
-		} finally {
-			transactionClient.release();
+			throw new InternalError(getErrorMessage(error));
 		}
 	}
 }

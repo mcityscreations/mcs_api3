@@ -1,6 +1,9 @@
 // src/modules/content/people/people.service.ts
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import {
+	InternalError,
+	BadRequestError,
+} from '../../../system/errors/index.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
 import { getIDType } from '../../../common/utils/getIDType.utils.js';
 import { IIds } from '../../../common/schemas/ids.schema.js';
@@ -37,12 +40,12 @@ export class PeopleService {
 			case 'public':
 				return this.peopleRepository.findOneByUUID(id as string);
 			case 'invalid':
-				throw new BadRequestException(
-					`Unable to load the person's information. Wrong parameter value.`,
+				throw new BadRequestError(
+					`[People Service] Unable to load the person's information. Wrong parameter value.`,
 				);
 			default:
-				throw new BadRequestException(
-					`Unable to load the person's information. Wrong parameter value.`,
+				throw new BadRequestError(
+					`[People Service] Unable to load the person's information. Wrong parameter value.`,
 				);
 		}
 	}
@@ -52,8 +55,8 @@ export class PeopleService {
 		systemSource: string, // mcitys, prestashop, qonto
 	): Promise<IIds | null> {
 		if (!externalID || !systemSource) {
-			throw new InternalServerErrorException(
-				'Both externalID and systemSource are required to retrieve the Mcitys ID.',
+			throw new InternalError(
+				'[People Service] Both externalID and systemSource are required to retrieve the Mcitys ID.',
 			);
 		}
 		const mcitysIDs = await this.peopleRepository.getMcitysID(
@@ -65,13 +68,13 @@ export class PeopleService {
 
 	async addIndividual(payload: ICreateIndividual): Promise<IIds | null> {
 		if (!payload) {
-			throw new InternalServerErrorException(
-				'Both firstName and lastName are required to add an individual.',
+			throw new InternalError(
+				'[People Service] Both firstName and lastName are required to add an individual.',
 			);
 		}
 		if (!CreateIndividualSchema.safeParse(payload).success) {
-			throw new InternalServerErrorException(
-				'Invalid payload. Please ensure that firstName and lastName are provided and meet the required criteria.',
+			throw new InternalError(
+				'[People Service] Invalid payload. Please ensure that firstName and lastName are provided and meet the required criteria.',
 			);
 		}
 		//Start transaction
@@ -82,8 +85,8 @@ export class PeopleService {
 				transaction,
 			);
 			if (!personIDs?.idPrivate) {
-				throw new InternalServerErrorException(
-					'Failed to add individual. Please try again later.',
+				throw new InternalError(
+					`[People Service] Failed to add individual ${payload.details.firstName} ${payload.details.lastName}. Please try again later.`,
 				);
 			}
 			await this.peopleRepository.addIndividual(
@@ -99,22 +102,22 @@ export class PeopleService {
 				await this.dbService.rollback(transaction);
 			}
 			this.logger.error('Failed to add individual', getErrorMessage(error));
-			throw new InternalServerErrorException(
-				'Failed to add individual. Please try again later.',
+			throw new InternalError(
+				`[People Service] Failed to add individual ${payload.details.firstName} ${payload.details.lastName}. Please try again later.`,
 			);
 		}
 	}
 
 	async addOrganization(payload: ICreateOrganization): Promise<IIds | null> {
 		if (!payload) {
-			throw new InternalServerErrorException(
-				'Payload is required to add an organization.',
+			throw new InternalError(
+				'[People Service] Payload is required to add an organization.',
 			);
 		}
 		// Check for required fields in the payload
 		if (!CreateOrganizationSchema.safeParse(payload).success) {
-			throw new InternalServerErrorException(
-				'Invalid payload. Please ensure that all required fields are provided and meet the required criteria.',
+			throw new InternalError(
+				'[People Service] Invalid payload. Please ensure that all required fields are provided and meet the required criteria.',
 			);
 		}
 		//Start transaction
@@ -139,8 +142,8 @@ export class PeopleService {
 							payload.details.category as string,
 						);
 			if (!registrationCountryID || !categoryID || !personIDs?.idPrivate)
-				throw new InternalServerErrorException(
-					`Failed to add organization. Please try again later.`,
+				throw new InternalError(
+					`[People Service] Failed to add organization ${payload.details.legalName}. Please try again later.`,
 				);
 
 			await this.peopleRepository.addOrganization(
@@ -158,9 +161,9 @@ export class PeopleService {
 			if (transaction) {
 				await this.dbService.rollback(transaction);
 			}
-			this.logger.error('Failed to add organization', getErrorMessage(error));
-			throw new InternalServerErrorException(
-				'Failed to add organization. Please try again later.',
+			throw new InternalError(
+				`[People Service] Failed to add organization ${payload.details.legalName}. Please try again later.` +
+					getErrorMessage(error),
 			);
 		}
 	}
@@ -169,8 +172,8 @@ export class PeopleService {
 		payload: IPersonMapper,
 	): Promise<number | null> {
 		if (!PersonMapperSchema.safeParse(payload))
-			throw new BadRequestException(
-				`Wrong payload type for PeopleService - addPersonMapper.`,
+			throw new BadRequestError(
+				`[People Service] Wrong payload type for addPersonMapper.`,
 			);
 		// Cast idPerson to string type for PG
 		payload.idPerson =
@@ -181,11 +184,8 @@ export class PeopleService {
 		const addPerson = await this.peopleRepository.addPersonMapper(payload);
 		// Handle error
 		if (!addPerson) {
-			this.logger.error(
-				`Failed to add person to mapper for idPerson: ${payload.idPerson}, idPublic: ${payload.idPublic}, systemSource: ${payload.systemSource}`,
-			);
-			throw new InternalServerErrorException(
-				`Failed to add person to mapper. Please try again later.`,
+			throw new InternalError(
+				`[People Service] Failed to add person to mapper for idPerson: ${payload.idPerson}, idPublic: ${payload.idPublic}, systemSource: ${payload.systemSource}`,
 			);
 		}
 		return addPerson;
