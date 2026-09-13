@@ -1,67 +1,65 @@
-// src/database/postgresql/postgresql.service.ts
-import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
-import type { PoolClient, QueryResult, PoolConfig } from 'pg';
-import { isErrorWithMessage } from '../../../common/validators/error.validators.js';
-import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
-import { IDatabaseService } from '../database.interfaces.js';
+import type { PoolClient, QueryResult } from 'pg';
+import { isErrorWithMessage } from '../../../../common/validators/error.validators.js';
+import {
+	IDatabaseService,
+	ISQLDatabaseConfig,
+} from '../../database.interfaces.js';
+
 import {
 	InternalError,
 	ServiceUnavailableError,
 	NotFoundError,
-} from '../../errors/index.js';
+} from '../../../errors/index.js';
 
 export type DatabasePool = 'standard' | 'security';
 
 @Injectable()
-export class PostgreSQLService implements OnModuleInit, IDatabaseService {
-	private readonly defaultPool: Pool;
-	private readonly securityPool: Pool;
+export class PGSQLTestService
+	implements OnModuleInit, OnModuleDestroy, IDatabaseService
+{
+	private defaultPool!: Pool;
+	private securityPool!: Pool;
 
-	constructor(
-		@Inject('PG_STANDARD_CONFIG') private readonly standardConfig: PoolConfig,
-		@Inject('PG_SECURITY_CONFIG') private readonly securityConfig: PoolConfig,
-		private readonly logger: WinstonLoggerService,
-	) {
-		this.defaultPool = new Pool(this.standardConfig);
-		this.securityPool = new Pool(this.securityConfig);
-		this.logger.log('PostgreSQLService initialized with 2 pools.');
-	}
+	// 1. Injection propre de ConfigService via le conteneur NestJS
+	constructor(private readonly configService: ConfigService) {}
 
+	// 2. Initialisation des pools UNE FOIS que les configurations sont chargées
 	public async onModuleInit() {
+		this.defaultPool = new Pool(this.getStandardConfig());
+		this.securityPool = new Pool(this.getSecurityConfig());
+
 		await this.testConnection(this.defaultPool, 'Standard');
 		await this.testConnection(this.securityPool, 'Security');
+	}
+
+	// N'oublie pas de fermer les pools quand NestJS s'arrête (très important pour Jest)
+	public async onModuleDestroy() {
+		if (this.defaultPool) await this.defaultPool.end();
+		if (this.securityPool) await this.securityPool.end();
 	}
 
 	private async testConnection(pool: Pool, name: string): Promise<void> {
 		let client: PoolClient | undefined;
 		try {
 			client = await pool.connect();
-			this.logger.log(`Pool ${name} connected.`);
+			console.log(`Pool ${name} connected.`);
 		} catch (err: any) {
 			const errorMessage = isErrorWithMessage(err)
 				? err.message
 				: 'Unknown error';
-			this.logger.error(`Pool ${name} connection ERROR: ${errorMessage}`);
+			console.error(`Pool ${name} connection ERROR: ${errorMessage}`);
 		} finally {
 			if (client) client.release();
 		}
 	}
 
-	private getPool(dbName: DatabasePool): Pool {
+	public getPool(dbName: DatabasePool): Pool {
 		return dbName === 'security' ? this.securityPool : this.defaultPool;
 	}
 
-	/**
-	 * Executes SQL requests against the PostgreSQL database.
-	 *
-	 * @param sqlRequest - The SQL query string to be executed.
-	 * @param params - An array of parameters to be used in the SQL query.
-	 * @param databasePool - The database pool to use ('standard' or 'security').
-	 * @param isEmptyResultAllowed - Whether an empty result set is acceptable.
-	 * @param transactionClient - Optional PoolClient for transaction context.
-	 * @returns A promise that resolves to an array of results of type T.
-	 */
 	public async execute<T>(
 		sqlRequest: string,
 		params: any[] = [],
@@ -69,7 +67,6 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		isEmptyResultAllowed: boolean = false,
 		transactionClient: PoolClient | null = null,
 	): Promise<T[]> {
-		// Selecting the appropriate executor: either the provided transaction client or the pool
 		const executor = transactionClient || this.getPool(databasePool);
 
 		try {
@@ -86,8 +83,6 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 			throw error;
 		}
 	}
-
-	// --- Transaction Management ---
 
 	public async beginTransaction(
 		requiredDatabase: DatabasePool = 'standard',
@@ -125,9 +120,8 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 	}
 
 	private handleDatabaseError(error: any) {
-		// PostgreSQL Error Codes
 		const errorCode = isPostgresError(error) ? error.code : null;
-		this.logger.error(
+		console.error(
 			`PostgreSQL Error${errorCode ? ' Code ' + errorCode : ''}: ${
 				isErrorWithMessage(error) ? error.message : 'Unknown error'
 			}`,
@@ -151,9 +145,65 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 			throw new InternalError('Not-null constraint violation.');
 		}
 	}
-}
 
-// Helpers
+	private getStandardConfig(): ISQLDatabaseConfig {
+		const host = this.configService.get<string>('POSTGRES_STANDARD_HOST');
+		const rawPort = this.configService.get<string>(
+			'POSTGRES_STANDARD_PORT',
+			'5432',
+		);
+
+		const user = this.configService.get<string>('POSTGRES_STANDARD_USER');
+		const password = this.configService.get<string>(
+			'POSTGRES_STANDARD_PASSWORD',
+		);
+		const database = this.configService.get<string>(
+			'POSTGRES_STANDARD_DATABASE',
+		);
+
+		const port = Number.parseInt(rawPort, 10);
+
+		if (!host || !user || !password || !database || Number.isNaN(port)) {
+			console.error(
+				`Configuration Error: Missing critical Postgresql credentials. Check your .env file.`,
+			);
+			throw new Error(
+				`Configuration Error: Missing critical Postgresql credentials. Check your .env file.`,
+			);
+		}
+
+		return { host, port, user, password, database };
+	}
+
+	private getSecurityConfig(): ISQLDatabaseConfig {
+		const host = this.configService.get<string>('POSTGRES_SECURITY_HOST');
+		const rawPort = this.configService.get<string>(
+			'POSTGRES_SECURITY_PORT',
+			'5432',
+		);
+
+		const user = this.configService.get<string>('POSTGRES_SECURITY_USER');
+		const password = this.configService.get<string>(
+			'POSTGRES_SECURITY_PASSWORD',
+		);
+		const database = this.configService.get<string>(
+			'POSTGRES_SECURITY_DATABASE',
+		);
+
+		const port = Number.parseInt(rawPort, 10);
+
+		if (!host || !user || !password || !database || Number.isNaN(port)) {
+			console.error(
+				`Configuration Error: Missing critical Postgresql credentials. Check your .env file.`,
+			);
+			throw new Error(
+				`Configuration Error: Missing critical Postgresql credentials. Check your .env file.`,
+			);
+		}
+
+		return { host, port, user, password, database };
+	}
+}
 
 function isPostgresError(
 	error: any,

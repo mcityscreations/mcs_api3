@@ -12,7 +12,7 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	prestashopMainOrderData: IPrestashopOrder,
 	prestashopOrderDetails: IPrestashopOrderDetailsNormalized,
 	invoiceType: 'invoice' | 'credit_note' | 'proforma' = 'invoice',
-	modifiedData: { addressID: number; customerID: number },
+	modifiedData: { addressID: string; customerID: string },
 ): ICreateMcitysInvoice {
 	// Secure parsing of invoice totals with fallback to 0 if values are missing or invalid
 	const invoiceTaxIncl = Number(prestashopInvoice.total_paid_tax_incl ?? 0);
@@ -37,10 +37,6 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 		document_type: 'INVOICE',
 		emitter: {
 			id: '019b8af6-d80c-7aec-b2af-ce615fc092a5',
-			legal_number: '84478363900017',
-			company_name: 'Mcitys', // Company name of the emitter
-			email: 'contact@mcitys.com', // Email of the emitter
-			country_code: 8, // Country code of the emitter
 		},
 		recipient: {
 			id: modifiedData.customerID, // Mcitys person ID

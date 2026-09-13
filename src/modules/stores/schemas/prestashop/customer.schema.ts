@@ -58,11 +58,30 @@ import { z } from 'zod';
 	4 - Professional France
 	5 - Professional International
  */
-
+const CustomerGroupSchema = z.object({
+	id: z.coerce.number(),
+	'xlink:href': z.string().url(),
+});
 export const PrestashopCustomerSchema = z.object({
 	id: z.number().nullable().optional(),
-	id_default_group: z.number().nullable().optional(),
-	id_lang: z.number().nullable().optional(),
+	id_default_group: z.union([
+		z
+			.object({
+				'#text': z.coerce.number(),
+			})
+			.transform((val) => val['#text']),
+
+		z.coerce.number(),
+	]),
+	id_lang: z.union([
+		z
+			.object({
+				'#text': z.coerce.number(),
+			})
+			.transform((val) => val['#text']),
+
+		z.coerce.number(),
+	]),
 	newsletter_date_add: z.string().nullable().optional(),
 	ip_registration_newsletter: z.string().nullable().optional(),
 	last_passwd_gen: z.string().nullable().optional(),
@@ -93,11 +112,21 @@ export const PrestashopCustomerSchema = z.object({
 	date_upd: z.string().nullable().optional(),
 	reset_password_token: z.string().nullable().optional(),
 	reset_password_validity: z.string().nullable().optional(),
-	groups: z.array(
-		z.object({
-			id: z.number(),
-		}),
-	),
+	associations: z
+		.object({
+			groups: z
+				.object({
+					group: z.preprocess((val): unknown[] => {
+						if (!val) return [];
+						return Array.isArray(val) ? val : [val];
+					}, z.array(CustomerGroupSchema)),
+				})
+				.loose() // Tolerates nodeType and api if present
+				.optional()
+				.nullable(),
+		})
+		.optional()
+		.nullable(),
 });
 export type IPrestashopCustomer = z.infer<typeof PrestashopCustomerSchema>;
 
@@ -131,13 +160,13 @@ export const PrestashopCustomersResponseSchema = z.preprocess(
 			rawCustomers = Array.isArray(customer) ? customer : [customer];
 		}
 
-		// Step B: Normalization of the lines of each detected credit note
+		// Step B: Normalization of the lines of each detected  group
 		const normalizedCustomers = rawCustomers.map((customer) => {
 			if (!isRecord(customer)) return customer;
 
-			let normalizedItems: unknown[] = [];
+			let normalizedGroups: unknown[] = [];
 
-			// Descend into associations -> order_slip_details -> order_slip_detail
+			// Descend into associations
 			if (
 				'associations' in customer &&
 				isRecord(customer.associations) &&
@@ -146,13 +175,13 @@ export const PrestashopCustomersResponseSchema = z.preprocess(
 				'group' in customer.associations.groups
 			) {
 				const groups = customer.associations.groups.group;
-				normalizedItems = Array.isArray(groups) ? groups : [groups];
+				normalizedGroups = Array.isArray(groups) ? groups : [groups];
 			}
 
 			// Extract items at the top level to simplify mapping
 			return {
 				...customer,
-				items: normalizedItems,
+				groups: normalizedGroups,
 			};
 		});
 

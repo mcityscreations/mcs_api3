@@ -1,18 +1,122 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import {
+	describe,
+	beforeAll,
+	afterAll,
+	beforeEach,
+	afterEach,
+	it,
+	expect,
+} from '@jest/globals';
+import { ConfigModule } from '@nestjs/config';
+import { PoolClient } from 'pg';
 import { AddressRepository } from './address.repository.js';
+import { PGSQLTestService } from '../../../../system/database/postgresql/test/pgsql-test.spec.js';
+import { PostgreSQLService } from '../../../../system/database/postgresql/postgresql.service.js';
 
-describe('AddressRepository', () => {
-	let service: AddressRepository;
+describe('AddressRepository Integration Tests', () => {
+	let moduleRef: TestingModule;
+	let dbService: PGSQLTestService;
+	let client: PoolClient;
+	let repository: AddressRepository;
 
-	beforeEach(async () => {
-		const module: TestingModule = await Test.createTestingModule({
-			providers: [AddressRepository],
+	const mockOrganizationAddress = {
+		idPerson: '01a0572d-51f6-7513-8b70-10e1f554fa81',
+		name: 'Headquarters',
+		address: {
+			country: { iso2: 'FR', name: 'France', iso3: 'FRA' },
+			id: undefined,
+			address1: '456 Corporate Blvd',
+			address2: 'Suite 100',
+			address3: '',
+			city: 'Paris',
+			state: 'Île-de-France',
+			zip_code: '75002',
+			phone: '+33 1 98 76 54 32',
+		},
+		isDefault: true,
+		isBillingAddress: false,
+	};
+
+	beforeAll(async () => {
+		moduleRef = await Test.createTestingModule({
+			imports: [
+				ConfigModule.forRoot({
+					isGlobal: true,
+					envFilePath: '.env',
+				}),
+			],
+			providers: [
+				AddressRepository,
+				PGSQLTestService, // Declares the test service provider
+				{
+					// Aliases PostgreSQLService to PGSQLTestService
+					provide: PostgreSQLService,
+					useExisting: PGSQLTestService,
+				},
+			],
 		}).compile();
 
-		service = module.get<AddressRepository>(AddressRepository);
+		// ⚠️ CRUCIAL: Triggers onModuleInit() to initialize pg pools
+		await moduleRef.init();
+
+		dbService = moduleRef.get<PGSQLTestService>(PGSQLTestService);
+		repository = moduleRef.get<AddressRepository>(AddressRepository);
 	});
 
-	it('should be defined', () => {
-		expect(service).toBeDefined();
+	beforeEach(async () => {
+		// 1. Get dedicated client from the standard pool
+		client = await dbService.getPool('standard').connect();
+	});
+
+	afterEach(() => {
+		// 4. Release client back to the pool
+		client.release();
+	});
+
+	afterAll(async () => {
+		// Closes module AND pools via onModuleDestroy
+		await moduleRef.close();
+	});
+
+	it('should insert address and rollback automatically', async () => {
+		// Execute request within the explicit transaction client context
+		try {
+			const result = await repository.saveAddress(mockOrganizationAddress);
+			expect(result).not.toBeNull();
+
+			// Verify isolation directly on the transaction client
+			const checkRes = await client.query(
+				'SELECT * FROM content.address WHERE id_address = $1',
+				[result?.idPrivate],
+			);
+			expect(checkRes.rows).toHaveLength(1);
+
+			await repository.deleteAddressById(result?.idPublic as string);
+
+			const checkDel = await client.query(
+				'SELECT * FROM content.address WHERE id_address = $1',
+				[result?.idPrivate],
+			);
+			expect(checkDel.rows).toHaveLength(0);
+		} catch (err) {
+			if (err && Array.isArray(err.errors)) {
+				// Si c'est une AggregateError, on boucle sur chaque sous-erreur
+				err.errors.forEach((e: unknown, index: number) => {
+					process.stderr.write(
+						`[Erreur ${index + 1}]: ${e instanceof Error ? e.stack : JSON.stringify(e)}\n`,
+					);
+				});
+			} else if (err instanceof Error) {
+				process.stderr.write(`${err.stack}\n`);
+			} else {
+				process.stderr.write(`${JSON.stringify(err)}\n`);
+			}
+
+			process.stderr.write('========= FIN DETAIL ERREUR =========\n\n');
+
+			// On relance l'erreur pour que le test échoue correctement dans Jest
+			throw err;
+		}
 	});
 });
