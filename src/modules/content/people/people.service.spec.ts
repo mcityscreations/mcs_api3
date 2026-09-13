@@ -77,4 +77,37 @@ describe('PeopleService', () => {
 		expect(logger).toBeDefined();
 		expect(countryService).toBeDefined();
 	});
+
+	it('should create an individual person successfully', async () => {
+		const payload = {
+			type: 'individual',
+			details: {
+				firstName: 'John',
+				lastName: 'Doe',
+			},
+		};
+		const mockPersonIDs = { idPrivate: 1, idPublic: 'uuid-1234' };
+		mockPeopleRepository.addPerson.mockResolvedValue(mockPersonIDs);
+		mockPeopleRepository.addIndividual.mockResolvedValue(undefined);
+
+		const result = await service.addIndividual(payload);
+		expect(result).toEqual(mockPersonIDs);
+	});
+	it('should throw an error when adding an individual with missing payload', async () => {
+		await expect(service.addIndividual(null)).rejects.toThrow(
+			'[People Service] Both firstName and lastName are required to add an individual.',
+		);
+	});
+	it('should throw an error when the structure of the payload is invalid', async () => {
+		const invalidPayload = {
+			type: 'individual',
+			details: {
+				firstName: 'John',
+				// lastName is missing
+			},
+		};
+		await expect(service.addIndividual(invalidPayload)).rejects.toThrow(
+			'[People Service] Invalid payload. Please ensure that firstName and lastName are provided and meet the required criteria.',
+		);
+	});
 });
