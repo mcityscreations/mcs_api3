@@ -4,14 +4,8 @@ import { I18nSchema } from '../../../../../common/schemas/i18n.schema.js';
 
 // Schema for creating a new category
 export const CreateCategorySchema = z.object({
-	name: z
-		.array(
-			z.object({
-				idLanguage: z.uuidv7(), // ou z.string().uuid()
-				title: z.string().min(3).max(150),
-			}),
-		)
-		.min(1),
+	name: z.string().min(3).max(150),
+	i18n: z.array(I18nSchema),
 	isPublic: z.boolean(),
 	hasDimensions: z.boolean(),
 });
@@ -39,19 +33,9 @@ export const AdminReadCategorySchema = z.object({
 export type IAdminReadCategory = z.infer<typeof AdminReadCategorySchema>;
 
 // Schema for updating an existing category
-export const UpdateCategorySchema = z.object({
-	name: z.string().min(3).max(150),
-	i18n: z
-		.array(
-			z.object({
-				idLanguage: z.uuidv7(),
-				title: z.string().min(3).max(150),
-			}),
-		)
-		.min(1)
-		.optional(),
-	isPublic: z.boolean().optional(),
-	hasDimensions: z.boolean().optional(),
+export const UpdateCategorySchema = AdminReadCategorySchema.omit({
+	createdAt: true,
+	updatedAt: true,
 });
 export type IUpdateCategory = z.infer<typeof UpdateCategorySchema>;
 
