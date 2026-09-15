@@ -1,5 +1,6 @@
 // src/modules/content/taxonomy/categories/schemas/category.schemas.ts
 import { z } from 'zod';
+import { I18nSchema } from '../../../../../common/schemas/i18n.schema.js';
 
 // Schema for creating a new category
 export const CreateCategorySchema = z.object({
@@ -17,9 +18,10 @@ export const CreateCategorySchema = z.object({
 export type ICreateCategoryDto = z.infer<typeof CreateCategorySchema>;
 
 // Schema for reading an existing category
-export const ReadCategorySchema = z.object({
+export const AdminReadCategorySchema = z.object({
 	id: z.uuidv7().describe('Unique identifier for the category'),
 	name: z.string().min(3).max(150).describe('Name of the category'),
+	i18n: z.array(I18nSchema),
 	isPublic: z.boolean().describe('Indicates if the category is public'),
 	hasDimensions: z
 		.boolean()
@@ -34,11 +36,12 @@ export const ReadCategorySchema = z.object({
 		.optional()
 		.describe('Timestamp when the category was last updated'),
 });
-export type IReadCategoryDto = z.infer<typeof ReadCategorySchema>;
+export type IAdminReadCategory = z.infer<typeof AdminReadCategorySchema>;
 
 // Schema for updating an existing category
 export const UpdateCategorySchema = z.object({
-	name: z
+	name: z.string().min(3).max(150),
+	i18n: z
 		.array(
 			z.object({
 				idLanguage: z.uuidv7(),
@@ -50,4 +53,23 @@ export const UpdateCategorySchema = z.object({
 	isPublic: z.boolean().optional(),
 	hasDimensions: z.boolean().optional(),
 });
-export type IUpdateCategoryDto = z.infer<typeof UpdateCategorySchema>;
+export type IUpdateCategory = z.infer<typeof UpdateCategorySchema>;
+
+export const PublicReadCategorySchema = z.object({
+	id: z.uuidv7().describe('Unique identifier for the category'),
+	name: z.string().min(3).max(150).describe('Name of the category'),
+	slug: z.string().min(3).max(150).describe('Slug for the category'),
+	isPublic: z.boolean().describe('Indicates if the category is public'),
+	hasDimensions: z
+		.boolean()
+		.describe('Indicates if the category has dimensions'),
+	createdAt: z
+		.date()
+		.optional()
+		.describe('Timestamp when the category was created'),
+	updatedAt: z
+		.date()
+		.optional()
+		.describe('Timestamp when the category was last updated'),
+});
+export type IPublicReadCategory = z.infer<typeof PublicReadCategorySchema>;
