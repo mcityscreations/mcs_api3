@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTechniqueDto } from './dto/create-technique.dto.js';
 import { UpdateTechniqueDto } from './dto/update-technique.dto.js';
+import { TechniquesRepository } from './techniques.repository.js';
 
 @Injectable()
 export class TechniquesService {
+	constructor(private readonly techniquesRepository: TechniquesRepository) {}
 	create(createTechniqueDto: CreateTechniqueDto) {
 		return 'This action adds a new technique';
 	}

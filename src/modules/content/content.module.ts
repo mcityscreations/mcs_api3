@@ -9,6 +9,7 @@ import { WeatherModule } from './weather/weather.module.js';
 import { ArtworksModule } from './artworks/artworks.module.js';
 import { CountryModule } from './taxonomy/country/country.module.js';
 import { AddressModule } from './address/address.module.js';
+import { TechniquesRepository } from './taxonomy/techniques/techniques.repository.js';
 
 /** Module wrapper for content */
 @Module({
@@ -24,5 +25,6 @@ import { AddressModule } from './address/address.module.js';
 		CountryModule,
 		AddressModule,
 	],
+	providers: [TechniquesRepository],
 })
 export class ContentModule {}
