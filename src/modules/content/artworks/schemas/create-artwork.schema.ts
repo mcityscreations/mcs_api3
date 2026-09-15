@@ -14,10 +14,12 @@ const CreateArtworkSchema = z.object({
 	dimensions: DimensionsSchema,
 	title: CreateTitleSchema,
 	description: CreateDescriptionSchema,
-	price: z.object({
-		price: z.number(),
-		priceWithFrame: z.number(),
-	}),
+	price: z
+		.object({
+			price: z.number(),
+			priceWithFrame: z.number(),
+		})
+		.optional(),
 	keywords: z.array(z.string()),
 });
 
