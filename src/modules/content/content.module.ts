@@ -10,6 +10,7 @@ import { ArtworksModule } from './artworks/artworks.module.js';
 import { CountryModule } from './taxonomy/country/country.module.js';
 import { AddressModule } from './address/address.module.js';
 import { TechniquesRepository } from './taxonomy/techniques/techniques.repository.js';
+import { LanguagesModule } from './taxonomy/languages/languages.module.js';
 
 /** Module wrapper for content */
 @Module({
@@ -24,6 +25,7 @@ import { TechniquesRepository } from './taxonomy/techniques/techniques.repositor
 		ArtworksModule,
 		CountryModule,
 		AddressModule,
+		LanguagesModule,
 	],
 	providers: [TechniquesRepository],
 })
