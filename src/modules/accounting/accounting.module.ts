@@ -13,6 +13,6 @@ import { AccountingRepository } from './repository/accounting.repository.js';
 			name: 'accounting.save-invoice',
 		}),
 	],
-	exports: [AccountingService, AccountingRepository, AccountingCronService],
+	exports: [AccountingService, AccountingCronService],
 })
 export class AccountingModule {}
