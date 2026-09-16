@@ -9,6 +9,6 @@ import { SecurityModule } from '../../../security/security.module.js';
 	imports: [SystemModule, SecurityModule],
 	controllers: [KeywordsController],
 	providers: [KeywordsService, KeywordsRepository],
-	
+	exports: [KeywordsService],
 })
 export class KeywordsModule {}
