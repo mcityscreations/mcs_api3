@@ -16,3 +16,16 @@ export const AdminReadTechniqueSchema = z.object({
 		.describe('Timestamp when the technique was last updated'),
 });
 export type IAdminReadTechnique = z.infer<typeof AdminReadTechniqueSchema>;
+
+export const CreateTechniqueSchema = AdminReadTechniqueSchema.omit({
+	id: true,
+	createdAt: true,
+	updatedAt: true,
+});
+export type ICreateTechnique = z.infer<typeof CreateTechniqueSchema>;
+
+export const UpdateTechniqueSchema = AdminReadTechniqueSchema.omit({
+	createdAt: true,
+	updatedAt: true,
+});
+export type IUpdateTechnique = z.infer<typeof UpdateTechniqueSchema>;
