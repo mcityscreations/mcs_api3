@@ -1,9 +1,11 @@
 import z from 'zod';
 
-const CreateDescriptionSchema = z.object({
-	idLanguage: z.uuidv7().optional(), // Only required when creating/updating descriptions, not when fetching
-	description: z.string(),
-});
+const CreateDescriptionSchema = z.array(
+	z.object({
+		idLanguage: z.uuidv7().optional(), // Only required when creating/updating descriptions, not when fetching
+		description: z.string(),
+	}),
+);
 
 const ReadDescriptionSchema = z.string();
 

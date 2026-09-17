@@ -5,5 +5,6 @@ import { TechniquesController } from './techniques.controller.js';
 @Module({
 	controllers: [TechniquesController],
 	providers: [TechniquesService],
+	exports: [TechniquesService],
 })
 export class TechniquesModule {}

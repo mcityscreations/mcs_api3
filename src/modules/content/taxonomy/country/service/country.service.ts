@@ -22,16 +22,27 @@ export class CountryService {
 		}
 		const parsedID =
 			typeof countryID === 'string' ? countryID : String(countryID);
-		return this.countryRepository.mapExternalIDToInternalID(
+		const result = await this.countryRepository.mapExternalIDToInternalID(
 			parsedID,
 			systemSource,
 		);
+		if (!result) {
+			throw new NotFoundError(
+				`The country with the ID ${countryID} from ${systemSource} couldn't be mapped to an Mcitys entity.`,
+			);
+		}
+		return result;
 	}
 
 	public async convertPublicIDtoPrivateID(id: string): Promise<number | null> {
 		if (!id || id === 'undefined')
 			throw new BadRequestException('Country ID must be provided');
-		return this.countryRepository.convertPublicIDtoPrivateID(id);
+		const result = await this.countryRepository.convertPublicIDtoPrivateID(id);
+		if (!result)
+			throw new NotFoundError(
+				`The country with the ID ${id} couldn't be mapped to an Mcitys entity.`,
+			);
+		return result;
 	}
 
 	public async getCountryFromExternalID(payload: {
