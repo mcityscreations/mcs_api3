@@ -9,6 +9,7 @@ export const CreateKeywordSchema = z.object({
 			z.object({
 				idLanguage: z.uuidv7(),
 				value: z.string().min(1).max(100),
+				slug: z.string().min(1).max(100),
 			}),
 		)
 		.min(1),
@@ -47,6 +48,7 @@ export const UpdateKeywordSchema = z.object({
 			z.object({
 				idLanguage: z.uuidv7(),
 				value: z.string().min(1).max(100),
+				slug: z.string().min(1).max(100),
 			}),
 		)
 		.min(1)
