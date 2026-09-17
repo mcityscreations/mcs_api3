@@ -11,6 +11,7 @@ import { CountryModule } from './taxonomy/country/country.module.js';
 import { AddressModule } from './address/address.module.js';
 import { TechniquesRepository } from './taxonomy/techniques/techniques.repository.js';
 import { LanguagesModule } from './taxonomy/languages/languages.module.js';
+import { SubjectModule } from './taxonomy/subject/subject.module.js';
 
 /** Module wrapper for content */
 @Module({
@@ -26,6 +27,7 @@ import { LanguagesModule } from './taxonomy/languages/languages.module.js';
 		CountryModule,
 		AddressModule,
 		LanguagesModule,
+		SubjectModule,
 	],
 	providers: [TechniquesRepository],
 })
