@@ -3,7 +3,7 @@ import z from 'zod';
 const CreateTitleSchema = z.array(
 	z.object({
 		idLanguage: z.uuidv7(),
-		title: z.string(),
+		title: z.string('A title must be provided'),
 	}),
 );
 
