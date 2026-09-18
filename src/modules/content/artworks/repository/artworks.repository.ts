@@ -51,7 +51,7 @@ export class ArtworksRepository {
 			artwork.releaseDate,
 			artwork.idCategory,
 			artwork.idSubject,
-			artwork.price.price > 0 ? true : false,
+			(artwork?.price?.price ?? 0) > 0,
 			2, // draft status
 			artwork.dimensions.height,
 			artwork.dimensions.width,
