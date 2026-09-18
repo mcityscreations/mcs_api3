@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { ValidationError } from '../../../../../system/errors/index.js';
+import {
+	ValidationError,
+	NotFoundError,
+} from '../../../../../system/errors/index.js';
 import { PostgreSQLService } from '../../../../../system/database/postgresql/postgresql.service.js';
-import type { PoolClient } from 'pg';
 import { CategoriesService } from '../../../taxonomy/categories/categories.service.js';
 import { TechniquesService } from '../../../taxonomy/techniques/techniques.service.js';
+import { SubjectService } from '../../../taxonomy/subject/service/subject.service.js';
 import { ICreateArtwork } from '../../schemas/create-artwork.schema.js';
 import { CreateArtworkSchema } from '../../schemas/create-artwork.schema.js';
+import { ArtworksRepository } from '../../repository/artworks.repository.js';
+import { KeywordsService } from '../../../taxonomy/keywords/service/keywords.service.js';
 
 @Injectable()
 export class ArtworksService {
@@ -13,6 +18,9 @@ export class ArtworksService {
 		private readonly dbService: PostgreSQLService,
 		private readonly categoriesService: CategoriesService,
 		private readonly techniquesService: TechniquesService,
+		private readonly subjectService: SubjectService,
+		private readonly artworksRepository: ArtworksRepository,
+		private readonly keywordsService: KeywordsService,
 	) {}
 
 	public async addArtwork(artworkPayload: ICreateArtwork) {
@@ -30,9 +38,22 @@ export class ArtworksService {
 		);
 		if (!techniqueData)
 			throw new ValidationError('[ Artwork Service ] Invalid technique ID');
+		const subjectData = await this.subjectService.findOne(
+			artworkPayload.idSubject,
+		);
+		if (!subjectData)
+			throw new ValidationError('[ Artwork Service ] Invalid subject ID');
+		if (!artworkPayload.keywords)
+			throw new ValidationError('[ Artwork Service ] Invalid keywords');
+		const keywords = artworkPayload.keywords || [];
+		for (const keywordId of keywords) {
+			const keywordData = await this.keywordsService.findOne(keywordId);
+			if (!keywordData)
+				throw new NotFoundError('[ Artwork Service ] Invalid keyword ID');
+		}
 		// Start transaction
 	}
-
+	/*
 	getArtwork(artworkId: string) {}
 
 	getArtworksByCategory(categoryId: string) {}
@@ -42,4 +63,5 @@ export class ArtworksService {
 	getArtworksBySubject(subjectId: string) {}
 
 	getArtworksByKeyword(keywordId: string) {}
+*/
 }
