@@ -5,11 +5,7 @@ import type { PoolClient, QueryResult, PoolConfig } from 'pg';
 import { isErrorWithMessage } from '../../../common/validators/error.validators.js';
 import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
 import { IDatabaseService } from '../database.interfaces.js';
-import {
-	InternalError,
-	ServiceUnavailableError,
-	NotFoundError,
-} from '../../errors/index.js';
+import { InternalError, ServiceUnavailableError } from '../../errors/index.js';
 
 export type DatabasePool = 'standard' | 'security';
 
@@ -58,7 +54,6 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 	 * @param sqlRequest - The SQL query string to be executed.
 	 * @param params - An array of parameters to be used in the SQL query.
 	 * @param databasePool - The database pool to use ('standard' or 'security').
-	 * @param isEmptyResultAllowed - Whether an empty result set is acceptable.
 	 * @param transactionClient - Optional PoolClient for transaction context.
 	 * @returns A promise that resolves to an array of results of type T.
 	 */
@@ -66,24 +61,14 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		sqlRequest: string,
 		params: any[] = [],
 		databasePool: DatabasePool = 'standard',
-		isEmptyResultAllowed: boolean = false,
 		transactionClient: PoolClient | null = null,
 	): Promise<T[]> {
-		// Selecting the appropriate executor: either the provided transaction client or the pool
 		const executor = transactionClient || this.getPool(databasePool);
-
 		try {
 			const result: QueryResult = await executor.query(sqlRequest, params);
-			const data: T[] = result.rows as T[];
-
-			if (data.length === 0 && !isEmptyResultAllowed) {
-				throw new NotFoundError('No data matching your request.');
-			}
-
-			return data;
+			return result.rows as T[];
 		} catch (error: any) {
-			this.handleDatabaseError(error);
-			throw error;
+			throw this.handleDatabaseError(error);
 		}
 	}
 
@@ -124,32 +109,38 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		}
 	}
 
-	private handleDatabaseError(error: any) {
-		// PostgreSQL Error Codes
+	private handleDatabaseError(error: any): Error {
 		const errorCode = isPostgresError(error) ? error.code : null;
 		this.logger.error(
 			`PostgreSQL Error${errorCode ? ' Code ' + errorCode : ''}: ${
 				isErrorWithMessage(error) ? error.message : 'Unknown error'
 			}`,
 		);
+
 		if (errorCode === '57P03' || errorCode === '53300') {
-			throw new ServiceUnavailableError('Database connection limit reached.');
+			return new ServiceUnavailableError('Database connection limit reached.');
 		}
 		if (errorCode === '28P01') {
-			throw new InternalError('Database access denied.');
+			return new InternalError('Database access denied.');
 		}
 		if (errorCode === '42601') {
-			throw new InternalError('SQL Syntax Error.');
+			return new InternalError('SQL Syntax Error.');
 		}
 		if (errorCode === '23505') {
-			throw new InternalError('Duplicate entry violation.');
+			return new InternalError('Duplicate entry violation.');
 		}
 		if (errorCode === '23503') {
-			throw new InternalError('Foreign key violation.');
+			return new InternalError('Foreign key violation.');
 		}
 		if (errorCode === '23502') {
-			throw new InternalError('Not-null constraint violation.');
+			return new InternalError('Not-null constraint violation.');
 		}
+
+		// If the error code is not recognized, return a generic internal error
+		return new InternalError(
+			'Database error occurred.' +
+				(isErrorWithMessage(error) ? ' ' + error.message : ''),
+		);
 	}
 }
 
