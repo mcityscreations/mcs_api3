@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { slugGenerator } from '../../../../../common/utils/slugGenerator.utils.js';
 import {
 	ValidationError,
 	NotFoundError,
 } from '../../../../../system/errors/index.js';
-import { PostgreSQLService } from '../../../../../system/database/postgresql/postgresql.service.js';
+import { TransactionManager } from '../../../../../system/database/postgresql/transactions/transaction-manager.service.js';
 import { CategoriesService } from '../../../taxonomy/categories/categories.service.js';
 import { TechniquesService } from '../../../taxonomy/techniques/techniques.service.js';
 import { SubjectService } from '../../../taxonomy/subject/service/subject.service.js';
@@ -11,16 +12,18 @@ import { ICreateArtwork } from '../../schemas/create-artwork.schema.js';
 import { CreateArtworkSchema } from '../../schemas/create-artwork.schema.js';
 import { ArtworksRepository } from '../../repository/artworks.repository.js';
 import { KeywordsService } from '../../../taxonomy/keywords/service/keywords.service.js';
+import { LanguagesService } from '../../../taxonomy/languages/languages.service.js';
 
 @Injectable()
 export class ArtworksService {
 	constructor(
-		private readonly dbService: PostgreSQLService,
+		private readonly transactionManager: TransactionManager,
 		private readonly categoriesService: CategoriesService,
 		private readonly techniquesService: TechniquesService,
 		private readonly subjectService: SubjectService,
 		private readonly artworksRepository: ArtworksRepository,
 		private readonly keywordsService: KeywordsService,
+		private readonly languagesService: LanguagesService,
 	) {}
 
 	public async addArtwork(artworkPayload: ICreateArtwork) {
@@ -54,6 +57,47 @@ export class ArtworksService {
 				throw new NotFoundError('[ Artwork Service ] Invalid keyword ID');
 		}
 		// Start transaction
+		await this.transactionManager.run(async () => {
+			// Add main artwork data and get the generated reference
+			const artworkReference =
+				await this.artworksRepository.addArtwork(artworkPayload);
+
+			// Handle i18n titles and descriptions //
+			const i18nPayload: {
+				idLanguage: string;
+				title: string;
+				description?: string;
+				slug: string;
+			}[] = [];
+
+			// Generate slugs for each title in the artwork payload
+			for (const artworkTitle of artworkPayload.title) {
+				// Check language existence
+				const languageData = await this.languagesService.findOne(
+					artworkTitle.idLanguage,
+				);
+				if (!languageData)
+					throw new NotFoundError(
+						'[ Artwork Service ] Invalid language ID for title',
+					);
+				const slugI18n =
+					artworkReference + '-' + slugGenerator(artworkTitle.title);
+				i18nPayload.push({
+					idLanguage: artworkTitle.idLanguage,
+					title: artworkTitle.title,
+					slug: slugI18n,
+				});
+			}
+			// Add descriptions to the i18nPayload
+			for (const artworkDescription of artworkPayload.description) {
+				const existingEntry = i18nPayload.find(
+					(entry) => entry.idLanguage === artworkDescription.idLanguage,
+				);
+				if (existingEntry) {
+					existingEntry.description = artworkDescription.description;
+				}
+			}
+		});
 	}
 	/*
 	getArtwork(artworkId: string) {}
