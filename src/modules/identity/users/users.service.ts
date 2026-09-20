@@ -1,6 +1,10 @@
 // src/modules/identity/users/users.service.ts
 
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import {
+	NotFoundError,
+	ValidationError,
+} from '../../../system/errors/index.js';
 import { UserRepository } from './repository/user.repository.js';
 import { IUser } from './types/user.interface.js';
 import { ContactService } from '../../content/contact/contact.service.js';
@@ -15,40 +19,58 @@ export class UsersService {
 
 	public async getUserByUsername(username: string): Promise<IUser | null> {
 		if (!username || username.trim() === '') {
-			return null;
+			throw new ValidationError(
+				'A valid username or password must be provided.',
+			);
 		}
 		const users = await this.userRepository.getUserDetailsByUsername(username);
-		return users.length > 0 ? users[0] : null;
+		if (!users || users.length === 0)
+			throw new NotFoundError(`Wrong password or ID.`);
+		return users[0];
 	}
 
 	public async getUserPasswordByUsername(
 		username: string,
 	): Promise<{ passwordHash: string; passwordSalt: string } | null> {
+		if (!username || username.trim() === '') {
+			throw new ValidationError(
+				'A valid username or password must be provided.',
+			);
+		}
 		const result =
 			await this.userRepository.getUserPasswordByUsername(username);
-		return result.length > 0 ? result[0] : null;
+		if (!result || result.length === 0)
+			throw new NotFoundError(`Wrong password or ID.`);
+		return result[0];
 	}
 
 	public async getUserContactsByUsername(
 		username: string,
 	): Promise<IContact[] | null> {
 		if (!username || username.trim() === '') {
-			throw new BadRequestException('A valid username must be provided.');
+			throw new ValidationError('A valid username must be provided.');
 		}
 		const personId = await this.getPersonIDByUsername(username);
-		if (!personId) {
-			return null;
-		}
+		if (!personId)
+			throw new NotFoundError(
+				`[ Users Service ] No person associated to the given username.`,
+			);
 		const result: IContact[] | undefined =
 			await this.contactService.getPersonContacts(personId);
-		return result || null;
+		if (!result || result.length === 0)
+			throw new NotFoundError(
+				`[ Users Service ] No contacts associated to the given username.`,
+			);
+		return result;
 	}
 
 	public async getPersonIDByUsername(username: string): Promise<string | null> {
 		if (!username || username.trim() === '') {
-			throw new BadRequestException('A valid username must be provided.');
+			throw new ValidationError('A valid username must be provided.');
 		}
 		const user = await this.userRepository.getPersonIDByUsername(username);
-		return user.length > 0 ? user[0].idPersonPublic : null;
+		if (!user || user.length === 0)
+			throw new NotFoundError(`Wrong password or ID.`);
+		return user[0].idPersonPublic;
 	}
 }
