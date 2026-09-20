@@ -8,6 +8,7 @@ import {
 	BadRequestError,
 	ConflictError,
 	ServiceUnavailableError,
+	ForbiddenError,
 } from './index.js';
 
 export const DOMAIN_ERROR_HTTP_MAP = new Map<
@@ -20,4 +21,5 @@ export const DOMAIN_ERROR_HTTP_MAP = new Map<
 	[BadRequestError, HttpStatus.BAD_REQUEST],
 	[ConflictError, HttpStatus.CONFLICT],
 	[ServiceUnavailableError, HttpStatus.SERVICE_UNAVAILABLE],
+	[ForbiddenError, HttpStatus.FORBIDDEN],
 ]);

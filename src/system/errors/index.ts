@@ -6,3 +6,4 @@ export * from './internal.error.js';
 export * from './bad-request.error.js';
 export * from './conflict.error.js';
 export * from './service-unavailable.error.js';
+export * from './forbidden.error.js';

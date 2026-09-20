@@ -1,11 +1,5 @@
 // src/modules/content/contact/contact.service.ts
-import {
-	Inject,
-	Injectable,
-	InternalServerErrorException,
-	BadRequestException,
-	ForbiddenException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import z from 'zod';
 import { arrayValidator } from '../../../common/validators/array.validator.js';
 import { SmsCommunicator } from './communicators/sms.communicator.js';
@@ -14,6 +8,12 @@ import { BaseMessageDto, SendEmailDto, SendSmsDto } from './dto/contact.dto.js';
 import { ContactRepository } from './repository/contact.repository.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { IContact } from './types/contact.interface.js';
+import {
+	BadRequestError,
+	InternalError,
+	ForbiddenError,
+	NotFoundError,
+} from '../../../system/errors/index.js';
 
 @Injectable()
 export class ContactService {
@@ -35,7 +35,7 @@ export class ContactService {
 				`Email 'noreply' successfully sent to ${destinationsToString} with subject "${data.subject}".`,
 			);
 		} else {
-			throw new InternalServerErrorException('Failed to send noreply email.');
+			throw new InternalError('Failed to send noreply email.');
 		}
 	}
 
@@ -45,7 +45,7 @@ export class ContactService {
 			const destinationsToString = data.destinations.join(', ');
 			this._logger.log(`SMS successfully sent to ${destinationsToString}.`);
 		} else {
-			throw new InternalServerErrorException('Failed to send noreply sms.');
+			throw new InternalError('[Contact Service] Failed to send noreply sms.');
 		}
 	}
 
@@ -56,15 +56,13 @@ export class ContactService {
 		// 1. Retrieve person's contacts
 		const contacts = await this.getPersonContacts(personId);
 		if (contacts.length === 0) {
-			throw new BadRequestException(
-				'No contacts found for the specified person.',
-			);
+			throw new BadRequestError('No contacts found for the specified person.');
 		}
 
 		// 2. Filter primary contacts
 		const primaryContact = contacts.find((contact) => contact.isPrimary);
 		if (!primaryContact) {
-			throw new ForbiddenException('Invalid request or user configuration.');
+			throw new ForbiddenError('Invalid request or user configuration.');
 		}
 		// 3. Send message to the primary contact
 		if (primaryContact.contactCategory.id === 1) {
@@ -74,7 +72,7 @@ export class ContactService {
 				!('text' in data) ||
 				data.subject === undefined
 			) {
-				throw new BadRequestException(
+				throw new BadRequestError(
 					'Contact method is email, but provided data is not for email.',
 				);
 			}
@@ -86,7 +84,7 @@ export class ContactService {
 		}
 		if (primaryContact.contactCategory.id === 2) {
 			if (!('destinations' in data) || !('text' in data)) {
-				throw new BadRequestException(
+				throw new BadRequestError(
 					'Contact method is SMS, but provided data is not for SMS.',
 				);
 			}
@@ -119,7 +117,7 @@ export class ContactService {
 		}
 
 		// 4. If we reach here, the input is invalid
-		throw new BadRequestException(
+		throw new BadRequestError(
 			'Invalid Person ID format. Expected UUID v7 or positive number.',
 		);
 	}
@@ -130,13 +128,15 @@ export class ContactService {
 	 */
 	public async findPersonByContact(contacts: string[]): Promise<number | null> {
 		if (!arrayValidator(z.string(), contacts))
-			throw new BadRequestException('Invalid contacts array provided');
+			throw new BadRequestError('Invalid contacts array provided');
 		for (const contact of contacts) {
 			const result = await this.contactRepository.findPersonByContact(contact);
 			if (result && result.length > 0) {
 				return result[0];
 			}
 		}
-		return null;
+		throw new NotFoundError(
+			`No person associated with the given contacts: ${contacts.join(', ')}`,
+		);
 	}
 }
