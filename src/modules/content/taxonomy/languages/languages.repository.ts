@@ -28,7 +28,6 @@ export class LanguagesRepository {
 			query,
 			[id],
 			'standard',
-			true,
 		);
 
 		return result.length > 0 ? result[0] : null;
