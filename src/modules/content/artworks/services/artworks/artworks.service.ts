@@ -28,6 +28,8 @@ export class ArtworksService {
 		const parsedArtwork = CreateArtworkSchema.safeParse(artworkPayload);
 		if (!parsedArtwork.success)
 			throw new ValidationError('[ Artwork Service ] Invalid artwork payload');
+		if (artworkPayload.idArtist !== '019b902e-d7e5-75d5-92a7-8d257c91c375')
+			throw new ValidationError('[ Artwork Service ] Unknown artist ID');
 		const categoryData = await this.categoriesService.findOne(
 			artworkPayload.idCategory,
 		);
