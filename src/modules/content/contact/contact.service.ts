@@ -107,19 +107,31 @@ export class ContactService {
 
 		// 2. Executing the proper query based on the ID type
 		if (isUuid) {
-			return await this.contactRepository.findContactsByPublicId(personId);
+			const result =
+				await this.contactRepository.findContactsByPublicId(personId);
+			if (!result || result.length === 0) {
+				throw new NotFoundError(
+					`[Contact Service] No contacts associated to the given person ID.`,
+				);
+			}
+			return result;
 		}
 
 		// 3. If not UUID, is it a number?
 		const numericId = Number(personId);
-		if (!Number.isNaN(numericId) && numericId > 0) {
-			return await this.contactRepository.findContactsByPersonId(numericId);
+		if (Number.isNaN(numericId) || numericId <= 0) {
+			throw new BadRequestError(
+				'Invalid Person ID format. Expected UUID v7 or positive number.',
+			);
 		}
-
-		// 4. If we reach here, the input is invalid
-		throw new BadRequestError(
-			'Invalid Person ID format. Expected UUID v7 or positive number.',
-		);
+		const result =
+			await this.contactRepository.findContactsByPersonId(numericId);
+		if (!result || result.length === 0) {
+			throw new NotFoundError(
+				`[Contact Service] No contacts associated to the given person ID.`,
+			);
+		}
+		return result;
 	}
 
 	/**
@@ -131,8 +143,8 @@ export class ContactService {
 			throw new BadRequestError('Invalid contacts array provided');
 		for (const contact of contacts) {
 			const result = await this.contactRepository.findPersonByContact(contact);
-			if (result && result.length > 0) {
-				return result[0];
+			if (result) {
+				return result;
 			}
 		}
 		throw new NotFoundError(

@@ -33,41 +33,43 @@ export class ContactRepository {
 	 */
 	public async findContactsByPersonId(
 		personId: string | number,
-	): Promise<IContact[]> {
+	): Promise<IContact[] | null> {
 		const sql = `${this.baseSelect} WHERE c.id_person = $1`;
-		return await this.postgreSQLService.execute<IContact>(
+		const result = await this.postgreSQLService.execute<IContact>(
 			sql,
 			[personId],
 			'standard',
-			true,
 		);
+		return result ?? null;
 	}
 
 	/**
 	 * @param publicId // Mcitys person public ID (uuid)
 	 * @returns contact list
 	 */
-	public async findContactsByPublicId(publicId: string): Promise<IContact[]> {
+	public async findContactsByPublicId(
+		publicId: string,
+	): Promise<IContact[] | null> {
 		const sql = `
             ${this.baseSelect}
             JOIN content.people ps ON c.id_person = ps.id_person
             WHERE ps.id_public = $1
         `;
-		return await this.postgreSQLService.execute<IContact>(
+		const result = await this.postgreSQLService.execute<IContact>(
 			sql,
 			[publicId],
 			'standard',
-			true,
 		);
+		return result ?? null;
 	}
 
-	public async findPersonByContact(contact: string): Promise<number[] | null> {
-		const request = `SELECT cc.id_person FROM content.contact AS cc WHERE cc.value = $1 AND cc.is_primary = true`;
-		return await this.postgreSQLService.execute<number>(
+	public async findPersonByContact(contact: string): Promise<number | null> {
+		const request = `SELECT cc.id_person AS id_person FROM content.contact AS cc WHERE cc.value = $1 AND cc.is_primary = true`;
+		const result = await this.postgreSQLService.execute<{ id_person: number }>(
 			request,
 			[contact],
 			'standard',
-			true,
 		);
+		return result && result.length > 0 ? result[0].id_person : null;
 	}
 }
