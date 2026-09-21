@@ -61,9 +61,13 @@ export class ArtworksService {
 			// Add main artwork data and get the generated reference
 			const artworkReference =
 				await this.artworksRepository.addArtwork(artworkPayload);
-
+			if (!artworkReference)
+				throw new ValidationError(
+					'[ Artwork Service ] Failed to add artwork data',
+				);
 			// Handle i18n titles and descriptions //
 			const i18nPayload: {
+				idArtwork: string;
 				idLanguage: string;
 				title: string;
 				description?: string;
@@ -81,8 +85,9 @@ export class ArtworksService {
 						'[ Artwork Service ] Invalid language ID for title',
 					);
 				const slugI18n =
-					artworkReference + '-' + slugGenerator(artworkTitle.title);
+					artworkReference.reference + '-' + slugGenerator(artworkTitle.title);
 				i18nPayload.push({
+					idArtwork: artworkReference.idArtwork,
 					idLanguage: artworkTitle.idLanguage,
 					title: artworkTitle.title,
 					slug: slugI18n,
