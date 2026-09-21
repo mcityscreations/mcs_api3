@@ -1,11 +1,11 @@
-// src/database/postgresql/postgresql.service.ts
-import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
+import { Injectable, Inject, OnModuleInit, Optional } from '@nestjs/common';
 import { Pool } from 'pg';
 import type { PoolClient, QueryResult, PoolConfig } from 'pg';
 import { isErrorWithMessage } from '../../../common/validators/error.validators.js';
 import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
 import { IDatabaseService } from '../database.interfaces.js';
 import { InternalError, ServiceUnavailableError } from '../../errors/index.js';
+import { TransactionContext } from './transactions/transaction-context.service.js';
 
 export type DatabasePool = 'standard' | 'security';
 
@@ -18,6 +18,7 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		@Inject('PG_STANDARD_CONFIG') private readonly standardConfig: PoolConfig,
 		@Inject('PG_SECURITY_CONFIG') private readonly securityConfig: PoolConfig,
 		private readonly logger: WinstonLoggerService,
+		@Optional() private readonly txContext?: TransactionContext,
 	) {
 		this.defaultPool = new Pool(this.standardConfig);
 		this.securityPool = new Pool(this.securityConfig);
@@ -48,22 +49,20 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		return dbName === 'security' ? this.securityPool : this.defaultPool;
 	}
 
-	/**
-	 * Executes SQL requests against the PostgreSQL database.
-	 *
-	 * @param sqlRequest - The SQL query string to be executed.
-	 * @param params - An array of parameters to be used in the SQL query.
-	 * @param databasePool - The database pool to use ('standard' or 'security').
-	 * @param transactionClient - Optional PoolClient for transaction context.
-	 * @returns A promise that resolves to an array of results of type T.
-	 */
 	public async execute<T>(
 		sqlRequest: string,
 		params: any[] = [],
 		databasePool: DatabasePool = 'standard',
 		transactionClient: PoolClient | null = null,
 	): Promise<T[]> {
-		const executor = transactionClient || this.getPool(databasePool);
+		// 1. Explicit client passed as an argument (e.g., tests or special cases)
+		// 2. Ambient client from ALS (only if on the standard pool)
+		// 3. Regular pool if outside a transaction
+		const activeTxClient =
+			databasePool === 'standard' ? this.txContext?.getClient() : null;
+		const executor =
+			transactionClient || activeTxClient || this.getPool(databasePool);
+
 		try {
 			const result: QueryResult = await executor.query(sqlRequest, params);
 			return result.rows as T[];
@@ -72,7 +71,7 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		}
 	}
 
-	// --- Transaction Management ---
+	// --- Transaction Management (Private or reserved for the TransactionManager) ---
 
 	public async beginTransaction(
 		requiredDatabase: DatabasePool = 'standard',
@@ -136,15 +135,12 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 			return new InternalError('Not-null constraint violation.');
 		}
 
-		// If the error code is not recognized, return a generic internal error
 		return new InternalError(
 			'Database error occurred.' +
 				(isErrorWithMessage(error) ? ' ' + error.message : ''),
 		);
 	}
 }
-
-// Helpers
 
 function isPostgresError(
 	error: any,
