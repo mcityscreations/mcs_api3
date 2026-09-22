@@ -78,14 +78,14 @@ export class CategoriesRepository {
 		SELECT
 			tc.id_public AS id,
 
-			-- Translated entity object with fallback
+			--  Entity translation with fallback
 			json_build_object(
 				'id', te.id_public,
 				'name', COALESCE(tei18n.title, fallback_ent.title),
 				'slug', COALESCE(tei18n.slug, fallback_ent.slug)
 			) AS entity,
 
-			-- Category title and slug with fallback
+			-- Category translation with fallback
 			COALESCE(tci18n.title, fallback_cat.title) AS name,
 			COALESCE(tci18n.slug, fallback_cat.slug) AS slug,
 			
@@ -95,30 +95,32 @@ export class CategoriesRepository {
 			tc.updated_at AS "updatedAt"
 		FROM taxonomy.category tc 
 
-		-- Main entity join
-		INNER JOIN taxonomy.entity te ON tc.id_entity = te.id_entity
+		-- Main entity
+		INNER JOIN taxonomy.entity te 
+			ON tc.id_entity = te.id_entity
 
-		-- Target language join
-		INNER JOIN taxonomy.language target_lang ON target_lang.id_language = $1
-		-- Default language join (e.g., 'en')
-		INNER JOIN taxonomy.language default_lang ON default_lang.id_language = 'en'
-
-		-- Category translation (Target + Fallback)
+		-- Category translation: Target ($1 = ex: 'es') + Fallback ($2 = ex: 'en')
 		LEFT JOIN taxonomy.category_i18n tci18n 
-			ON tc.id_category = tci18n.id_category AND tci18n.id_language = target_lang.id_language
+			ON tc.id_category = tci18n.id_category 
+		AND tci18n.id_language = $1
+
 		LEFT JOIN taxonomy.category_i18n fallback_cat 
-			ON tc.id_category = fallback_cat.id_category AND fallback_cat.id_language = default_lang.id_language
+			ON tc.id_category = fallback_cat.id_category 
+		AND fallback_cat.id_language = $2
 
-		-- Entity translation (Target + Fallback)
+		-- Entity translation: Target ($1) + Fallback ($2)
 		LEFT JOIN taxonomy.entity_i18n tei18n 
-			ON te.id_entity = tei18n.id_entity AND tei18n.id_language = target_lang.id_language
-		LEFT JOIN taxonomy.entity_i18n fallback_ent 
-			ON te.id_entity = fallback_ent.id_entity AND fallback_ent.id_language = default_lang.id_language
+			ON te.id_entity = tei18n.id_entity 
+		AND tei18n.id_language = $1
 
-		WHERE tc.id_public = $2`;
+		LEFT JOIN taxonomy.entity_i18n fallback_ent 
+			ON te.id_entity = fallback_ent.id_entity 
+		AND fallback_ent.id_language = $2
+
+		WHERE tc.id_public = $3;`;
 		const result: IAdminReadCategory[] = await this.postgresqlService.execute(
 			query,
-			[languageId, categoryId],
+			[languageId, 'en', categoryId],
 			'standard',
 		);
 		return result.length > 0 ? result[0] : null;
