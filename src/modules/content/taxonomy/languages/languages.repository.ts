@@ -11,7 +11,7 @@ export class LanguagesRepository {
             tl.id_public AS id,
             tl.name AS name,
             json_agg(json_build_object(
-                'idLanguage', tl.id_public,
+                'idLanguage', tl.id_language,
                 'title', tli18n.name
             ) ORDER BY tl.id_public) AS i18n,
             tl.slug AS slug,
