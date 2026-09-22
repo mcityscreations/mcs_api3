@@ -20,19 +20,34 @@ export class ArtworksRepository {
 		const sqlRequest = `
         WITH new_artwork AS (
 			INSERT INTO content.artwork (id_artist, release_date, id_category, id_subject, is_for_sale, id_status)
-			VALUES ($1, $2, $3, $4, $5, $6)
+			VALUES (
+				(SELECT id_artist FROM content.artist WHERE id_public = $1::uuid),
+				$2,
+				(SELECT id_category FROM taxonomy.category WHERE id_public = $3::uuid),
+				(SELECT id_subject FROM taxonomy.subject WHERE id_public = $4::uuid),
+				$5,
+				$6
+			)
 			RETURNING id_artwork AS "idArtwork", reference
 		),
 		ins_dimensions AS (
 			INSERT INTO content.artwork_dimensions (id_artwork, height, width, depth)
-			SELECT id_artwork, $7, $8, $9 FROM new_artwork
+			SELECT "idArtwork", $7, $8, $9 FROM new_artwork
+		),
+		ins_techniques AS (
+			INSERT INTO content.artwork_techniques (id_artwork, id_technique)
+			SELECT new_artwork."idArtwork", tt.id_technique
+			FROM new_artwork
+			INNER JOIN taxonomy.technique tt ON tt.id_public = $10::uuid
 		),
 		ins_keywords AS (
 			INSERT INTO content.artwork_keywords (id_artwork, id_keyword)
-			SELECT new_artwork.id_artwork, keywords.id_keyword
+			SELECT new_artwork."idArtwork", tk.id_keyword
 			FROM new_artwork
-			CROSS JOIN jsonb_array_elements_text($10::jsonb) AS keywords(id_keyword INT)
+			CROSS JOIN jsonb_array_elements_text($11::jsonb) AS keywords(id_public)
+			INNER JOIN taxonomy.keyword tk ON tk.id_public = keywords.id_public::uuid
 		)
+		SELECT "idArtwork", reference FROM new_artwork
         `;
 
 		const result = await this.dbService.execute<{
@@ -48,6 +63,7 @@ export class ArtworksRepository {
 			artwork.dimensions.height,
 			artwork.dimensions.width,
 			artwork.dimensions.depth,
+			artwork.idTechnique,
 			JSON.stringify(artwork.keywords),
 		]);
 		return result[0] ?? null;
