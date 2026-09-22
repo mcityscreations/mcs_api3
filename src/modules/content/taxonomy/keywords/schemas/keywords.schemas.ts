@@ -43,15 +43,6 @@ export type IReadPublicKeywordDto = z.infer<typeof ReadPublicKeywordSchema>;
 // Schema for updating an existing keyword
 export const UpdateKeywordSchema = z.object({
 	id: z.uuidv7(),
-	name: z
-		.array(
-			z.object({
-				idLanguage: z.uuidv7(),
-				value: z.string().min(1).max(100),
-				slug: z.string().min(1).max(100),
-			}),
-		)
-		.min(1)
-		.optional(),
+	name: z.array(I18nSchema).min(1).optional(),
 });
 export type IUpdateKeywordDto = z.infer<typeof UpdateKeywordSchema>;
