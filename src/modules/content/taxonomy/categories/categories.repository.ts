@@ -29,9 +29,9 @@ export class CategoriesRepository {
 		tc.has_dimensions AS "hasDimensions",
 		tc.created_at AS "createdAt",
 		tc.updated_at AS "updatedAt"
-		FROM taxonomy.category_i18n tci18n 
+		FROM taxonomy.category tc 
+		INNER JOIN taxonomy.category_i18n tci18n ON tc.id_category = tci18n.id_category
 		INNER JOIN taxonomy.language tcl ON tci18n.id_language = tcl.id_language
-		INNER JOIN taxonomy.category tc ON tc.id_category = tci18n.id_category
 		WHERE tc.id_public = $1
 		GROUP BY 
 			tc.id_public,
@@ -45,7 +45,6 @@ export class CategoriesRepository {
 			query,
 			[categoryId],
 			'standard',
-			false,
 		);
 		return result.length > 0 ? result[0] : null;
 	}
