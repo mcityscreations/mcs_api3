@@ -11,7 +11,7 @@ export class SubjectRepository {
                     ts.id_public AS id,
                     ts.title AS name,
                     json_agg(json_build_object(
-                        'idLanguage', tl.id_public,
+                        'idLanguage', tl.id_language,
                         'value', tsi18n.title,
                         'slug', tsi18n.slug)
                         ORDER BY tl.id_public) AS i18n,
@@ -31,7 +31,6 @@ export class SubjectRepository {
 			query,
 			[id],
 			'standard',
-			true,
 		);
 		return result.length > 0 ? result[0] : null;
 	}

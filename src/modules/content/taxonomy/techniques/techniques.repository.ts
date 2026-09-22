@@ -11,7 +11,7 @@ export class TechniquesRepository {
 		tt.id_public AS id,
 		tt.name AS name,
 		json_agg(json_build_object(
-			'idLanguage', tcl.id_public,
+			'idLanguage', tcl.id_language,
 			'title', tti18n.title,
 			'slug', tti18n.slug
 		) ORDER BY tcl.id_public) AS i18n,
@@ -33,7 +33,6 @@ export class TechniquesRepository {
 			query,
 			[id],
 			'standard',
-			false,
 		);
 		return result.length > 0 ? result : null;
 	}
