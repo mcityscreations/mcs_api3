@@ -12,7 +12,7 @@ export class KeywordsRepository {
             tk.id_public AS id,
             tk.title AS name,
             json_agg(json_build_object(
-                'idLanguage', tl.id_public,
+                'idLanguage', tl.id_language,
                 'value', tki18n.title)
                 ORDER BY tl.id_public) AS i18n,
             tk.created_at AS "createdAt",
@@ -31,7 +31,6 @@ export class KeywordsRepository {
 			query,
 			[id],
 			'standard',
-			true,
 		);
 		return result.length > 0 ? result[0] : null;
 	}
