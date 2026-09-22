@@ -48,6 +48,10 @@ export type IUpdateCategory = z.infer<typeof UpdateCategorySchema>;
 
 export const PublicReadCategorySchema = z.object({
 	id: z.uuidv7().describe('Unique identifier for the category'),
+	entity: z.object({
+		id: z.uuidv7().describe('Unique identifier for the entity'),
+		name: z.string().min(3).max(150).describe('Name of the entity'),
+	}),
 	name: z.string().min(3).max(150).describe('Name of the category'),
 	slug: z.string().min(3).max(150).describe('Slug for the category'),
 	isPublic: z.boolean().describe('Indicates if the category is public'),
