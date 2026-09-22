@@ -1,8 +1,15 @@
 import z from 'zod';
 
 const DescriptionItemSchema = z.object({
-	idLanguage: z.uuidv7(),
-	description: z.string().min(1, 'A description must be provided'),
+	idLanguage: z
+		.string()
+		.trim()
+		.toLowerCase()
+		.length(2, 'Language must be an ISO 639-1 alpha-2 code.'),
+	description: z
+		.string('A description must be provided')
+		.trim()
+		.min(1, 'A description cannot be empty.'),
 });
 
 const CreateDescriptionSchema = z.array(DescriptionItemSchema);
