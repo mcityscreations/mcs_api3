@@ -16,3 +16,8 @@ export const LanguagesSchema = z.object({
 		.describe('Timestamp when the language was last updated'),
 });
 export type ILanguage = z.infer<typeof LanguagesSchema>;
+
+export const LanguageParamSchema = z.string().regex(/^[a-z]{2}$/, {
+	message: 'Language code must be a two-letter ISO 639-1 code.',
+});
+export type ILanguageParam = z.infer<typeof LanguageParamSchema>;

@@ -1,6 +1,7 @@
 // src/modules/content/taxonomy/categories/categories.service.ts
 import { Injectable } from '@nestjs/common';
 import { isUuidV7 } from '../../../../common/validators/isuuidv7.validator.js';
+import { LanguageParamSchema } from '../languages/schemas/languages.schemas.js';
 import {
 	NotFoundError,
 	ValidationError,
@@ -15,8 +16,28 @@ import {
 export class CategoriesService {
 	constructor(private readonly categoriesRepository: CategoriesRepository) {}
 
-	findAll() {
-		return `This action returns all categories`;
+	public async findAll() {
+		const result = await this.categoriesRepository.findAll();
+		if (!result || result.length === 0)
+			throw new NotFoundError(
+				`[Category Service] No categories found in the database.`,
+			);
+		return result;
+	}
+
+	public async findAlli18n(languageId: string) {
+		// Validate content
+		const parsedLanguageId = LanguageParamSchema.safeParse(languageId);
+		if (!parsedLanguageId.success)
+			throw new ValidationError(`[Category Service] Wrong language ID format.`);
+		// Get data from repository
+		const result = await this.categoriesRepository.findAlli18n(languageId);
+		if (!result || result.length === 0)
+			throw new NotFoundError(
+				`[Category Service] No categories found in the database for the given language.`,
+			);
+		// Return result
+		return result;
 	}
 
 	public async findOne(id: string): Promise<IAdminReadCategory | null> {
@@ -32,7 +53,7 @@ export class CategoriesService {
 		return result;
 	}
 
-	public async findOneByLanguage(
+	public async findOnei18n(
 		id: string,
 		languageId: string,
 	): Promise<IPublicReadCategory | null> {
@@ -42,27 +63,12 @@ export class CategoriesService {
 		if (!languageId || !isUuidV7(languageId))
 			throw new ValidationError(`[Category Service] Wrong language ID format.`);
 		// Check category existence
-		const result = await this.findOne(id);
+		const result = await this.categoriesRepository.findOnei18n(id, languageId);
 		if (!result)
 			throw new NotFoundError(
 				`[Category Service] No category associated to the given ID and language.`,
 			);
-		// Map data to include only the requested language
-		const i18n = result.i18n.find((item) => item.idLanguage === languageId);
-		if (!i18n)
-			throw new NotFoundError(
-				`[Category Service] No category associated to the given ID and language.`,
-			);
-		const finalRes: IPublicReadCategory = {
-			id: result.id,
-			name: result.name,
-			slug: i18n.slug as string,
-			isPublic: result.isPublic,
-			hasDimensions: result.hasDimensions,
-			createdAt: result.createdAt,
-			updatedAt: result.updatedAt,
-		};
-		return finalRes;
+		return result;
 	}
 
 	remove(id: number) {
