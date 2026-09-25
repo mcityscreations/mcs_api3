@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { DateTime } from 'luxon';
 import { DateService } from '../../../common/dates/dates.service.js';
@@ -10,6 +10,7 @@ import { WinstonLoggerService } from '../../../system/logger/logger-service/wins
 export class PrestashopCronService {
 	constructor(
 		private readonly dateService: DateService,
+		@Inject('PRESTASHOP_STORE')
 		private readonly prestashopAdapter: PrestashopAdapter,
 		private readonly logger: WinstonLoggerService,
 	) {}
