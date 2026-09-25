@@ -62,7 +62,6 @@ export class WeatherRepository {
 			sqlRequest,
 			[],
 			'standard',
-			true,
 		);
 		if (rawResults.length === 0) return [];
 		const transformedResults: IWeatherDataRaw[] = rawResults.map(

@@ -4,13 +4,17 @@ import { PostgreSQLService } from '../../../../system/database/postgresql/postgr
 
 @Injectable()
 export class RepositoryService {
-    constructor(
-        private readonly redisService: RedisService,
-        private readonly postgreSQLService: PostgreSQLService,
-    ) {}
+	constructor(
+		private readonly redisService: RedisService,
+		private readonly postgreSQLService: PostgreSQLService,
+	) {}
 
-    async getStaticTranslations() {
-        // Call static_translations view in PostgreSQL to get all translations
-        return await this.postgreSQLService.execute('SELECT * FROM taxonomy.static_translations', [], 'standard', false);
-    }
+	async getStaticTranslations() {
+		// Call static_translations view in PostgreSQL to get all translations
+		return await this.postgreSQLService.execute(
+			'SELECT * FROM taxonomy.static_translations',
+			[],
+			'standard',
+		);
+	}
 }
