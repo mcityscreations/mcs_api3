@@ -81,6 +81,7 @@ export class PrestashopAgregator {
 			idPerson: mcitysCustomerID.idPublic,
 			name: 'Invoicing address',
 			isDefault: false,
+			isBillingAddress: true,
 			address: {
 				country: {
 					iso2: countryData.iso2,
