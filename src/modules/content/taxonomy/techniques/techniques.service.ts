@@ -4,16 +4,11 @@ import {
 	NotFoundError,
 } from '../../../../system/errors/index.js';
 import { isUuidV7 } from '../../../../common/validators/isuuidv7.validator.js';
-import { CreateTechniqueDto } from './dto/create-technique.dto.js';
-import { UpdateTechniqueDto } from './dto/update-technique.dto.js';
 import { TechniquesRepository } from './techniques.repository.js';
 
 @Injectable()
 export class TechniquesService {
 	constructor(private readonly techniquesRepository: TechniquesRepository) {}
-	create(createTechniqueDto: CreateTechniqueDto) {
-		return 'This action adds a new technique';
-	}
 
 	findAll() {
 		return `This action returns all techniques`;
@@ -27,12 +22,13 @@ export class TechniquesService {
 			throw new NotFoundError('[ Techniques Service ] Technique not found');
 		return result;
 	}
-
-	update(id: number, updateTechniqueDto: UpdateTechniqueDto) {
+	/*
+	update(id: string, updateTechniqueDto: UpdateTechniqueDto) {
 		return `This action updates a #${id} technique`;
 	}
 
-	remove(id: number) {
+	remove(id: string) {
 		return `This action removes a #${id} technique`;
 	}
+		*/
 }
