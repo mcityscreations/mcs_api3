@@ -60,7 +60,8 @@ export class CategoriesService {
 		// Validate content
 		if (!id || !isUuidV7(id))
 			throw new ValidationError(`[Category Service] Wrong category ID format.`);
-		if (!languageId || !isUuidV7(languageId))
+		const parsedLanguageId = LanguageParamSchema.safeParse(languageId);
+		if (!parsedLanguageId.success)
 			throw new ValidationError(`[Category Service] Wrong language ID format.`);
 		// Check category existence
 		const result = await this.categoriesRepository.findOnei18n(id, languageId);
