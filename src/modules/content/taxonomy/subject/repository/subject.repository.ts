@@ -10,11 +10,12 @@ export class SubjectRepository {
             SELECT
                 ts.id_public AS id,
                 ts.title AS name,
+                ts.is_public AS "isPublic",
                 json_agg(json_build_object(
                     'idLanguage', tsi18n.id_language,
                     'value', tsi18n.title,
                     'slug', tsi18n.slug)
-                    ORDER BY tl.id_public) AS i18n,
+                    ORDER BY tsi18n.id_language) AS i18n,
                 ts.created_at AS "createdAt",
                 ts.updated_at AS "updatedAt"
             FROM taxonomy.subject ts
