@@ -34,4 +34,29 @@ export class KeywordsRepository {
 		);
 		return result.length > 0 ? result[0] : null;
 	}
+
+    public async findOnei18n(id: string, lang: string): Promise<IReadPublicKeywordDto | null> {
+        const query = `
+            SELECT
+                tk.id_public AS id,
+                COALESCE(tki18n.title, fallback_keyword.title) AS name,
+                COALESCE(tki18n.slug, fallback_keyword.slug) AS slug,
+                tk.created_at AS "createdAt",
+                tk.updated_at AS "updatedAt"
+            FROM taxonomy.keyword tk,
+            LEFT JOIN taxonomy.keyword_i18n tki18n
+                ON tk.id_keyword = tki18n.id_keyword
+                AND tki18n.id_language = $2
+            LEFT JOIN taxonomy.keyword_i18n fallback_keyword
+                ON tk.id_keyword = fallback_keyword.id_keyword
+                AND fallback_keyword.id_language = $3
+            WHERE tk.id_public = $1;
+        `;
+        const result = await this.dbService.execute<IReadAdminKeywordDto>(
+            query,
+            [id, lang, 'en'],
+            'standard',
+        );
+        return result && result.length > 0 ? result : null;
+    }
 }
