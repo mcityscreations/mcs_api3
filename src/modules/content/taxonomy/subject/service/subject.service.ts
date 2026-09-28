@@ -5,6 +5,7 @@ import {
 } from '../../../../../system/errors/index.js';
 import { isUuidV7 } from '../../../../../common/validators/isuuidv7.validator.js';
 import { SubjectRepository } from '../repository/subject.repository.js';
+import { LanguageParamSchema } from '../../languages/schemas/languages.schemas.ts'
 import type { IReadAdminSubject } from '../schemas/subject.schemas.js';
 
 @Injectable()
@@ -22,5 +23,15 @@ export class SubjectService {
 			);
 		}
 		return result;
+	}
+
+	public async findOnei18n(id: string, lang: string): Promise<IReadPublicSubject> {
+		if (!id || !isUuidV7(id))
+			throw new ValidationError(`[Subject service] Wrong subject ID format.`);
+		const parsedLanguage = LanguageParamSchema.safeParse(lang);
+		if (!parsedLanguage.success)
+			throw new ValidationError(`[Subject service] Wrong language ID format.`);
+		const result = this.subjectRepository.
+
 	}
 }
