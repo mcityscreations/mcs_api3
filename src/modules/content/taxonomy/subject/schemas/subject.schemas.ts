@@ -21,8 +21,6 @@ export type IReadAdminSubject = z.infer<typeof ReadAdminSubjectSchema>;
 
 export const ReadPublicSubjectSchema = ReadAdminSubjectSchema.omit({
 	i18n: true,
-	createdAt: true,
-	updatedAt: true,
 });
 export type IReadPublicSubject = z.infer<typeof ReadPublicSubjectSchema>;
 
