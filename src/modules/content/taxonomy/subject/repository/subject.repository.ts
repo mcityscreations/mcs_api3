@@ -13,7 +13,6 @@ export class SubjectRepository {
             SELECT
                 ts.id_public AS id,
                 ts.title AS name,
-                ts.is_public AS "isPublic",
                 json_agg(json_build_object(
                     'idLanguage', tsi18n.id_language,
                     'value', tsi18n.title,
