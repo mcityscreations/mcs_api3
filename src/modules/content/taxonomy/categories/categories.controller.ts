@@ -3,7 +3,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service.js';
 import { LanguageQueryDto } from '../../../../common/dtos/language.dto.js';
-import { UuidDto } from '../../../../../common/dtos/uuid.dto.js';
+import { UuidDto } from '../../../../common/dtos/uuid.dto.js';
 
 @Controller('taxonomy/categories')
 export class CategoriesController {
@@ -24,10 +24,10 @@ export class CategoriesController {
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: UuidDto, @Query() query: LanguageQueryDto) {
+	findOne(@Param() params: UuidDto, @Query() query: LanguageQueryDto) {
 		const lang = query.lang ?? null;
 		return lang
-			? this.categoriesService.findOnei18n(id, lang)
-			: this.categoriesService.findOne(id);
+			? this.categoriesService.findOnei18n(params.id, lang)
+			: this.categoriesService.findOne(params.id);
 	}
 }

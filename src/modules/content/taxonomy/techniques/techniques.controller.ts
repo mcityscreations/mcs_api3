@@ -1,7 +1,8 @@
-// src/modules/content/taxonomy/techniques/techniques.controller.ts
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { LanguageQueryDto } from '../../../../common/dtos/language.dto.js';
+import { UuidDto } from '../../../../common/dtos/uuid.dto.js';
 import { TechniquesService } from './techniques.service.js';
+
 @Controller('taxonomy/techniques')
 export class TechniquesController {
 	constructor(private readonly techniquesService: TechniquesService) {}
@@ -15,10 +16,10 @@ export class TechniquesController {
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: string, @Query() query: LanguageQueryDto) {
+	findOne(@Param() params: UuidDto, @Query() query: LanguageQueryDto) {
 		const lang = query.lang ?? null;
 		return lang
-			? this.techniquesService.findOnei18n(id, lang)
-			: this.techniquesService.findOne(id);
+			? this.techniquesService.findOnei18n(params.id, lang)
+			: this.techniquesService.findOne(params.id);
 	}
 }
