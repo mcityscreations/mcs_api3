@@ -10,25 +10,25 @@ export class SubjectRepository {
 
 	public async findOne(id: string): Promise<IReadAdminSubject | null> {
 		const query = `
-                SELECT
-                    ts.id_public AS id,
-                    ts.title AS name,
-                    json_agg(json_build_object(
-                        'idLanguage', tl.id_language,
-                        'value', tsi18n.title,
-                        'slug', tsi18n.slug)
-                        ORDER BY tl.id_public) AS i18n,
-                    ts.created_at AS "createdAt",
-                    ts.updated_at AS "updatedAt"
-                FROM taxonomy.subject ts
-                INNER JOIN taxonomy.subject_i18n tsi18n ON ts.id_subject = tsi18n.id_subject
-                INNER JOIN taxonomy.language tl ON tsi18n.id_language = tl.id_language
-                WHERE ts.id_public = $1
-                GROUP BY 
-                    ts.id_public,
-                    ts.title,
-                    ts.created_at,
-                    ts.updated_at;
+            SELECT
+                ts.id_public AS id,
+                ts.title AS name,
+                ts.is_public AS "isPublic",
+                json_agg(json_build_object(
+                    'idLanguage', tsi18n.id_language,
+                    'value', tsi18n.title,
+                    'slug', tsi18n.slug)
+                    ORDER BY tsi18n.id_language) AS i18n,
+                ts.created_at AS "createdAt",
+                ts.updated_at AS "updatedAt"
+            FROM taxonomy.subject ts
+            INNER JOIN taxonomy.subject_i18n tsi18n ON ts.id_subject = tsi18n.id_subject
+            WHERE ts.id_public = $1
+            GROUP BY 
+                ts.id_public,
+                ts.title,
+                ts.created_at,
+                ts.updated_at;
                 `;
 		const result = await this.dbService.execute<IReadAdminSubject>(
 			query,

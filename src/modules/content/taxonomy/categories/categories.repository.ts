@@ -135,24 +135,22 @@ export class CategoriesRepository {
 			SELECT 
 				tei18n.id_entity,
 				json_agg(json_build_object(
-					'idLanguage', tcl.id_language,
+					'idLanguage', tei18n.id_language,
 					'value', tei18n.title,
 					'value', tei18n.slug
 				) ORDER BY tcl.id_public) AS i18n
 			FROM taxonomy.entity_i18n tei18n
-			INNER JOIN taxonomy.language tcl ON tei18n.id_language = tcl.id_language
 			GROUP BY tei18n.id_entity
 		),
 		category_translations AS (
 			SELECT 
 				tci18n.id_category,
 				json_agg(json_build_object(
-					'idLanguage', tcl.id_language,
+					'idLanguage', tci18n.id_language,
 					'value', tci18n.title,
 					'slug', tci18n.slug
 				) ORDER BY tcl.id_public) AS i18n
 			FROM taxonomy.category_i18n tci18n
-			INNER JOIN taxonomy.language tcl ON tci18n.id_language = tcl.id_language
 			GROUP BY tci18n.id_category
 		)
 
