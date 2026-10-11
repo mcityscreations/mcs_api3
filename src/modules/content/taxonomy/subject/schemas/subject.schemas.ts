@@ -19,10 +19,18 @@ export const ReadAdminSubjectSchema = z.object({
 });
 export type IReadAdminSubject = z.infer<typeof ReadAdminSubjectSchema>;
 
-export const ReadPublicSubjectSchema = ReadAdminSubjectSchema.omit({
-	i18n: true,
-	createdAt: true,
-	updatedAt: true,
+export const ReadPublicSubjectSchema = z.object({
+	id: z.uuidv7().describe('Unique identifier for the subject'),
+	name: z.string().min(1).max(255).describe('Name of the subject'),
+	slug: z.string().min(1).max(255).describe('Slug for the subject'),
+	createdAt: z
+		.date()
+		.optional()
+		.describe('Timestamp when the subject was created'),
+	updatedAt: z
+		.date()
+		.optional()
+		.describe('Timestamp when the subject was last updated'),
 });
 export type IReadPublicSubject = z.infer<typeof ReadPublicSubjectSchema>;
 
