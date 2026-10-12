@@ -127,18 +127,17 @@ export class PeopleRepository {
 
 	public async addPersonMapper(payload: IPersonMapper): Promise<number | null> {
 		const sqlRequest = `INSERT INTO content.people_mapper 
-		(id_person, id_public, system_source, id_person_source, is_professional, is_abroad, source_data, is_verified)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, true) RETURNING id_person;`;
+		(id_person, system_source, id_person_source, is_professional, is_abroad, source_data, is_verified)
+		VALUES ($1, $2, $3, $4, $5, $6, true) RETURNING id_person;`;
 		const data: { id_person: number }[] = await this.dbService.execute(
 			sqlRequest,
 			[
 				payload.idPerson,
-				payload.idPublic,
 				payload.systemSource,
 				payload.idPersonSource,
 				payload.isProfessional,
 				payload.isAbroad,
-				payload.sourceData,
+				JSON.stringify(payload.sourceData),
 			],
 			'standard',
 		);
