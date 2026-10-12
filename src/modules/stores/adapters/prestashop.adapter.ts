@@ -390,6 +390,18 @@ export class PrestashopAdapter extends StoreAdapter {
 					`Unable to synchronize Prestashop customer data :` +
 						JSON.stringify(payload),
 				);
+			const personMapperID = await this.peopleService.addPersonToMapper({
+				idPerson: newMcitysIDs.idPrivate,
+				systemSource: 'prestashop',
+				idPersonSource: customerID,
+				isProfessional: true,
+				isAbroad: payload.countryData.iso3 !== 'FRA',
+				sourceData: JSON.stringify(payload),
+			});
+			if (!personMapperID)
+				throw new InternalError(
+					`Unable to add person to person mapper for Prestashop customer ${customerID}`,
+				);
 			return newMcitysIDs;
 		} else {
 			const newMcitysIDs = await this.peopleService.addIndividual({
@@ -403,6 +415,18 @@ export class PrestashopAdapter extends StoreAdapter {
 				throw new InternalError(
 					`Unable to synchronize Prestashop customer data :` +
 						JSON.stringify(payload),
+				);
+			const personMapperID = await this.peopleService.addPersonToMapper({
+				idPerson: newMcitysIDs.idPrivate,
+				systemSource: 'prestashop',
+				idPersonSource: customerID,
+				isProfessional: false,
+				isAbroad: payload.countryData.iso3 !== 'FRA',
+				sourceData: JSON.stringify(payload),
+			});
+			if (!personMapperID)
+				throw new InternalError(
+					`Unable to add person to person mapper for Prestashop customer ${customerID}`,
 				);
 			return newMcitysIDs;
 		}
