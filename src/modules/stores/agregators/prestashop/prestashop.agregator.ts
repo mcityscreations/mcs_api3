@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
 	InternalError,
 	NotFoundError,
@@ -15,6 +15,7 @@ import { mapPrestashopInvoiceToMcitysInvoice } from '../../../accounting/schemas
 @Injectable()
 export class PrestashopAgregator {
 	constructor(
+		@Inject('PRESTASHOP_STORE')
 		private readonly prestashopStoreAdapter: PrestashopAdapter,
 		private readonly addressService: AddressService,
 		private readonly countryService: CountryService,
@@ -36,12 +37,15 @@ export class PrestashopAgregator {
 			await this.prestashopStoreAdapter.getMainOrderDataByInvoiceID(
 				prestashopInvoice.id,
 			);
+		console.log('Main order data***************');
+		console.log(mainOrderData);
 		const detailedOrderData: IPrestashopOrderDetailsNormalized =
 			await this.prestashopStoreAdapter.getOrderDetails(
 				prestashopInvoice.id,
 				'invoice',
 			);
-
+		console.log('Detailed order data***************');
+		console.log(detailedOrderData);
 		// Get address & synchronize //
 		if (!mainOrderData.id_address_invoice)
 			throw new InternalError(
@@ -50,6 +54,8 @@ export class PrestashopAgregator {
 		const addressData = await this.prestashopStoreAdapter.getAddressDataByID(
 			mainOrderData.id_address_invoice,
 		);
+		console.log('Address data***************');
+		console.log(addressData);
 		const countryData = await this.countryService.getCountryFromExternalID({
 			idCountry: addressData.id!,
 			systemSource: 'prestashop',

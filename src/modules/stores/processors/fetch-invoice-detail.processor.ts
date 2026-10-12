@@ -1,8 +1,9 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
+import { Inject } from '@nestjs/common';
 import { Job, UnrecoverableError } from 'bullmq';
 import { uuidv7 } from 'uuidv7';
 import { InternalError } from '../../../system/errors/index.js';
-import { BullMqAdapter } from '../../../system/jobdispatcher/adapters/bullmq.adapter.js';
+import { JobDispatcher } from '../../../system/jobdispatcher/interfaces/jobdispatcher.interface.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import type { IJobDescriptor } from '../../../system/jobdispatcher/schemas/job.schema.js';
 import { createJobDescriptorSchema } from '../../../system/jobdispatcher/schemas/job.schema.js';
@@ -19,23 +20,33 @@ import { PrestashopAgregator } from '../agregators/prestashop/prestashop.agregat
 })
 export class FetchInvoiceDetailProcessor extends WorkerHost {
 	constructor(
-		private readonly jobDispatcher: BullMqAdapter,
+		@Inject(JobDispatcher)
+		private readonly jobDispatcher: JobDispatcher,
 		private readonly logger: WinstonLoggerService,
 		private readonly prestashopAgregator: PrestashopAgregator,
 	) {
 		super();
+		console.log('🎯 [WORKER] Instancié avec succès !');
 	}
 
 	async process(job: Job<IJobDescriptor<IPrestashopInvoice>>): Promise<void> {
+		console.log(
+			'🚀 [WORKER] Job détecté et en cours de traitement ! ID:',
+			job.id,
+		);
 		// Check the data structure
 		const zodSchema = createJobDescriptorSchema(PrestashopInvoiceSchema);
-		const checkedInvoice = zodSchema.safeParse(job.data);
+		const checkedInvoice = zodSchema.safeParse(job);
 		if (!checkedInvoice.success) {
+			this.logger.error(
+				`[Prestashop Invoicing Worker] Invalid invoice data structure for invoice Job : ${job.id} in queue : ${job.queueName}.`,
+				JSON.stringify(checkedInvoice.error),
+			);
 			throw new UnrecoverableError(
 				`[Prestashop Invoicing Worker] Invalid invoice data structure for invoice Job : ${job.id} in queue : ${job.queueName}. ${JSON.stringify(checkedInvoice.error)}`,
 			);
 		}
-		const invoice = checkedInvoice.data.payload.data;
+		const invoice = checkedInvoice.data.data.data;
 		this.logger.log(
 			`[Prestashop Invoicing Worker] Handling invoice ID : ${invoice.id} from PrestaShop for processing...`,
 		);
@@ -43,9 +54,7 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 		try {
 			// Agregate and synchronize invoice data from PrestaShop to Mcitys
 			const mcitysInvoice: ICreateMcitysInvoice | null =
-				await this.prestashopAgregator.agregateInvoiceData(
-					job.data.payload.data,
-				);
+				await this.prestashopAgregator.agregateInvoiceData(invoice);
 			if (!mcitysInvoice) {
 				this.logger.warn(
 					`[Prestashop Invoicing Worker] Failed to aggregate invoice data for invoice ID : ${invoice.id} from PrestaShop.`,
@@ -67,7 +76,7 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 					pattern: 'accounting.process-invoice',
 					timestamp: new Date().toISOString(),
 					version: '1.0.0',
-					correlationId: job.data.payload.correlationId || uuidv7(),
+					correlationId: job.data.data.correlationId || uuidv7(),
 					data: mcitysInvoice,
 				},
 				{ jobId: `accounting-inv-PRESTASHOP-${invoice.id}` },
@@ -85,5 +94,17 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 				`[Prestashop Invoicing Worker] Failed to process invoice PRESTASHOP-${invoice.id}`,
 			);
 		}
+	}
+
+	@OnWorkerEvent('ready')
+	onReady() {
+		console.log(
+			'🟢 [WORKER EVENT] Le worker est connecté à Redis et écoute la file !',
+		);
+	}
+
+	@OnWorkerEvent('error')
+	onError(err: Error) {
+		console.error('❌ [WORKER EVENT] Erreur sur le worker :', err);
 	}
 }
