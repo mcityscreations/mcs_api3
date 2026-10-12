@@ -54,10 +54,8 @@ export class PrestashopAgregator {
 		const addressData = await this.prestashopStoreAdapter.getAddressDataByID(
 			mainOrderData.id_address_invoice,
 		);
-		console.log('Address data***************');
-		console.log(addressData);
 		const countryData = await this.countryService.getCountryFromExternalID({
-			idCountry: addressData.id!,
+			idCountry: addressData.id_country,
 			systemSource: 'prestashop',
 		});
 		if (!countryData) throw new NotFoundError(`Unable to get country data.`);
