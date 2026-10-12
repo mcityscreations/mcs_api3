@@ -185,7 +185,7 @@ export class PeopleService {
 		// Handle error
 		if (!addPerson) {
 			throw new InternalError(
-				`[People Service] Failed to add person to mapper for idPerson: ${payload.idPerson}, idPublic: ${payload.idPublic}, systemSource: ${payload.systemSource}`,
+				`[People Service] Failed to add person to mapper for idPerson: ${payload.idPerson}, systemSource: ${payload.systemSource}`,
 			);
 		}
 		return addPerson;

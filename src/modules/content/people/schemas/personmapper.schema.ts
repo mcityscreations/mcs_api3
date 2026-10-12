@@ -2,7 +2,6 @@ import z from 'zod';
 
 export const PersonMapperSchema = z.object({
 	idPerson: z.union([z.string(), z.number()]),
-	idPublic: z.string(),
 	systemSource: z.string(),
 	idPersonSource: z.string(),
 	isProfessional: z.boolean(),
