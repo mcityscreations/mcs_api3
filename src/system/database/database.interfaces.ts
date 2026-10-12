@@ -5,7 +5,6 @@ export abstract class IDatabaseService {
 		sqlRequest: string,
 		params?: any[],
 		requiredDatabase?: string,
-		isEmptyResultAllowed?: boolean,
 		transactionClient?: any,
 	): Promise<T[]>;
 	abstract beginTransaction(requiredDatabase?: string): Promise<any>;

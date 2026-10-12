@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, Param, Inject } from '@nestjs/common';
 import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
 import { StoresService } from '../services/stores.service.js';
 import { DateFilterDto } from '../../../common/dates/datefilter.dto.js';
@@ -7,6 +7,7 @@ import { PrestashopInvoiceIDDto } from '../dto/invoiceParam.dto.js';
 @Controller('stores')
 export class StoresController {
 	constructor(
+		@Inject('PRESTASHOP_STORE')
 		private readonly prestashopAdapter: PrestashopAdapter,
 		private readonly storesService: StoresService,
 	) {}

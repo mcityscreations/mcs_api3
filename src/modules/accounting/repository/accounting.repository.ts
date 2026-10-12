@@ -24,8 +24,6 @@ export class AccountingRepository {
 			sqlRequest,
 			[reference, systemSource],
 			'standard',
-			false,
-			null,
 		);
 		return result.length > 0 ? result[0].exists : false;
 	}
@@ -109,7 +107,6 @@ export class AccountingRepository {
 				items,
 			],
 			'standard',
-			false,
 		);
 		return result.length > 0 ? result[0].id_invoice : null;
 	}

@@ -6,7 +6,7 @@ import {
 import { v7 as uuidv7 } from 'uuid';
 import { AlsService } from '../../../system/als/als.service.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
-import { BullMqAdapter } from '../../../system/jobdispatcher/adapters/bullmq.adapter.js';
+import { JobDispatcher } from '../../../system/jobdispatcher/interfaces/jobdispatcher.interface.js';
 import { StoresRepository } from '../repository/stores.repository.js';
 import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
@@ -19,7 +19,8 @@ export class StoresService {
 		private readonly prestashopStoreAdapter: PrestashopAdapter,
 		private readonly storesRepository: StoresRepository,
 		private readonly logger: WinstonLoggerService,
-		private readonly jobDispatcher: BullMqAdapter,
+		@Inject(JobDispatcher)
+		private readonly jobDispatcher: JobDispatcher,
 	) {}
 
 	async downloadLastInvoices() {

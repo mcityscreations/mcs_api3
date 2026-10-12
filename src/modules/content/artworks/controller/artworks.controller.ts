@@ -1,10 +1,4 @@
-import {
-	Controller,
-	Get,
-	Post,
-	UseGuards,
-	UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { MandatoryAuthGuard } from '../../../../modules/security/guards/mandatory-auth/mandatory-auth.guard.js';
 import { ThrottlerInterceptor } from '../../../../modules/security/interceptors/throttler/throttler.interceptor.js';
@@ -20,8 +14,11 @@ export class ArtworksController {
 	@UseGuards(MandatoryAuthGuard)
 	@UseInterceptors(ThrottlerInterceptor)
 	@Post()
-	addArtwork(artworkPayload: ICreateArtwork) {}
+	addArtwork(artworkPayload: ICreateArtwork) {
+		return this.artworksService.addArtwork(artworkPayload);
+	}
 
+	/*
 	@Get(':artworkId')
 	getArtwork(artworkId: string) {}
 
@@ -34,4 +31,5 @@ export class ArtworksController {
 	getArtworksBySubject(subjectId: string) {}
 
 	getArtworksByKeyword(keywordId: string) {}
+	*/
 }
