@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { FetchInvoiceDetailProcessor } from './processors/fetch-invoice-detail.processor.js';
 import { BullModule } from '@nestjs/bullmq';
 import { PrestashopConfigService } from './configs/prestashop/prestashop.config.js';
 import { PrestashopAdapter } from './adapters/prestashop.adapter.js';
+import { PrestashopAgregator } from './agregators/prestashop/prestashop.agregator.js';
 import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
 import { PrestashopCronService } from './cron/cron.service.js';
 import { StoresRepository } from './repository/stores.repository.js';
@@ -45,6 +47,8 @@ import { CountryModule } from '../content/taxonomy/country/country.module.js';
 		PrestashopCronService,
 		StoresRepository,
 		StoresService,
+		FetchInvoiceDetailProcessor,
+		PrestashopAgregator,
 	],
 	controllers: [StoresController],
 	imports: [
