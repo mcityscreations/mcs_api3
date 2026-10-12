@@ -49,7 +49,7 @@ export class CountryRepository {
 				WHERE tcgm.id_country = tc.id_country
 			) AS country_groups
 		FROM taxonomy.country tc
-		JOIN taxonomy.country_mapper tcm ON tc.id_country = tcm.id_country
+		LEFT JOIN taxonomy.country_mapper tcm ON tc.id_country = tcm.id_country
 		WHERE tcm.external_id = $1 
 		AND tcm.system_source = $2;`;
 		const result = await this.postgresqlService.execute<ICountry>(
