@@ -35,8 +35,8 @@ export class StoresService {
 			const correlationId = AlsService.correlationId || uuidv7();
 			const bulkJobs = invoices.prestashop.order_invoices.order_invoice.map(
 				(invoice: IPrestashopInvoice) => ({
-					jobName: 'fetch-detail',
-					payload: {
+					name: 'fetch-detail',
+					data: {
 						id: uuidv7(),
 						pattern: 'store.fetch-invoice-detail',
 						timestamp: new Date().toISOString(),
@@ -44,7 +44,7 @@ export class StoresService {
 						correlationId: correlationId,
 						data: invoice,
 					},
-					options: {
+					opts: {
 						attempts: 3,
 						backoff: { type: 'exponential', delay: 5000 } as const,
 					},
@@ -58,13 +58,6 @@ export class StoresService {
 			this.logger.log(
 				`Successfully dispatched ${bulkJobs.length} invoice IDs to the queue.`,
 			);
-
-			/* deprecated, we now fetch invoice details asynchronously via the job queue
-			// Get invoice details from PrestaShop
-			const invoiceDetails: IMcitysInvoice[] =
-				await this.prestashopStoreAdapter.mapInvoices(invoices);
-
-			return invoiceDetails;*/
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			throw new InternalServerErrorException(
