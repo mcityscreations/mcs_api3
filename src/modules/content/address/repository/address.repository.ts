@@ -13,7 +13,6 @@ export class AddressRepository {
 			sqlRequest,
 			[id],
 			'standard',
-			false,
 		);
 		return result.length > 0 ? result[0].address : null;
 	}
@@ -24,7 +23,6 @@ export class AddressRepository {
 			sqlRequest,
 			[uuid],
 			'standard',
-			false,
 		);
 		return result.length > 0 ? result[0].address : null;
 	}
@@ -72,13 +70,13 @@ export class AddressRepository {
 				];
 
 		const result: { idPrivate: number; idPublic: string }[] =
-			await this.dbService.execute(sqlRequest, params, 'standard', false);
+			await this.dbService.execute(sqlRequest, params, 'standard');
 
 		return result.length > 0 ? result[0] : null;
 	}
 
 	public async deleteAddressById(id: string): Promise<void> {
 		const sqlRequest = `DELETE FROM content.address WHERE id_public = $1`;
-		await this.dbService.execute(sqlRequest, [id], 'standard', true);
+		await this.dbService.execute(sqlRequest, [id], 'standard');
 	}
 }

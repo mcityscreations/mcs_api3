@@ -1,15 +1,11 @@
-// src/database/postgresql/postgresql.service.ts
-import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
+import { Injectable, Inject, OnModuleInit, Optional } from '@nestjs/common';
 import { Pool } from 'pg';
 import type { PoolClient, QueryResult, PoolConfig } from 'pg';
 import { isErrorWithMessage } from '../../../common/validators/error.validators.js';
 import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
 import { IDatabaseService } from '../database.interfaces.js';
-import {
-	InternalError,
-	ServiceUnavailableError,
-	NotFoundError,
-} from '../../errors/index.js';
+import { InternalError, ServiceUnavailableError } from '../../errors/index.js';
+import { TransactionContext } from './transactions/transaction-context.service.js';
 
 export type DatabasePool = 'standard' | 'security';
 
@@ -22,6 +18,7 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		@Inject('PG_STANDARD_CONFIG') private readonly standardConfig: PoolConfig,
 		@Inject('PG_SECURITY_CONFIG') private readonly securityConfig: PoolConfig,
 		private readonly logger: WinstonLoggerService,
+		@Optional() private readonly txContext?: TransactionContext,
 	) {
 		this.defaultPool = new Pool(this.standardConfig);
 		this.securityPool = new Pool(this.securityConfig);
@@ -52,42 +49,29 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		return dbName === 'security' ? this.securityPool : this.defaultPool;
 	}
 
-	/**
-	 * Executes SQL requests against the PostgreSQL database.
-	 *
-	 * @param sqlRequest - The SQL query string to be executed.
-	 * @param params - An array of parameters to be used in the SQL query.
-	 * @param databasePool - The database pool to use ('standard' or 'security').
-	 * @param isEmptyResultAllowed - Whether an empty result set is acceptable.
-	 * @param transactionClient - Optional PoolClient for transaction context.
-	 * @returns A promise that resolves to an array of results of type T.
-	 */
 	public async execute<T>(
 		sqlRequest: string,
 		params: any[] = [],
 		databasePool: DatabasePool = 'standard',
-		isEmptyResultAllowed: boolean = false,
 		transactionClient: PoolClient | null = null,
 	): Promise<T[]> {
-		// Selecting the appropriate executor: either the provided transaction client or the pool
-		const executor = transactionClient || this.getPool(databasePool);
+		// 1. Explicit client passed as an argument (e.g., tests or special cases)
+		// 2. Ambient client from ALS (only if on the standard pool)
+		// 3. Regular pool if outside a transaction
+		const activeTxClient =
+			databasePool === 'standard' ? this.txContext?.getClient() : null;
+		const executor =
+			transactionClient || activeTxClient || this.getPool(databasePool);
 
 		try {
 			const result: QueryResult = await executor.query(sqlRequest, params);
-			const data: T[] = result.rows as T[];
-
-			if (data.length === 0 && !isEmptyResultAllowed) {
-				throw new NotFoundError('No data matching your request.');
-			}
-
-			return data;
+			return result.rows as T[];
 		} catch (error: any) {
-			this.handleDatabaseError(error);
-			throw error;
+			throw this.handleDatabaseError(error);
 		}
 	}
 
-	// --- Transaction Management ---
+	// --- Transaction Management (Private or reserved for the TransactionManager) ---
 
 	public async beginTransaction(
 		requiredDatabase: DatabasePool = 'standard',
@@ -124,36 +108,39 @@ export class PostgreSQLService implements OnModuleInit, IDatabaseService {
 		}
 	}
 
-	private handleDatabaseError(error: any) {
-		// PostgreSQL Error Codes
+	private handleDatabaseError(error: any): Error {
 		const errorCode = isPostgresError(error) ? error.code : null;
 		this.logger.error(
 			`PostgreSQL Error${errorCode ? ' Code ' + errorCode : ''}: ${
 				isErrorWithMessage(error) ? error.message : 'Unknown error'
 			}`,
 		);
+
 		if (errorCode === '57P03' || errorCode === '53300') {
-			throw new ServiceUnavailableError('Database connection limit reached.');
+			return new ServiceUnavailableError('Database connection limit reached.');
 		}
 		if (errorCode === '28P01') {
-			throw new InternalError('Database access denied.');
+			return new InternalError('Database access denied.');
 		}
 		if (errorCode === '42601') {
-			throw new InternalError('SQL Syntax Error.');
+			return new InternalError('SQL Syntax Error.');
 		}
 		if (errorCode === '23505') {
-			throw new InternalError('Duplicate entry violation.');
+			return new InternalError('Duplicate entry violation.');
 		}
 		if (errorCode === '23503') {
-			throw new InternalError('Foreign key violation.');
+			return new InternalError('Foreign key violation.');
 		}
 		if (errorCode === '23502') {
-			throw new InternalError('Not-null constraint violation.');
+			return new InternalError('Not-null constraint violation.');
 		}
+
+		return new InternalError(
+			'Database error occurred.' +
+				(isErrorWithMessage(error) ? ' ' + error.message : ''),
+		);
 	}
 }
-
-// Helpers
 
 function isPostgresError(
 	error: any,

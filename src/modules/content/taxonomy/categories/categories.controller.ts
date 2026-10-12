@@ -1,46 +1,33 @@
 // src/modules/content/taxonomy/categories/categories.controller.ts
-import {
-	Controller,
-	Get,
-	Post,
-	Body,
-	Patch,
-	Param,
-	Delete,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service.js';
-import { CreateCategoryDto } from './dto/create-category.dto.js';
-import { UpdateCategoryDto } from './dto/update-category.dto.js';
+import { LanguageQueryDto } from '../../../../common/dtos/language.dto.js';
+import { UuidDto } from '../../../../common/dtos/uuid.dto.js';
 
 @Controller('taxonomy/categories')
 export class CategoriesController {
 	constructor(private readonly categoriesService: CategoriesService) {}
 
+	/*
 	@Post()
 	create(@Body() createCategoryDto: CreateCategoryDto) {
 		return this.categoriesService.create(createCategoryDto);
 	}
-
+*/
 	@Get()
-	findAll() {
-		return this.categoriesService.findAll();
+	findAll(@Query() query: LanguageQueryDto) {
+		const lang = query.lang ?? null;
+		return lang
+			? this.categoriesService.findAlli18n(lang)
+			: this.categoriesService.findAll();
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.categoriesService.findOne(+id);
-	}
-
-	@Patch(':id')
-	update(
-		@Param('id') id: string,
-		@Body() updateCategoryDto: UpdateCategoryDto,
-	) {
-		return this.categoriesService.update(+id, updateCategoryDto);
-	}
-
-	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.categoriesService.remove(+id);
+	findOne(@Param() params: UuidDto, @Query() query: LanguageQueryDto) {
+		const lang = query.lang ?? null;
+		return lang
+			? this.categoriesService.findOnei18n(params.id, lang)
+			: this.categoriesService.findOne(params.id);
 	}
 }

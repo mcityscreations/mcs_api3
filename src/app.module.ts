@@ -4,6 +4,8 @@ import {
 	MiddlewareConsumer,
 	RequestMethod,
 } from '@nestjs/common';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { ConfigModule } from '@nestjs/config';
@@ -28,6 +30,12 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 			envFilePath: envFile,
 		}),
 		ScheduleModule.forRoot(),
+		ThrottlerModule.forRoot([
+			{
+				ttl: 60000, // Durée de la fenêtre en millisecondes (ex: 60 secondes)
+				limit: 10, // Nombre maximum de requêtes par fenêtre
+			},
+		]),
 		SystemModule,
 		CommonModule,
 		ContentModule,
@@ -35,7 +43,13 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 		AccountingModule,
 	],
 	controllers: [AppController],
-	providers: [AppService],
+	providers: [
+		AppService,
+		{
+			provide: APP_GUARD,
+			useClass: ThrottlerGuard, // Active la protection globale sur toutes les routes
+		},
+	],
 })
 export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer) {

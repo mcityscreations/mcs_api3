@@ -16,7 +16,6 @@ export class PeopleRepository {
 			sqlRequest,
 			[id],
 			'standard',
-			true,
 		);
 		const result = data && data.length > 0 ? data[0] : null;
 		return result;
@@ -28,7 +27,6 @@ export class PeopleRepository {
 			sqlRequest,
 			[id],
 			'standard',
-			true,
 		);
 		const result = data && data.length > 0 ? data[0] : null;
 		return result;
@@ -49,7 +47,6 @@ export class PeopleRepository {
 				sqlRequest,
 				[externalID, systemSource],
 				'standard',
-				true,
 			);
 		const result = data && data.length > 0 ? data[0] : null;
 		return result;
@@ -65,7 +62,6 @@ export class PeopleRepository {
 				sqlRequest,
 				[isOrganization, 'N/A'],
 				'standard',
-				false,
 				transactionClient,
 			);
 		const result = data && data.length > 0 ? data[0] : null;
@@ -83,7 +79,6 @@ export class PeopleRepository {
 			sqlRequest,
 			[idPerson, firstName, lastName],
 			'standard',
-			false,
 			transactionClient,
 		);
 	}
@@ -111,7 +106,6 @@ export class PeopleRepository {
 				idOrganizationCategory,
 			],
 			'standard',
-			false,
 			transactionClient,
 		);
 		const finalResult =
@@ -127,7 +121,7 @@ export class PeopleRepository {
 			cp.id_public = $1`;
 		const result = await this.dbService.execute<{
 			id_organization_category: number;
-		}>(sqlRequest, [uuid], 'standard', false);
+		}>(sqlRequest, [uuid], 'standard');
 		return result.length > 0 ? result[0].id_organization_category : null;
 	}
 
@@ -147,7 +141,6 @@ export class PeopleRepository {
 				payload.sourceData,
 			],
 			'standard',
-			false,
 		);
 		const result = data && data.length > 0 ? data[0].id_person : null;
 		return result;

@@ -12,6 +12,7 @@ import { PeopleModule } from '../content/people/people.module.js';
 import { PeopleService } from '../content/people/people.service.js';
 import { CountryService } from '../content/taxonomy/country/service/country.service.js';
 import { AddressModule } from '../content/address/address.module.js';
+import { CountryModule } from '../content/taxonomy/country/country.module.js';
 
 @Module({
 	providers: [
@@ -43,7 +44,6 @@ import { AddressModule } from '../content/address/address.module.js';
 		},
 		PrestashopCronService,
 		StoresRepository,
-		PrestashopAdapter,
 		StoresService,
 	],
 	controllers: [StoresController],
@@ -58,6 +58,7 @@ import { AddressModule } from '../content/address/address.module.js';
 		}),
 		PeopleModule,
 		AddressModule,
+		CountryModule,
 	],
 	exports: ['PRESTASHOP_STORE'],
 })

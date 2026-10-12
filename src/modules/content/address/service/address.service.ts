@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
 	InternalError,
 	BadRequestError,
+	NotFoundError,
 } from '../../../../system/errors/index.js';
 import { AddressRepository } from '../repository/address.repository.js';
 import { getIDType } from '../../../../common/utils/getIDType.utils.js';
@@ -20,20 +21,36 @@ export class AddressService {
 		idAddress: number | string,
 	): Promise<IAddress | null> {
 		switch (getIDType(idAddress)) {
-			case 'private':
-				return await this.addressRepository.getAddressById(idAddress as number);
-			case 'public':
-				return await this.addressRepository.getAddressByUUID(
+			case 'private': {
+				const result = await this.addressRepository.getAddressById(
+					idAddress as number,
+				);
+				if (!result) {
+					throw new NotFoundError(
+						`[Address Service] Unable to retrieve address : Address with id ${idAddress} not found`,
+					);
+				}
+				return result;
+			}
+			case 'public': {
+				const result = await this.addressRepository.getAddressByUUID(
 					idAddress as string,
 				);
+				if (!result) {
+					throw new NotFoundError(
+						`[Address Service] Unable to retrieve address : Address with id ${idAddress} not found`,
+					);
+				}
+				return result;
+			}
 			case 'invalid':
 				throw new BadRequestError(
-					'Unable to retrieve address : Invalid id address format',
+					'[Address Service] Unable to retrieve address : Invalid id address format',
 				);
 
 			default:
 				throw new BadRequestError(
-					'Unable to retrieve address : Unknown id address type',
+					'[Address Service] Unable to retrieve address : Unknown id address type',
 				);
 		}
 	}

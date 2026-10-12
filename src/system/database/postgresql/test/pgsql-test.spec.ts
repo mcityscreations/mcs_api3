@@ -13,6 +13,7 @@ import {
 	ServiceUnavailableError,
 	NotFoundError,
 } from '../../../errors/index.js';
+import { TransactionContext } from '../transactions/transaction-context.service.js';
 
 export type DatabasePool = 'standard' | 'security';
 
@@ -24,7 +25,10 @@ export class PGSQLTestService
 	private securityPool!: Pool;
 
 	// 1. Injection propre de ConfigService via le conteneur NestJS
-	constructor(private readonly configService: ConfigService) {}
+	constructor(
+		private readonly configService: ConfigService,
+		private readonly txContext?: TransactionContext,
+	) {}
 
 	// 2. Initialisation des pools UNE FOIS que les configurations sont chargées
 	public async onModuleInit() {
@@ -67,7 +71,8 @@ export class PGSQLTestService
 		isEmptyResultAllowed: boolean = false,
 		transactionClient: PoolClient | null = null,
 	): Promise<T[]> {
-		const executor = transactionClient || this.getPool(databasePool);
+		const contextualClient = transactionClient || this.txContext?.getClient() || null;
+		const executor = contextualClient || this.getPool(databasePool);
 
 		try {
 			const result: QueryResult = await executor.query(sqlRequest, params);

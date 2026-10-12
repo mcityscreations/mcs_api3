@@ -6,5 +6,6 @@ import { CountryRepository } from './repository/country.repository.js';
 @Module({
 	controllers: [CountryController],
 	providers: [CountryService, CountryRepository],
+	exports: [CountryService],
 })
 export class CountryModule {}

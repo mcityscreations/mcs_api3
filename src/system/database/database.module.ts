@@ -15,6 +15,8 @@ import {
 } from './redis/redis-config/redis-config.service.js';
 import { PostgresqlConfigService } from './postgresql/postgresql-config/postgresql-config.service.js';
 import { PoolConfig } from 'pg';
+import { TransactionContext } from './postgresql/transactions/transaction-context.service.js';
+import { TransactionManager } from './postgresql/transactions/transaction-manager.service.js';
 
 // Logging
 import { WinstonLoggerService } from '../logger/logger-service/winston-logger.service.js';
@@ -27,6 +29,8 @@ import { WinstonLoggerService } from '../logger/logger-service/winston-logger.se
 		RedisConfigService,
 		RedisService,
 		PostgresqlConfigService,
+		TransactionContext,
+		TransactionManager,
 		// Config objects for PostgreSQL connections
 		{
 			provide: 'PG_STANDARD_CONFIG',
@@ -47,11 +51,13 @@ import { WinstonLoggerService } from '../logger/logger-service/winston-logger.se
 				stdCfg: PoolConfig,
 				authCfg: PoolConfig,
 				logger: WinstonLoggerService,
-			) => new PostgreSQLService(stdCfg, authCfg, logger),
+				txContext: TransactionContext,
+			) => new PostgreSQLService(stdCfg, authCfg, logger, txContext),
 			inject: [
 				'PG_STANDARD_CONFIG',
 				'PG_SECURITY_CONFIG',
 				WinstonLoggerService,
+				TransactionContext,
 			],
 		},
 		// Provider that generates the REDIS_CONFIG config object
@@ -78,6 +84,8 @@ import { WinstonLoggerService } from '../logger/logger-service/winston-logger.se
 		RedisConfigService,
 		PostgreSQLService,
 		PostgresqlConfigService,
+		TransactionContext,
+		TransactionManager,
 	],
 })
 export class DatabaseModule {}
