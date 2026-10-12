@@ -28,7 +28,7 @@ export class ProcessInvoiceProcessor extends WorkerHost {
 			);
 		}
 
-		const invoice = parsedInvoice.data.payload.data;
+		const invoice = parsedInvoice.data.data.data;
 		const invoiceItems = JSON.stringify(invoice.order_details);
 
 		try {
