@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { FetchInvoiceDetailProcessor } from './processors/fetch-invoice-detail.processor.js';
 import { BullModule } from '@nestjs/bullmq';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { PrestashopConfigService } from './configs/prestashop/prestashop.config.js';
 import { PrestashopAdapter } from './adapters/prestashop.adapter.js';
 import { PrestashopAgregator } from './agregators/prestashop/prestashop.agregator.js';
@@ -59,6 +61,10 @@ import { CountryModule } from '../content/taxonomy/country/country.module.js';
 				removeOnComplete: 100, // Keep only the last 100 successful jobs in Redis
 				removeOnFail: 500, // Keep the last 500 failed jobs for debugging
 			},
+		}),
+		BullBoardModule.forFeature({
+			name: 'store.fetch-invoice-detail',
+			adapter: BullMQAdapter,
 		}),
 		PeopleModule,
 		AddressModule,

@@ -26,6 +26,9 @@
     "js-yaml": "^4.1.2"
   },
   "dependencies": {
+    "@bull-board/api": "^9.10.4",
+    "@bull-board/express": "^9.10.4",
+    "@bull-board/nestjs": "^9.10.4",
     "@google-cloud/recaptcha-enterprise": "^6.3.1",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/bullmq": "^11.0.4",
