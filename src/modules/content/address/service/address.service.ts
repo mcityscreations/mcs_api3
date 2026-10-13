@@ -62,10 +62,41 @@ export class AddressService {
 		if (!parsedPayload.success)
 			throw new ValidationError(`Invalid payload : ${parsedPayload.error}`);
 		const addressIDs = await this.addressRepository.saveAddress(payload);
-		if (!addressIDs)
+		const fallBackIDs = addressIDs
+			? addressIDs
+			: await this.getAddressIDsBySystemSource({
+					systemSource: parsedPayload.data.systemSource!,
+					idSource: parsedPayload.data.idSource!,
+				});
+		if (!fallBackIDs) {
 			throw new InternalError(
 				`Unable to save address :` + JSON.stringify(payload),
 			);
-		return addressIDs;
+		}
+		return fallBackIDs;
+	}
+
+	public async getAddressIDsBySystemSource(payload: {
+		systemSource: string;
+		idSource: string;
+	}): Promise<{ idPrivate: number; idPublic: string } | null> {
+		if (
+			!payload.systemSource ||
+			!payload.idSource ||
+			payload.systemSource.trim() === '' ||
+			payload.idSource.trim() === ''
+		) {
+			throw new BadRequestError(
+				`[Address Service] Unable to retrieve address : Missing system source or id source`,
+			);
+		}
+		const result =
+			await this.addressRepository.getAddressIDsBySystemSource(payload);
+		if (!result) {
+			throw new NotFoundError(
+				`[Address Service] Unable to retrieve address : Address with system source ${payload.systemSource} and id source ${payload.idSource} not found`,
+			);
+		}
+		return result;
 	}
 }

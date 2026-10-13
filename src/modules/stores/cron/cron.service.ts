@@ -17,4 +17,9 @@ export class PrestashopCronService {
 	async getLastInvoices() {
 		await this.storesService.downloadLastInvoices();
 	}
+	// This task will execute every 5 minutes
+	@Cron('*/5 * * * *', { timeZone: 'Europe/Paris' })
+	async fetchInvoiceDetails() {
+		await this.storesService.downloadLastInvoices();
+	}
 }

@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-export const AddressSchema = z.object({
-	id: z.uuidv7().optional(),
+export const AddressValueSchema = z.object({
 	address1: z.string().optional(),
 	address2: z.string().optional(),
 	address3: z.string().optional(),
@@ -14,5 +13,15 @@ export const AddressSchema = z.object({
 		name: z.string(),
 	}),
 	phone: z.string().optional(),
+});
+
+export const AddressSchema = z.object({
+	id: z.uuidv7().optional(),
+	name: z.string().trim().min(1).default('default'),
+	systemSource: z.string(),
+	idSource: z.string().nullable().optional(),
+	address: AddressValueSchema,
+	isDefault: z.boolean().optional().default(false),
+	isBillingAddress: z.boolean().optional().default(false),
 });
 export type IAddress = z.infer<typeof AddressSchema>;

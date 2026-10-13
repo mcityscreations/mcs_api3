@@ -1,4 +1,8 @@
 import z from 'zod';
+import {
+	stringOrNullFromPrestashopSchema,
+	numberOrNullFromPrestashopSchema,
+} from './null-handler.schema.js';
 
 /**
  * @see https://devdocs.prestashop-project.org/9/webservice/resources/addresses/
@@ -69,20 +73,20 @@ export const PrestashopAddressSchema = z.object({
 
 		z.coerce.number(),
 	]),
-	id_state: z.string().transform(Number).or(z.number()).nullable().optional(),
+	id_state: numberOrNullFromPrestashopSchema,
 	alias: z.string(),
 	company: z.string().nullable().optional(),
 	lastname: z.string(),
 	firstname: z.string(),
-	vat_number: z.string().nullable().optional(),
+	vat_number: stringOrNullFromPrestashopSchema,
 	address1: z.string(),
 	address2: z.string().nullable().optional(),
 	postcode: z.string().transform(Number).or(z.number()).nullable().optional(),
 	city: z.string(),
 	other: z.string().nullable().optional(),
-	phone: z.string().nullable().optional(),
-	phone_mobile: z.string().nullable().optional(),
-	dni: z.string().nullable().optional(),
+	phone: stringOrNullFromPrestashopSchema,
+	phone_mobile: stringOrNullFromPrestashopSchema,
+	dni: stringOrNullFromPrestashopSchema,
 	deleted: z.number().nullable().optional(),
 	date_add: z.string().nullable().optional(),
 	date_upd: z.string().nullable().optional(),

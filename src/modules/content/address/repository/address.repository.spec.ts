@@ -13,30 +13,13 @@ import { PoolClient } from 'pg';
 import { AddressRepository } from './address.repository.js';
 import { PGSQLTestService } from '../../../../system/database/postgresql/test/pgsql-test.spec.js';
 import { PostgreSQLService } from '../../../../system/database/postgresql/postgresql.service.js';
+import { TransactionContext } from '../../../../system/database/postgresql/transactions/transaction-context.service.js';
 
 describe('AddressRepository Integration Tests', () => {
 	let moduleRef: TestingModule;
 	let dbService: PGSQLTestService;
 	let client: PoolClient;
 	let repository: AddressRepository;
-
-	const mockOrganizationAddress = {
-		idPerson: '01a0572d-51f6-7513-8b70-10e1f554fa81',
-		name: 'Headquarters',
-		address: {
-			country: { iso2: 'FR', name: 'France', iso3: 'FRA' },
-			id: undefined,
-			address1: '456 Corporate Blvd',
-			address2: 'Suite 100',
-			address3: '',
-			city: 'Paris',
-			state: 'Île-de-France',
-			zip_code: '75002',
-			phone: '+33 1 98 76 54 32',
-		},
-		isDefault: true,
-		isBillingAddress: false,
-	};
 
 	beforeAll(async () => {
 		moduleRef = await Test.createTestingModule({
@@ -48,16 +31,15 @@ describe('AddressRepository Integration Tests', () => {
 			],
 			providers: [
 				AddressRepository,
-				PGSQLTestService, // Declares the test service provider
+				PGSQLTestService,
+				TransactionContext,
 				{
-					// Aliases PostgreSQLService to PGSQLTestService
 					provide: PostgreSQLService,
 					useExisting: PGSQLTestService,
 				},
 			],
 		}).compile();
 
-		// ⚠️ CRUCIAL: Triggers onModuleInit() to initialize pg pools
 		await moduleRef.init();
 
 		dbService = moduleRef.get<PGSQLTestService>(PGSQLTestService);
@@ -65,58 +47,184 @@ describe('AddressRepository Integration Tests', () => {
 	});
 
 	beforeEach(async () => {
-		// 1. Get dedicated client from the standard pool
 		client = await dbService.getPool('standard').connect();
 	});
 
 	afterEach(() => {
-		// 4. Release client back to the pool
-		client.release();
+		if (client) client.release();
 	});
 
 	afterAll(async () => {
-		// Closes module AND pools via onModuleDestroy
-		await moduleRef.close();
+		if (moduleRef) await moduleRef.close();
 	});
 
-	it('should insert address and rollback automatically', async () => {
-		// Execute request within the explicit transaction client context
+	it('should save an address in database with real insert and cleanup', async () => {
+		const personResult = await client.query<{
+			id_person: number;
+			id_public: string;
+		}>(
+			'INSERT INTO content.people (is_organization, reference) VALUES ($1, $2) RETURNING id_person, id_public',
+			[true, 'TEST-ADDRESS-REPOSITORY'],
+		);
+
+		const personIdPrivate = personResult.rows[0].id_person;
+		const personIdPublic = personResult.rows[0].id_public;
+		let savedAddress: { idPrivate: number; idPublic: string } | null = null;
+
+		const payload = {
+			idPerson: personIdPublic,
+			name: 'Headquarters',
+			systemSource: 'prestashop',
+			idSource: 'prestashop-123456',
+			address: {
+				country: { iso2: 'FR', name: 'France', iso3: 'FRA' },
+				id: undefined,
+				address1: '456 Corporate Blvd',
+				address2: 'Suite 100',
+				address3: '',
+				city: 'Paris',
+				state: 'Île-de-France',
+				zip_code: '75002',
+				phone: '+33 1 98 76 54 32',
+			},
+			isDefault: true,
+			isBillingAddress: false,
+		};
+
 		try {
-			const result = await repository.saveAddress(mockOrganizationAddress);
-			expect(result).not.toBeNull();
+			savedAddress = await repository.saveAddress(payload);
+			expect(savedAddress).not.toBeNull();
 
-			// Verify isolation directly on the transaction client
-			const checkRes = await client.query(
-				'SELECT * FROM content.address WHERE id_address = $1',
-				[result?.idPrivate],
+			const checkRes = await client.query<{
+				id_person: number;
+				name: string;
+				system_source: string;
+				id_source: string;
+				is_default: boolean;
+				is_billing_address: boolean;
+				value: {
+					city: string;
+					zip_code: string;
+					country: { iso2: string; iso3: string; name: string };
+				};
+			}>(
+				'SELECT id_person, name, system_source, id_source, is_default, is_billing_address, value FROM content.address WHERE id_address = $1',
+				[savedAddress?.idPrivate],
 			);
+
 			expect(checkRes.rows).toHaveLength(1);
-
-			await repository.deleteAddressById(result?.idPublic as string);
-
-			const checkDel = await client.query(
-				'SELECT * FROM content.address WHERE id_address = $1',
-				[result?.idPrivate],
+			expect(checkRes.rows[0].id_person).toBe(personIdPrivate);
+			expect(checkRes.rows[0].name).toBe(payload.name);
+			expect(checkRes.rows[0].system_source).toBe(payload.systemSource);
+			expect(checkRes.rows[0].id_source).toBe(payload.idSource);
+			expect(checkRes.rows[0].is_default).toBe(true);
+			expect(checkRes.rows[0].is_billing_address).toBe(false);
+			expect(checkRes.rows[0].value.city).toBe(payload.address.city);
+			expect(checkRes.rows[0].value.zip_code).toBe(payload.address.zip_code);
+			expect(checkRes.rows[0].value.country.iso2).toBe(
+				payload.address.country.iso2,
 			);
-			expect(checkDel.rows).toHaveLength(0);
-		} catch (err) {
-			if (err && Array.isArray(err.errors)) {
-				// Si c'est une AggregateError, on boucle sur chaque sous-erreur
-				err.errors.forEach((e: unknown, index: number) => {
-					process.stderr.write(
-						`[Erreur ${index + 1}]: ${e instanceof Error ? e.stack : JSON.stringify(e)}\n`,
-					);
-				});
-			} else if (err instanceof Error) {
-				process.stderr.write(`${err.stack}\n`);
-			} else {
-				process.stderr.write(`${JSON.stringify(err)}\n`);
+		} finally {
+			if (savedAddress?.idPublic) {
+				await client.query('DELETE FROM content.address WHERE id_public = $1', [
+					savedAddress.idPublic,
+				]);
 			}
+			await client.query('DELETE FROM content.people WHERE id_person = $1', [
+				personIdPrivate,
+			]);
+		}
+	});
 
-			process.stderr.write('========= FIN DETAIL ERREUR =========\n\n');
+	it('should upsert address when systemSource and idSource already exist', async () => {
+		const personResult = await client.query<{
+			id_person: number;
+			id_public: string;
+		}>(
+			'INSERT INTO content.people (is_organization, reference) VALUES ($1, $2) RETURNING id_person, id_public',
+			[true, 'TEST-ADDRESS-REPOSITORY-CONFLICT'],
+		);
 
-			// On relance l'erreur pour que le test échoue correctement dans Jest
-			throw err;
+		const personIdPrivate = personResult.rows[0].id_person;
+		const personIdPublic = personResult.rows[0].id_public;
+		const uniqueSourceId = `prestashop-conflict-${personIdPublic}`;
+
+		const firstPayload = {
+			idPerson: personIdPublic,
+			name: 'Headquarters',
+			systemSource: 'prestashop',
+			idSource: uniqueSourceId,
+			address: {
+				country: { iso2: 'FR', name: 'France', iso3: 'FRA' },
+				id: undefined,
+				address1: '456 Corporate Blvd',
+				address2: 'Suite 100',
+				address3: '',
+				city: 'Paris',
+				state: 'Île-de-France',
+				zip_code: '75002',
+				phone: '+33 1 98 76 54 32',
+			},
+			isDefault: true,
+			isBillingAddress: false,
+		};
+
+		const secondPayload = {
+			...firstPayload,
+			name: 'Headquarters Updated',
+			address: {
+				...firstPayload.address,
+				address1: '789 Updated Blvd',
+				city: 'Lyon',
+				zip_code: '69001',
+			},
+			isBillingAddress: true,
+		};
+
+		try {
+			const firstSave = await repository.saveAddress(firstPayload);
+			const secondSave = await repository.saveAddress(secondPayload);
+
+			expect(firstSave).not.toBeNull();
+			expect(secondSave).not.toBeNull();
+			expect(secondSave?.idPrivate).toBe(firstSave?.idPrivate);
+
+			const countRes = await client.query<{ total: string }>(
+				'SELECT COUNT(*)::text AS total FROM content.address WHERE system_source = $1 AND id_source = $2',
+				[firstPayload.systemSource, firstPayload.idSource],
+			);
+			expect(countRes.rows[0].total).toBe('1');
+
+			const checkRes = await client.query<{
+				name: string;
+				is_billing_address: boolean;
+				value: {
+					address1: string;
+					city: string;
+					zip_code: string;
+				};
+			}>(
+				'SELECT name, is_billing_address, value FROM content.address WHERE id_address = $1',
+				[secondSave?.idPrivate],
+			);
+
+			expect(checkRes.rows).toHaveLength(1);
+			expect(checkRes.rows[0].name).toBe(secondPayload.name);
+			expect(checkRes.rows[0].is_billing_address).toBe(true);
+			expect(checkRes.rows[0].value.address1).toBe(
+				secondPayload.address.address1,
+			);
+			expect(checkRes.rows[0].value.city).toBe(secondPayload.address.city);
+			expect(checkRes.rows[0].value.zip_code).toBe(
+				secondPayload.address.zip_code,
+			);
+		} finally {
+			await client.query('DELETE FROM content.address WHERE id_person = $1', [
+				personIdPrivate,
+			]);
+			await client.query('DELETE FROM content.people WHERE id_person = $1', [
+				personIdPrivate,
+			]);
 		}
 	});
 });

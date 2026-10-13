@@ -37,15 +37,13 @@ export class PrestashopAgregator {
 			await this.prestashopStoreAdapter.getMainOrderDataByInvoiceID(
 				prestashopInvoice.id,
 			);
-		console.log('Main order data***************');
-		console.log(mainOrderData);
+
 		const detailedOrderData: IPrestashopOrderDetailsNormalized =
 			await this.prestashopStoreAdapter.getOrderDetails(
 				prestashopInvoice.id,
 				'invoice',
 			);
-		console.log('Detailed order data***************');
-		console.log(detailedOrderData);
+
 		// Get address & synchronize //
 		if (!mainOrderData.id_address_invoice)
 			throw new InternalError(
@@ -84,6 +82,8 @@ export class PrestashopAgregator {
 		const addressID = await this.addressService.saveAddress({
 			idPerson: mcitysCustomerID.idPublic,
 			name: 'Invoicing address',
+			systemSource: 'prestashop',
+			idSource: addressData.id ? String(addressData.id) : undefined,
 			isDefault: false,
 			isBillingAddress: true,
 			address: {
