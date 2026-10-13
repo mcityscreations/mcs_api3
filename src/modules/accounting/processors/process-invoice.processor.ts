@@ -19,10 +19,13 @@ export class ProcessInvoiceProcessor extends WorkerHost {
 	async process(job: Job<IJobDescriptor<ICreateMcitysInvoice>>): Promise<void> {
 		// 1. Validating job structure
 		const zodSchema = createJobDescriptorSchema(CreateMcitysInvoiceSchema);
-		const parsedInvoice = zodSchema.safeParse(job.data);
+		const parsedInvoice = zodSchema.safeParse(job);
 
 		if (!parsedInvoice.success) {
 			// An invalid schema should not be retried by BullMQ (corrupted data)
+			this.logger.error(
+				`[Worker accounting.process-invoice] Invalid job data structure for job ${job.id} in queue ${job.queueName}: ${parsedInvoice.error.message}`,
+			);
 			throw new UnrecoverableError(
 				`Invalid invoice data structure for job ${job.id} in queue ${job.queueName}: ${parsedInvoice.error.message}`,
 			);
