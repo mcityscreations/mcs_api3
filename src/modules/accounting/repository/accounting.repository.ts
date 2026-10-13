@@ -40,7 +40,7 @@ export class AccountingRepository {
 			issue_date, due_date, paid_at, emitter, recipient, currency, payment_direction, invoice_type
 			)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
-			ON CONFLICT (reference, system_source) DO NOTHING;
+			ON CONFLICT (reference, system_source) DO NOTHING
 			RETURNING id_invoice
 		),
 		new_payment_status AS (
@@ -85,7 +85,7 @@ export class AccountingRepository {
 			vat_rate INT,
 			total_price_tax_excl INT,
 			total_price_tax_incl INT
-		)`;
+		);`;
 
 		const result = await this.dbService.execute<{ id_invoice: number }>(
 			sqlRequest,
