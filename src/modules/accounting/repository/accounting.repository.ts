@@ -32,14 +32,27 @@ export class AccountingRepository {
 		data: ICreateMcitysInvoice,
 		items: string,
 	): Promise<number | null> {
+		console.log(data);
 		const sqlRequest = `
-		WITH 
+		WITH
+		emitter_data AS (
+			SELECT content.people.id_person AS id_emitter
+			FROM content.people
+			WHERE content.people.id_public = $10
+		),
+		recipient_data AS (
+			SELECT content.people.id_person AS id_recipient
+			FROM content.people
+			WHERE content.people.id_public = $11
+		),
 		new_invoice AS (
 		INSERT INTO accounting.invoice 
 			(system_source, reference, id_technical_erp, amount_wt, amount_vat, amount_at, 
 			issue_date, due_date, paid_at, emitter, recipient, currency, payment_direction, invoice_type
 			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
+			(SELECT id_emitter FROM emitter_data),
+			(SELECT id_recipient FROM recipient_data), $12, $13, $14) 
 			ON CONFLICT (reference, system_source) DO NOTHING
 			RETURNING id_invoice
 		),
@@ -61,7 +74,7 @@ export class AccountingRepository {
 			total_price_tax_incl, quantity)
 		SELECT 
 			new_invoice.id_invoice,
-			items.id_item,
+			items.id,
 			items.label,
 			items.description,
 			items.unit_price_tax_excl,
@@ -73,7 +86,7 @@ export class AccountingRepository {
 			items.total_price_tax_incl,
 			items.quantity
 		FROM new_invoice
-		CROSS JOIN jsonb_to_recordset($1::jsonb) AS items(
+		CROSS JOIN jsonb_to_recordset($15::jsonb) AS items(
 			id VARCHAR(255),
 			label VARCHAR(255),
 			description TEXT,
@@ -99,8 +112,8 @@ export class AccountingRepository {
 				data.issue_date,
 				data.due_date,
 				data.paid_at,
-				data.emitter,
-				data.recipient,
+				data.emitter.id,
+				data.recipient.id,
 				data.currency,
 				data.payment_direction,
 				data.invoice_type,

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ZodPriceToCents } from '../../../../common/utils/priceToCents.js';
 
 /** XML Schema for PrestaShop 8.1 Invoice
  * <?xml version="1.0" encoding="UTF-8"?>
@@ -55,17 +56,17 @@ export const PrestashopInvoiceSchema = z.object({
 	number: z.coerce.number(),
 	delivery_number: z.coerce.number().optional(),
 	delivery_date: z.string().optional(),
-	total_discount_tax_excl: priceSchema.optional(),
-	total_discount_tax_incl: priceSchema.optional(),
-	total_paid_tax_excl: priceSchema.optional(),
-	total_paid_tax_incl: priceSchema.optional(),
-	total_products: priceSchema.optional(),
-	total_products_wt: priceSchema.optional(),
-	total_shipping_tax_excl: priceSchema.optional(),
-	total_shipping_tax_incl: priceSchema.optional(),
+	total_discount_tax_excl: ZodPriceToCents.optional(),
+	total_discount_tax_incl: ZodPriceToCents.optional(),
+	total_paid_tax_excl: ZodPriceToCents.optional(),
+	total_paid_tax_incl: ZodPriceToCents.optional(),
+	total_products: ZodPriceToCents.optional(),
+	total_products_wt: ZodPriceToCents.optional(),
+	total_shipping_tax_excl: ZodPriceToCents.optional(),
+	total_shipping_tax_incl: ZodPriceToCents.optional(),
 	shipping_tax_computation_method: z.coerce.number().optional(),
-	total_wrapping_tax_excl: priceSchema.optional(),
-	total_wrapping_tax_incl: priceSchema.optional(),
+	total_wrapping_tax_excl: ZodPriceToCents.optional(),
+	total_wrapping_tax_incl: ZodPriceToCents.optional(),
 	shop_address: z.string().max(1000).optional(),
 	note: z.string().max(65000).optional(),
 	date_add: z.string().optional(),

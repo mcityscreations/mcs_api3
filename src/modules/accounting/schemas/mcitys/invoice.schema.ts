@@ -50,7 +50,7 @@ const orderDetailSchema = z.object({
 	discount: z
 		.object({
 			type: z.enum(['percentage', 'absolute']),
-			value: z.number().int().positive(),
+			value: z.number().int().nonnegative(),
 			discount_amount_tax_excl: z.number().int().nonnegative().optional(),
 		})
 		.optional(),
@@ -60,7 +60,7 @@ const orderDetailSchema = z.object({
 	total_price_tax_excl: z.number().int().nonnegative(),
 	total_price_tax_incl: z.number().int().nonnegative(),
 });
-export type IPrestashopOrderDetail = z.infer<typeof orderDetailSchema>;
+export type IMcitysOrderDetail = z.infer<typeof orderDetailSchema>;
 
 // 2. Base invoice schema containing the common structure for both objects
 const BaseInvoiceSchema = z.object({

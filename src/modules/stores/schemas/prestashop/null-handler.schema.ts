@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const stringOrNullFromPrestashopSchema = z.preprocess((val) => {
 	if (val === '0' || val === 0 || val === '' || val === undefined) {
-		return 'N/A';
+		return null;
 	}
 	return val;
 }, z.string().nullable().optional());

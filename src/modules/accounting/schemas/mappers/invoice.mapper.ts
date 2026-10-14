@@ -77,6 +77,9 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 						orderDetail.reduction_amount_tax_excl ?? 0,
 					),
 				},
+				unit_price_tax_excl_discount: hasPercentDiscount
+					? (priceExcl * Number(orderDetail.reduction_percent)) / 10000
+					: priceExcl - Number(orderDetail.reduction_amount ?? 0),
 				total_price_tax_excl: Number(orderDetail.total_price_tax_excl ?? 0),
 				total_price_tax_incl: Number(orderDetail.total_price_tax_incl ?? 0),
 			};
