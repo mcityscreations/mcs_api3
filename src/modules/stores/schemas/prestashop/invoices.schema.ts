@@ -73,6 +73,28 @@ export const PrestashopInvoiceSchema = z.object({
 });
 export type IPrestashopInvoice = z.infer<typeof PrestashopInvoiceSchema>;
 
+export const PrestashopInvoiceSchemaNoCoerce = z.object({
+	id: z.coerce.number(),
+	id_order: z.coerce.number(),
+	number: z.coerce.number(),
+	delivery_number: z.coerce.number().optional(),
+	delivery_date: z.string().optional(),
+	total_discount_tax_excl: z.int().nonnegative().optional(),
+	total_discount_tax_incl: z.int().nonnegative().optional(),
+	total_paid_tax_excl: z.int().nonnegative().optional(),
+	total_paid_tax_incl: z.int().nonnegative().optional(),
+	total_products: z.int().nonnegative().optional(),
+	total_products_wt: z.int().nonnegative().optional(),
+	total_shipping_tax_excl: z.int().nonnegative().optional(),
+	total_shipping_tax_incl: z.int().nonnegative().optional(),
+	shipping_tax_computation_method: z.coerce.number().optional(),
+	total_wrapping_tax_excl: z.int().nonnegative().optional(),
+	total_wrapping_tax_incl: z.int().nonnegative().optional(),
+	shop_address: z.string().max(1000).optional(),
+	note: z.string().max(65000).optional(),
+	date_add: z.string().optional(),
+});
+
 /** Simplified schema for a list of PrestaShop invoices */
 export const PrestashopInvoiceListSchema = z.object({
 	prestashop: z.object({

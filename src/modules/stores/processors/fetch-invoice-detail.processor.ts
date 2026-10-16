@@ -9,7 +9,7 @@ import type { IJobDescriptor } from '../../../system/jobdispatcher/schemas/job.s
 import { createJobDescriptorSchema } from '../../../system/jobdispatcher/schemas/job.schema.js';
 import type { ICreateMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
 import type { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
-import { PrestashopInvoiceSchema } from '../schemas/prestashop/invoices.schema.js';
+import { PrestashopInvoiceSchemaNoCoerce } from '../schemas/prestashop/invoices.schema.js';
 import { PrestashopAgregator } from '../agregators/prestashop/prestashop.agregator.js';
 
 @Processor('store.fetch-invoice-detail', {
@@ -35,7 +35,9 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 			job.id,
 		);
 		// Check the data structure
-		const zodSchema = createJobDescriptorSchema(PrestashopInvoiceSchema);
+		const zodSchema = createJobDescriptorSchema(
+			PrestashopInvoiceSchemaNoCoerce,
+		);
 		const checkedInvoice = zodSchema.safeParse(job);
 		if (!checkedInvoice.success) {
 			this.logger.error(
