@@ -41,7 +41,17 @@ export class PeopleRepository {
 		externalID: string,
 		systemSource: string,
 	): Promise<IIds | null> {
-		const sqlRequest = `SELECT id_person as "idPrivate", id_public as "idPublic" FROM content.people_mapper WHERE id_person_source = $1 AND system_source = $2;`;
+		const sqlRequest = `
+		SELECT 
+			cpm.id_person as "idPrivate", 
+			cp.id_public as "idPublic" 
+		FROM 
+			content.people_mapper cpm
+		INNER JOIN 
+			content.people cp ON cpm.id_person = cp.id_person
+		WHERE 
+			cpm.id_person_source = $1 AND cpm.system_source = $2;
+		`;
 		const data: { idPrivate: number; idPublic: string }[] =
 			await this.dbService.execute(
 				sqlRequest,
