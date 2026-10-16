@@ -2,7 +2,10 @@ import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject } from '@nestjs/common';
 import { Job, UnrecoverableError } from 'bullmq';
 import { uuidv7 } from 'uuidv7';
-import { InternalError } from '../../../system/errors/index.js';
+import {
+	InternalError,
+	ValidationError,
+} from '../../../system/errors/index.js';
 import { JobDispatcher } from '../../../system/jobdispatcher/interfaces/jobdispatcher.interface.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import type { IJobDescriptor } from '../../../system/jobdispatcher/schemas/job.schema.js';
@@ -88,7 +91,12 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 				`[Prestashop Invoicing Worker] Failed to process invoice PRESTASHOP-${invoice.id}`,
 				error instanceof Error ? error.stack : String(error),
 			);
-
+			//Avoid retry for validation errors.
+			if (error instanceof ValidationError) {
+				throw new UnrecoverableError(
+					`[Prestashop Invoicing Worker] Validation error for invoice PRESTASHOP-${invoice.id}}`,
+				);
+			}
 			// When the job fails, we throw an Error to indicate
 			// that the processing of the invoice has failed. This will trigger the retry
 			// mechanism in BullMQ based on the backoff strategy defined in the job options.
