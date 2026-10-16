@@ -350,6 +350,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		addressData: IPrestashopAddress;
 		countryData: ICountry;
 	}): Promise<IIds | null> {
+		console.log(payload);
 		const { customerData, addressData } = payload;
 		if (!PrestashopCustomerSchema.safeParse(customerData).success) {
 			throw new InternalError(
@@ -371,8 +372,10 @@ export class PrestashopAdapter extends StoreAdapter {
 
 		// Get country data
 		const idCountry = payload.countryData.id;
-		const isCompany: boolean = !!customerData?.siret;
+		const isCompany: boolean =
+			!!customerData?.siret && customerData?.siret.trim() !== '';
 		if (isCompany) {
+			console.log('company detected : siret = ', customerData.siret);
 			// Check company name
 			const newMcitysIDs = await this.peopleService.addOrganization({
 				type: 'organization',
