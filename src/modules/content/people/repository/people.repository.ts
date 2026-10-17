@@ -96,15 +96,26 @@ export class PeopleRepository {
 	public async addOrganization(
 		idPerson: number,
 		legalName: string,
-		registrationCountry: number,
+		registrationCountry: string,
 		idRegistration: string,
 		idVAT: string,
-		idOrganizationCategory: number,
+		idOrganizationCategory: string,
 		transactionClient: PoolClient,
 	): Promise<number | null> {
-		const sqlRequest = `INSERT INTO content.people_organization_detail 
+		const sqlRequest = `
+		WITH country_data AS (
+			SELECT id_country AS registration_country_id
+			FROM taxonomy.country tc
+			WHERE tc.id_public = $3
+		),
+		organization_category_data AS (
+			SELECT id_organization_category AS organization_category_id
+			FROM content.people_organization_category cpoc
+			WHERE cpoc.id_public = $6
+		)
+		INSERT INTO content.people_organization_detail 
 		(id_person, legal_name, registration_country, id_registration, id_vat, id_organization_category) 
-		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_person;`;
+		VALUES ($1, $2, (SELECT registration_country_id FROM country_data), $4, $5, (SELECT organization_category_id FROM organization_category_data)) RETURNING id_person;`;
 		const result: { id_person: number }[] = await this.dbService.execute(
 			sqlRequest,
 			[

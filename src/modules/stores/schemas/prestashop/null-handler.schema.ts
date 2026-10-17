@@ -5,7 +5,7 @@ export const stringOrNullFromPrestashopSchema = z.preprocess((val) => {
 		return null;
 	}
 	return val;
-}, z.string().nullable().optional());
+}, z.coerce.string().nullable().optional());
 
 export const numberOrNullFromPrestashopSchema = z.preprocess((val) => {
 	if (

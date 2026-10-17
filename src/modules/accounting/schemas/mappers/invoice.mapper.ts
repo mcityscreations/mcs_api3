@@ -22,7 +22,7 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	return {
 		id_technical: prestashopInvoice.id?.toString() ?? '0',
 		reference: prestashopInvoice.number.toString(),
-		id_order: prestashopMainOrderData.id?.toString() ?? '0',
+		id_order: prestashopMainOrderData.reference?.toString() ?? 'N/A',
 		source_system: 'prestashop',
 		invoice_type: invoiceType,
 		issue_date: prestashopInvoice.date_add

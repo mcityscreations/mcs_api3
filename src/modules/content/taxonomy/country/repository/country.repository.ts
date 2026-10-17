@@ -31,8 +31,7 @@ export class CountryRepository {
 	): Promise<ICountry | null> {
 		const sqlRequest = `
 		SELECT 
-			tc.id_country AS id,
-			tc.id_public AS id_public,
+			tc.id_public AS id,
 			tc.alpha_2_code AS iso2,
 			tc.alpha_3_code AS iso3,
 			tc.name AS name,

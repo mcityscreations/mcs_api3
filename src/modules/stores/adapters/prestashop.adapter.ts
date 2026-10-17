@@ -372,8 +372,7 @@ export class PrestashopAdapter extends StoreAdapter {
 
 		// Get country data
 		const idCountry = payload.countryData.id;
-		const isCompany: boolean =
-			!!customerData?.siret && customerData?.siret.trim() !== '';
+		const isCompany: boolean = !!customerData?.siret;
 		if (isCompany) {
 			console.log('company detected : siret = ', customerData.siret);
 			// Check company name
@@ -382,8 +381,8 @@ export class PrestashopAdapter extends StoreAdapter {
 				details: {
 					legalName: customerData.company as string,
 					idRegistration: customerData.siret as string,
-					idVAT: addressData.vat_number as string,
-					category: 3,
+					idVAT: addressData.vat_number,
+					category: '019b8a59-1c9f-71bd-b108-3efcbe2cde93', // Default category for companies
 					registrationCountry: idCountry,
 				},
 			});

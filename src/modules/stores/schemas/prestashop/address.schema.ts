@@ -81,7 +81,7 @@ export const PrestashopAddressSchema = z.object({
 	vat_number: stringOrNullFromPrestashopSchema,
 	address1: z.string(),
 	address2: z.string().nullable().optional(),
-	postcode: z.string().transform(Number).or(z.number()).nullable().optional(),
+	postcode: z.coerce.string().nullable().optional(),
 	city: z.string(),
 	other: z.string().nullable().optional(),
 	phone: stringOrNullFromPrestashopSchema,

@@ -97,7 +97,7 @@ export const PrestashopCustomerSchema = z.object({
 	optin: z.number().nullable().optional(),
 	website: z.string().nullable().optional(),
 	company: z.string().nullable().optional(),
-	siret: z.string().nullable().optional(),
+	siret: z.coerce.string().nullable().optional(),
 	ape: z.string().nullable().optional(),
 	outstanding_allow_amount: z.number().nullable().optional(),
 	show_public_prices: z.number().nullable().optional(),

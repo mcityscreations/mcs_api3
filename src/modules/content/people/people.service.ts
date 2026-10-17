@@ -130,20 +130,7 @@ export class PeopleService {
 				transaction,
 			);
 
-			// Convert public IDs to private IDs
-			const registrationCountryID =
-				getIDType(payload.details.registrationCountry) === 'private'
-					? (payload.details.registrationCountry as number)
-					: await this.countryService.convertPublicIDtoPrivateID(
-							payload.details.registrationCountry as string,
-						);
-			const categoryID =
-				getIDType(payload.details.category) === 'private'
-					? (payload.details.category as number)
-					: await this.peopleRepository.getCategoryPrivateID(
-							payload.details.category as string,
-						);
-			if (!registrationCountryID || !categoryID || !personIDs?.idPrivate)
+			if (!personIDs?.idPrivate)
 				throw new InternalError(
 					`[People Service] Failed to add organization ${payload.details.legalName}. Please try again later.`,
 				);
@@ -151,10 +138,10 @@ export class PeopleService {
 			await this.peopleRepository.addOrganization(
 				personIDs.idPrivate,
 				payload.details.legalName,
-				registrationCountryID,
+				payload.details.registrationCountry,
 				payload.details.idRegistration || 'N/A',
 				payload.details.idVAT || 'N/A',
-				categoryID,
+				payload.details.category,
 				transaction,
 			);
 			await this.dbService.commit(transaction);
@@ -163,6 +150,7 @@ export class PeopleService {
 			if (transaction) {
 				await this.dbService.rollback(transaction);
 			}
+			console.error(error);
 			throw new InternalError(
 				`[People Service] Failed to add organization ${payload.details.legalName}. Please try again later.` +
 					getErrorMessage(error),
