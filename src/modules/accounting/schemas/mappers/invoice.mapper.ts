@@ -3,6 +3,7 @@ import type { IPrestashopInvoice } from '../../../stores/schemas/prestashop/invo
 import type { IPrestashopOrderDetailsNormalized } from '../../../stores/schemas/prestashop/order-detail.schema.js';
 import type { IPrestashopOrder } from '../../../stores/schemas/prestashop/order.schema.js';
 import { DateService } from '../../../../common/dates/dates.service.js';
+import { discountCalculator } from '../../../../common/utils/discountCalculator.utils.js';
 
 const dateService = new DateService();
 
@@ -21,6 +22,7 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	return {
 		id_technical: prestashopInvoice.id?.toString() ?? '0',
 		reference: prestashopInvoice.number.toString(),
+		id_order: prestashopMainOrderData.id?.toString() ?? '0',
 		source_system: 'prestashop',
 		invoice_type: invoiceType,
 		issue_date: prestashopInvoice.date_add
@@ -78,7 +80,7 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 					),
 				},
 				unit_price_tax_excl_discount: hasPercentDiscount
-					? (priceExcl * Number(orderDetail.reduction_percent)) / 10000
+					? discountCalculator(Number(orderDetail.reduction_percent), priceExcl)
 					: priceExcl - Number(orderDetail.reduction_amount ?? 0),
 				total_price_tax_excl: Number(orderDetail.total_price_tax_excl ?? 0),
 				total_price_tax_incl: Number(orderDetail.total_price_tax_incl ?? 0),

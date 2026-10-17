@@ -66,6 +66,7 @@ export type IMcitysOrderDetail = z.infer<typeof orderDetailSchema>;
 const BaseInvoiceSchema = z.object({
 	id_technical: z.string(),
 	reference: z.string(),
+	id_order: z.string(),
 	source_system: z.enum(['qonto', 'prestashop']),
 	invoice_type: z.enum(['invoice', 'credit_note', 'proforma']),
 	issue_date: utcDateSchema,

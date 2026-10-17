@@ -48,11 +48,11 @@ export class AccountingRepository {
 		new_invoice AS (
 		INSERT INTO accounting.invoice 
 			(system_source, reference, id_technical_erp, amount_wt, amount_vat, amount_at, 
-			issue_date, due_date, paid_at, emitter, recipient, currency, payment_direction, invoice_type
+			issue_date, due_date, paid_at, emitter, recipient, currency, payment_direction, invoice_type, id_order
 			)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
 			(SELECT id_emitter FROM emitter_data),
-			(SELECT id_recipient FROM recipient_data), $12, $13, $14) 
+			(SELECT id_recipient FROM recipient_data), $12, $13, $14, $15) 
 			ON CONFLICT (reference, system_source) DO NOTHING
 			RETURNING id_invoice
 		),
@@ -86,7 +86,7 @@ export class AccountingRepository {
 			items.total_price_tax_incl,
 			items.quantity
 		FROM new_invoice
-		CROSS JOIN jsonb_to_recordset($15::jsonb) AS items(
+		CROSS JOIN jsonb_to_recordset($16::jsonb) AS items(
 			id VARCHAR(255),
 			label VARCHAR(255),
 			description TEXT,
@@ -117,6 +117,7 @@ export class AccountingRepository {
 				data.currency,
 				data.payment_direction,
 				data.invoice_type,
+				data.id_order,
 				items,
 			],
 			'standard',
