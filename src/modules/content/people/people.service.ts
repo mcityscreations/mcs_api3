@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common';
 import {
 	InternalError,
 	BadRequestError,
-	NotFoundError,
 } from '../../../system/errors/index.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
 import { getIDType } from '../../../common/utils/getIDType.utils.js';
@@ -171,13 +170,7 @@ export class PeopleService {
 				'[People Service] Siret is required to get organization by siret.',
 			);
 		}
-		const result = await this.peopleRepository.getOrganizationBySiret(siret);
-		if (!result) {
-			throw new NotFoundError(
-				`[People Service] Organization with siret ${siret} not found.`,
-			);
-		}
-		return result;
+		return this.peopleRepository.getOrganizationBySiret(siret);
 	}
 
 	public async addPersonToMapper(

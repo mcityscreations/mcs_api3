@@ -330,6 +330,7 @@ export class PrestashopAdapter extends StoreAdapter {
 					},
 				},
 			);
+			console.log('axios response : ', customerData.data);
 			// If empty response (user deleted), replace the customer by a default Anonymous customer object
 			if (!customerData.data) {
 				customerData = await axios.get<string>(
@@ -380,6 +381,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		);
 		// 1. If yes, return the existing Mcitys ID
 		if (existingMcitysID) return existingMcitysID;
+
 		// 2. If no, create a new person in Mcitys and return the new Mcitys ID
 
 		// Get country data
@@ -387,7 +389,25 @@ export class PrestashopAdapter extends StoreAdapter {
 		const isCompany: boolean = !!customerData?.siret;
 		if (isCompany) {
 			console.log('company detected : siret = ', customerData.siret);
-			// Check company name
+
+			// Is company registered in the Mcitys system by its SIRET number?
+			const existingOrganization =
+				await this.peopleService.getOrganizationBySiret(
+					customerData.siret as string,
+				);
+			if (existingOrganization) {
+				await this.peopleService.addPersonToMapper({
+					idPerson: existingOrganization.id,
+					systemSource: 'prestashop',
+					idPersonSource: customerID,
+					isProfessional: true,
+					isAbroad: payload.countryData.iso3 !== 'FRA',
+					sourceData: JSON.stringify(payload),
+				});
+				return existingOrganization.id;
+			}
+
+			// If not stored in the system, add it
 			const newMcitysID = await this.peopleService.addOrganization({
 				type: 'organization',
 				details: {
@@ -431,7 +451,7 @@ export class PrestashopAdapter extends StoreAdapter {
 						JSON.stringify(payload),
 				);
 			const personMapperID = await this.peopleService.addPersonToMapper({
-				idPerson: newMcitysIDs.idPrivate,
+				idPerson: newMcitysIDs.idPublic,
 				systemSource: 'prestashop',
 				idPersonSource: customerID,
 				isProfessional: false,
@@ -444,8 +464,6 @@ export class PrestashopAdapter extends StoreAdapter {
 				);
 			return newMcitysIDs.idPublic;
 		}
-		// 3. Add contact information (email, phone, etc.) to the person in Mcitys
-		return null;
 	}
 
 	async getAddressDataByID(addressID: number): Promise<IPrestashopAddress> {
