@@ -108,6 +108,7 @@ export class PeopleRepository {
 			[siret],
 			'standard',
 		);
+		console.log('getOrganizationBySiret - data:', data);
 		const result = data && data.length > 0 ? data[0] : null;
 		return result;
 	}
@@ -197,9 +198,15 @@ export class PeopleRepository {
 	}
 
 	public async addPersonMapper(payload: IPersonMapper): Promise<number | null> {
-		const sqlRequest = `INSERT INTO content.people_mapper 
+		const sqlRequest = `
+		WITH person_data AS (
+			SELECT cp.id_person AS id_person
+			FROM content.people cp
+			WHERE cp.id_public = $1
+		)
+		INSERT INTO content.people_mapper 
 		(id_person, system_source, id_person_source, is_professional, is_abroad, source_data, is_verified)
-		VALUES ($1, $2, $3, $4, $5, $6, true) RETURNING id_person;`;
+		VALUES ((SELECT id_person FROM person_data), $2, $3, $4, $5, $6, true) RETURNING id_person;`;
 		const data: { id_person: number }[] = await this.dbService.execute(
 			sqlRequest,
 			[
