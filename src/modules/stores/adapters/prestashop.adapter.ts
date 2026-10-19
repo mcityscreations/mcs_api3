@@ -42,6 +42,7 @@ import { PeopleService } from '../../content/people/people.service.js';
 import { PrestashopCountryListSchema } from '../schemas/prestashop/country.schema.js';
 import { CountryService } from '../../content/taxonomy/country/service/country.service.js';
 import type { ICountry } from '../../content/taxonomy/country/schemas/country.schema.js';
+import { AxiosResponse } from 'node_modules/axios/index.cjs';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -320,7 +321,8 @@ export class PrestashopAdapter extends StoreAdapter {
 			);
 		}
 		try {
-			const response = await axios.get<string>(
+			let customerData: AxiosResponse;
+			customerData = await axios.get<string>(
 				`${this.apiEndpoint}/customers/${customerID}`,
 				{
 					headers: {
@@ -328,9 +330,20 @@ export class PrestashopAdapter extends StoreAdapter {
 					},
 				},
 			);
+			// If empty response (user deleted), replace the customer by a default Anonymous customer object
+			if (!customerData.data) {
+				customerData = await axios.get<string>(
+					`${this.apiEndpoint}/customers/1`,
+					{
+						headers: {
+							Authorization: this.authorizationKey,
+						},
+					},
+				);
+			}
 			// Parse XML response
 			const parsedResponse = xmlValidator(
-				response.data,
+				customerData.data as string,
 				PrestashopCustomersResponseSchema,
 				'customer',
 				'PrestaShop',
