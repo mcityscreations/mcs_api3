@@ -24,7 +24,6 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 		reference: prestashopInvoice.number.toString(),
 		id_order: prestashopMainOrderData.reference?.toString() ?? 'N/A',
 		source_system: 'prestashop',
-		invoice_type: invoiceType,
 		issue_date: prestashopInvoice.date_add
 			? dateService
 					.stringDateToUtcDate(prestashopInvoice.date_add)
@@ -36,7 +35,7 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 					.toISOString()
 			: new Date().toISOString(),
 		currency: 'EUR',
-		document_type: 'INVOICE',
+		document_type: invoiceType,
 		emitter: {
 			id: '019b8af6-d80c-7aec-b2af-ce615fc092a5',
 		},

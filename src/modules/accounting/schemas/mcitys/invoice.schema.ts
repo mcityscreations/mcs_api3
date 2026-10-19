@@ -68,14 +68,13 @@ const BaseInvoiceSchema = z.object({
 	reference: z.string(),
 	id_order: z.string(),
 	source_system: z.enum(['qonto', 'prestashop']),
-	invoice_type: z.enum(['invoice', 'credit_note', 'proforma']),
 	issue_date: utcDateSchema,
 	due_date: utcDateSchema,
 	paid_at: utcDateSchema.optional(),
 	currency: currenciesEnum,
 	document_type: z
-		.enum(['INVOICE', 'CREDIT_NOTE', 'PROFORMA'])
-		.default('INVOICE'),
+		.enum(['invoice', 'credit_note', 'proforma'])
+		.default('invoice'),
 	order_details: z.array(orderDetailSchema),
 	total_amount_tax_excl: z.number().int().nonnegative(),
 	total_amount_tax_incl: z.number().int().nonnegative(),
