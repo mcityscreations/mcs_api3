@@ -40,24 +40,74 @@ export class PeopleRepository {
 	public async getMcitysID(
 		externalID: string,
 		systemSource: string,
-	): Promise<IIds | null> {
+	): Promise<string | null> {
 		const sqlRequest = `
 		SELECT 
-			cpm.id_person as "idPrivate", 
-			cp.id_public as "idPublic" 
+			cp.id_public as "id" 
 		FROM 
-			content.people_mapper cpm
-		INNER JOIN 
-			content.people cp ON cpm.id_person = cp.id_person
+			content.people cp
+		INNER JOIN content.people_mapper cpm ON cpm.id_person = cp.id_person
 		WHERE 
 			cpm.id_person_source = $1 AND cpm.system_source = $2;
 		`;
-		const data: { idPrivate: number; idPublic: string }[] =
-			await this.dbService.execute(
-				sqlRequest,
-				[externalID, systemSource],
-				'standard',
-			);
+		const data: { id: string }[] = await this.dbService.execute(
+			sqlRequest,
+			[externalID, systemSource],
+			'standard',
+		);
+		const result = data && data.length > 0 ? data[0].id : null;
+		return result;
+	}
+
+	public async getOrganizationBySiret(siret: string): Promise<IPerson | null> {
+		const query = `
+		WITH country_data AS (
+			SELECT json_build_object(
+				'id_country', tc.id_country,
+				'id', tc.id_public,
+				'name', tc.name
+			) as registration_country
+			FROM taxonomy.country tc
+			INNER JOIN content.people_organization_detail cpo
+			ON tc.id_country = cpo.registration_country
+			WHERE cpo.id_registration = $1
+		),
+		category_data AS (
+			SELECT json_build_object(
+				'id', cpc.id_public,
+				'name', cpc.name
+			) AS category
+			FROM content.people_organization_category cpc
+			INNER JOIN content.people_organization_detail cpo
+			ON cpc.id_organization_category = cpo.id_organization_category
+			WHERE cpo.id_registration = $1
+		),
+		details_data AS (
+			SELECT json_build_object(
+				'category', (SELECT category FROM category_data),
+				'legalName', cpo.legal_name,
+				'registrationCountry', (SELECT registration_country FROM country_data),
+				'idRegistration', cpo.id_registration,
+				'idVAT', cpo.id_vat
+				
+			) AS details_obj
+			FROM content.people_organization_detail cpo
+			WHERE cpo.id_registration = $1
+		)
+		SELECT 
+			cp.id_public AS "id",
+			'organization' AS "type",
+			(SELECT details_obj FROM details_data) AS "details"
+		FROM content.people cp
+		INNER JOIN content.people_organization_detail cpo 
+		ON cp.id_person = cpo.id_person
+		WHERE cpo.id_registration = $1;
+		`;
+		const data: IPerson[] = await this.dbService.execute(
+			query,
+			[siret],
+			'standard',
+		);
 		const result = data && data.length > 0 ? data[0] : null;
 		return result;
 	}

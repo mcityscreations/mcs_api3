@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import {
 	InternalError,
 	BadRequestError,
+	NotFoundError,
 } from '../../../system/errors/index.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
 import { getIDType } from '../../../common/utils/getIDType.utils.js';
@@ -53,17 +54,17 @@ export class PeopleService {
 	async getMcitysID(
 		externalID: string,
 		systemSource: string, // mcitys, prestashop, qonto
-	): Promise<IIds | null> {
+	): Promise<string | null> {
 		if (!externalID || !systemSource) {
 			throw new InternalError(
 				'[People Service] Both externalID and systemSource are required to retrieve the Mcitys ID.',
 			);
 		}
-		const mcitysIDs = await this.peopleRepository.getMcitysID(
+		const mcitysID = await this.peopleRepository.getMcitysID(
 			externalID,
 			systemSource,
 		);
-		return mcitysIDs;
+		return mcitysID;
 	}
 
 	async addIndividual(payload: ICreateIndividual): Promise<IIds | null> {
@@ -108,7 +109,7 @@ export class PeopleService {
 		}
 	}
 
-	async addOrganization(payload: ICreateOrganization): Promise<IIds | null> {
+	async addOrganization(payload: ICreateOrganization): Promise<string | null> {
 		if (!payload) {
 			throw new InternalError(
 				'[People Service] Payload is required to add an organization.',
@@ -125,6 +126,12 @@ export class PeopleService {
 		//Start transaction
 		const transaction: PoolClient = await this.dbService.beginTransaction();
 		try {
+			// Check if the company is already registered in the system by its SIRET number
+			const existingOrganization =
+				await this.peopleRepository.getOrganizationBySiret(
+					payload.details.idRegistration as string,
+				);
+			if (existingOrganization) return existingOrganization.id;
 			const personIDs = await this.peopleRepository.addPerson(
 				true,
 				transaction,
@@ -145,7 +152,7 @@ export class PeopleService {
 				transaction,
 			);
 			await this.dbService.commit(transaction);
-			return personIDs;
+			return personIDs.idPublic;
 		} catch (error) {
 			if (transaction) {
 				await this.dbService.rollback(transaction);
@@ -156,6 +163,21 @@ export class PeopleService {
 					getErrorMessage(error),
 			);
 		}
+	}
+
+	public async getOrganizationBySiret(siret: string): Promise<IPerson | null> {
+		if (!siret) {
+			throw new BadRequestError(
+				'[People Service] Siret is required to get organization by siret.',
+			);
+		}
+		const result = await this.peopleRepository.getOrganizationBySiret(siret);
+		if (!result) {
+			throw new NotFoundError(
+				`[People Service] Organization with siret ${siret} not found.`,
+			);
+		}
+		return result;
 	}
 
 	public async addPersonToMapper(

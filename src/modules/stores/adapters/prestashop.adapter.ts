@@ -6,7 +6,6 @@ import {
 } from '../../../system/errors/index.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
-import { IIds } from '../../../common/schemas/ids.schema.js';
 import { xmlValidator } from '../../../common/validators/xml.validators.js';
 import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
 import { StoreAdapter } from '../interfaces/stores.interface.js';
@@ -349,7 +348,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		customerData: IPrestashopCustomer;
 		addressData: IPrestashopAddress;
 		countryData: ICountry;
-	}): Promise<IIds | null> {
+	}): Promise<string | null> {
 		console.log(payload);
 		const { customerData, addressData } = payload;
 		if (!PrestashopCustomerSchema.safeParse(customerData).success) {
@@ -376,7 +375,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		if (isCompany) {
 			console.log('company detected : siret = ', customerData.siret);
 			// Check company name
-			const newMcitysIDs = await this.peopleService.addOrganization({
+			const newMcitysID = await this.peopleService.addOrganization({
 				type: 'organization',
 				details: {
 					legalName: customerData.company as string,
@@ -387,13 +386,13 @@ export class PrestashopAdapter extends StoreAdapter {
 				},
 			});
 			// Add person to person mapper
-			if (!newMcitysIDs)
+			if (!newMcitysID)
 				throw new InternalError(
 					`Unable to synchronize Prestashop customer data :` +
 						JSON.stringify(payload),
 				);
 			const personMapperID = await this.peopleService.addPersonToMapper({
-				idPerson: newMcitysIDs.idPrivate,
+				idPerson: newMcitysID,
 				systemSource: 'prestashop',
 				idPersonSource: customerID,
 				isProfessional: true,
@@ -404,7 +403,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				throw new InternalError(
 					`Unable to add person to person mapper for Prestashop customer ${customerID}`,
 				);
-			return newMcitysIDs;
+			return newMcitysID;
 		} else {
 			const newMcitysIDs = await this.peopleService.addIndividual({
 				type: 'individual',
@@ -430,7 +429,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				throw new InternalError(
 					`Unable to add person to person mapper for Prestashop customer ${customerID}`,
 				);
-			return newMcitysIDs;
+			return newMcitysIDs.idPublic;
 		}
 		// 3. Add contact information (email, phone, etc.) to the person in Mcitys
 		return null;

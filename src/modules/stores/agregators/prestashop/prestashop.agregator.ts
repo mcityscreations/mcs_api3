@@ -67,7 +67,7 @@ export class PrestashopAgregator {
 		const customerData = await this.prestashopStoreAdapter.getCustomerDataByID(
 			mainOrderData.id_customer,
 		);
-		const mcitysCustomerID: { idPrivate: number; idPublic: string } | null =
+		const mcitysCustomerID: string | null =
 			await this.prestashopStoreAdapter.syncCustomerDataToMcitys({
 				customerData: customerData,
 				addressData: addressData,
@@ -80,7 +80,7 @@ export class PrestashopAgregator {
 
 		// Save address //
 		const addressID = await this.addressService.saveAddress({
-			idPerson: mcitysCustomerID.idPublic,
+			idPerson: mcitysCustomerID,
 			name: 'Invoicing address',
 			systemSource: 'prestashop',
 			idSource: addressData.id ? String(addressData.id) : undefined,
@@ -112,7 +112,7 @@ export class PrestashopAgregator {
 			'invoice',
 			{
 				addressID: addressID.idPublic,
-				customerID: mcitysCustomerID.idPublic,
+				customerID: mcitysCustomerID,
 			},
 		);
 		return mcitysInvoice;
