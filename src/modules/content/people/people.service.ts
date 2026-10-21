@@ -173,9 +173,39 @@ export class PeopleService {
 		return this.peopleRepository.getOrganizationBySiret(siret);
 	}
 
-	public async addPersonToMapper(
-		payload: IPersonMapper,
-	): Promise<number | null> {
+	public async addMemberToOrganization(
+		idOrganization: string,
+		idMember: string,
+	): Promise<boolean> {
+		if (!idOrganization || !idMember) {
+			throw new BadRequestError(
+				'[People Service] Both idOrganization and idMember are required to add a member to an organization.',
+			);
+		}
+		// Is the member already part of the organization?
+		const isAlreadyMember: boolean =
+			await this.peopleRepository.isMemberOfOrganization(
+				idOrganization,
+				idMember,
+			);
+		if (isAlreadyMember) return true;
+
+		// If not, add the member to the organization
+		const result: boolean = await this.peopleRepository.addMemberToOrganization(
+			{
+				idOrganization: idOrganization,
+				idMember: idMember,
+			},
+		);
+		if (!result) {
+			throw new InternalError(
+				`[People Service] Failed to add member ${idMember} to organization ${idOrganization}. Please try again later.`,
+			);
+		}
+		return result;
+	}
+
+	public async addPersonToMapper(payload: IPersonMapper): Promise<boolean> {
 		if (!PersonMapperSchema.safeParse(payload))
 			throw new BadRequestError(
 				`[People Service] Wrong payload type for addPersonMapper.`,
@@ -185,6 +215,12 @@ export class PeopleService {
 			typeof payload.idPerson === 'string'
 				? payload.idPerson
 				: String(payload.idPerson);
+		// Is the person already mapped to the systemSource?
+		const isAlreadyMapped = await this.peopleRepository.getMcitysID(
+			payload.idPersonSource,
+			payload.systemSource,
+		);
+		if (isAlreadyMapped) return true;
 		// Save Person
 		const addPerson = await this.peopleRepository.addPersonMapper(payload);
 		// Handle error

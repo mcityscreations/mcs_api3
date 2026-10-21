@@ -1,7 +1,7 @@
 // src/modules/content/contact/repository/contact.repository.ts
 import { Injectable } from '@nestjs/common';
 import { PostgreSQLService } from '../../../../system/database/postgresql/postgresql.service.js';
-import { IContact } from '../types/contact.interface.js';
+import { IContact, IAddContact } from '../schemas/contact.schema.js';
 
 @Injectable()
 export class ContactRepository {
@@ -63,13 +63,52 @@ export class ContactRepository {
 		return result ?? null;
 	}
 
-	public async findPersonByContact(contact: string): Promise<number | null> {
-		const request = `SELECT cc.id_person AS id_person FROM content.contact AS cc WHERE cc.value = $1 AND cc.is_primary = true`;
-		const result = await this.postgreSQLService.execute<{ id_person: number }>(
+	public async findPersonByContact(contact: string): Promise<string | null> {
+		const request = `
+		SELECT 
+			cp.id_public AS id
+		FROM content.people cp
+		INNER JOIN content.contact cc ON cp.id_person = cc.id_person
+		WHERE cc.value = $1`;
+		const result = await this.postgreSQLService.execute<{ id: string }>(
 			request,
 			[contact],
 			'standard',
 		);
-		return result && result.length > 0 ? result[0].id_person : null;
+		return result && result.length > 0 ? result[0].id : null;
+	}
+
+	public async addContact(payload: IAddContact): Promise<string | null> {
+		const query = `
+		WITH person AS (
+			SELECT cp.id_person
+			FROM content.people cp
+			WHERE cp.id_public = $1
+		)
+		INSERT INTO content.contact (
+			id_person,
+			id_contact_category,
+			is_primary,
+			is_professional,
+			title,
+			value,
+			is_verified
+		) VALUES ((SELECT id_person FROM person), $2, $3, $4, $5, $6, $7)
+		RETURNING id_person;
+		`;
+		const result = await this.postgreSQLService.execute<{ idPerson: string }>(
+			query,
+			[
+				payload.idPerson,
+				payload.contactCategory,
+				payload.isPrimary,
+				payload.isProfessional,
+				payload.title,
+				payload.value,
+				payload.isVerified,
+			],
+			'standard',
+		);
+		return result && result.length > 0 ? result[0].idPerson : null;
 	}
 }

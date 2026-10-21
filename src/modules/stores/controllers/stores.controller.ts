@@ -1,8 +1,8 @@
 import { Controller, Get, Query, Param, Inject } from '@nestjs/common';
-import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
+import { PrestashopAdapter } from '../prestashop/adapters/prestashop.adapter.js';
 import { StoresService } from '../services/stores.service.js';
 import { DateFilterDto } from '../../../common/dates/datefilter.dto.js';
-import { PrestashopInvoiceIDDto } from '../dto/invoiceParam.dto.js';
+import { PrestashopInvoiceIDDto } from '../prestashop/dto/invoiceParam.dto.js';
 
 @Controller('stores')
 export class StoresController {

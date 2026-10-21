@@ -3,20 +3,23 @@ import {
 	InternalError,
 	NotFoundError,
 } from '../../../../system/errors/index.js';
-import { PrestashopAdapter } from '../../adapters/prestashop.adapter.js';
+import type { IInvoiceStoreDto } from '../../schemas/invoice-store.dto.js';
+import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
 import { AddressService } from '../../../content/address/service/address.service.js';
 import { CountryService } from '../../../content/taxonomy/country/service/country.service.js';
-import { IPrestashopInvoice } from '../../schemas/prestashop/invoices.schema.js';
+import { IPrestashopInvoice } from '../schemas/invoices.schema.js';
 import type { ICreateMcitysInvoice } from '../../../accounting/schemas/mcitys/invoice.schema.js';
-import type { IPrestashopOrder } from '../../schemas/prestashop/order.schema.js';
-import type { IPrestashopOrderDetailsNormalized } from '../../schemas/prestashop/order-detail.schema.js';
+import type { IPrestashopOrder } from '../schemas/order.schema.js';
+import type { IPrestashopOrderDetailsNormalized } from '../schemas/order-detail.schema.js';
 import { mapPrestashopInvoiceToMcitysInvoice } from '../../../accounting/schemas/mappers/invoice.mapper.js';
+import { PrestashopSyncService } from '../sync/prestashop/prestashop-sync.service.js';
 
 @Injectable()
 export class PrestashopAgregator {
 	constructor(
 		@Inject('PRESTASHOP_STORE')
 		private readonly prestashopStoreAdapter: PrestashopAdapter,
+		private readonly prestashopSyncService: PrestashopSyncService,
 		private readonly addressService: AddressService,
 		private readonly countryService: CountryService,
 	) {}
@@ -30,21 +33,19 @@ export class PrestashopAgregator {
 	 * @throws NotFoundError if country data cannot be retrieved.
 	 * */
 	public async agregateInvoiceData(
-		prestashopInvoice: IPrestashopInvoice,
+		currentInvoice: IInvoiceStoreDto,
 	): Promise<ICreateMcitysInvoice | null> {
+		const invoiceID = Number.parseInt(currentInvoice.id);
+
 		// Retrieving detailed invoice data from PrestaShop //
+		const mainInvoiceData: IPrestashopInvoice =
+			await this.prestashopStoreAdapter.getInvoiceDetail(invoiceID);
 		const mainOrderData: IPrestashopOrder =
-			await this.prestashopStoreAdapter.getMainOrderDataByInvoiceID(
-				prestashopInvoice.id,
-			);
-
+			await this.prestashopStoreAdapter.getMainOrderDataByInvoiceID(invoiceID);
 		const detailedOrderData: IPrestashopOrderDetailsNormalized =
-			await this.prestashopStoreAdapter.getOrderDetails(
-				prestashopInvoice.id,
-				'invoice',
-			);
+			await this.prestashopStoreAdapter.getOrderDetails(invoiceID, 'invoice');
 
-		// Get address & synchronize //
+		// Get address //
 		if (!mainOrderData.id_address_invoice)
 			throw new InternalError(
 				`PrestashopInvoiceProcessor - ID address invoice is missing.`,
@@ -58,25 +59,38 @@ export class PrestashopAgregator {
 		});
 		if (!countryData) throw new NotFoundError(`Unable to get country data.`);
 
-		// Synchronize customer data //
+		// Get customer //
 		if (!mainOrderData.id_customer) {
 			throw new InternalError(
-				`PrestashopAdapter : Missing customer ID in main order data for invoice ID ${prestashopInvoice.id}`,
+				`PrestashopAdapter : Missing customer ID in main order data for invoice ID ${currentInvoice.id}`,
 			);
 		}
 		const customerData = await this.prestashopStoreAdapter.getCustomerDataByID(
 			mainOrderData.id_customer,
 		);
-		const mcitysCustomerID: string | null =
-			await this.prestashopStoreAdapter.syncCustomerDataToMcitys({
-				customerData: customerData,
-				addressData: addressData,
-				countryData: countryData,
-			});
+		// Synchronize customer data with Mcitys system
+		const isCompany: boolean = !!customerData?.siret;
+		const mcitysCustomerID: string | null = !isCompany
+			? await this.prestashopSyncService.syncCustomerIndividual({
+					customerData: customerData,
+					addressData: addressData,
+					countryData: countryData,
+				})
+			: await this.prestashopSyncService.syncCustomerCompany({
+					customerData: customerData,
+					addressData: addressData,
+					countryData: countryData,
+				});
 		if (!mcitysCustomerID)
 			throw new InternalError(
 				`Unable to synchronize customer data for Prestashop customer ${mainOrderData.id_customer}`,
 			);
+
+		// Synchronize contact data with Mcitys system
+		const isContactSynced: boolean = await this.prestashopSyncService.syncContact({
+			customerData: customerData,
+			addressData: addressData,
+		});
 
 		// Save address //
 		const addressID = await this.addressService.saveAddress({
@@ -102,11 +116,11 @@ export class PrestashopAgregator {
 		});
 		if (!addressID)
 			throw new InternalError(
-				`Unable to synchronize address data from Prestashop for invoice : ${prestashopInvoice.id}.`,
+				`Unable to synchronize address data from Prestashop for invoice : ${currentInvoice.id}.`,
 			);
 		// Map invoice
 		const mcitysInvoice = mapPrestashopInvoiceToMcitysInvoice(
-			prestashopInvoice,
+			mainInvoiceData,
 			mainOrderData,
 			detailedOrderData,
 			'invoice',
@@ -117,4 +131,6 @@ export class PrestashopAgregator {
 		);
 		return mcitysInvoice;
 	}
+
+	private;
 }

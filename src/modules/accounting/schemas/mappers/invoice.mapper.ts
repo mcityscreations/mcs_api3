@@ -1,7 +1,7 @@
 import type { ICreateMcitysInvoice } from '../mcitys/invoice.schema.js';
-import type { IPrestashopInvoice } from '../../../stores/schemas/prestashop/invoices.schema.js';
-import type { IPrestashopOrderDetailsNormalized } from '../../../stores/schemas/prestashop/order-detail.schema.js';
-import type { IPrestashopOrder } from '../../../stores/schemas/prestashop/order.schema.js';
+import type { IPrestashopInvoice } from '../../../stores/prestashop/schemas/invoices.schema.js';
+import type { IPrestashopOrderDetailsNormalized } from '../../../stores/prestashop/schemas/order-detail.schema.js';
+import type { IPrestashopOrder } from '../../../stores/prestashop/schemas/order.schema.js';
 import { DateService } from '../../../../common/dates/dates.service.js';
 import { discountCalculator } from '../../../../common/utils/discountCalculator.utils.js';
 

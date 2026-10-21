@@ -5,15 +5,16 @@ import { uuidv7 } from 'uuidv7';
 import {
 	InternalError,
 	ValidationError,
-} from '../../../system/errors/index.js';
-import { JobDispatcher } from '../../../system/jobdispatcher/interfaces/jobdispatcher.interface.js';
-import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
-import type { IJobDescriptor } from '../../../system/jobdispatcher/schemas/job.schema.js';
-import { createJobDescriptorSchema } from '../../../system/jobdispatcher/schemas/job.schema.js';
-import type { ICreateMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
-import type { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
-import { PrestashopInvoiceSchemaNoCoerce } from '../schemas/prestashop/invoices.schema.js';
-import { PrestashopAgregator } from '../agregators/prestashop/prestashop.agregator.js';
+} from '../../../../system/errors/index.js';
+import { JobDispatcher } from '../../../../system/jobdispatcher/interfaces/jobdispatcher.interface.js';
+import { WinstonLoggerService } from '../../../../system/logger/logger-service/winston-logger.service.js';
+import type { IJobDescriptor } from '../../../../system/jobdispatcher/schemas/job.schema.js';
+import { createJobDescriptorSchema } from '../../../../system/jobdispatcher/schemas/job.schema.js';
+import type { ICreateMcitysInvoice } from '../../../accounting/schemas/mcitys/invoice.schema.js';
+import { InvoiceStoreDtoSchema } from '../../schemas/invoice-store.dto.js';
+import { PrestashopAgregator } from '../agregators/prestashop.agregator.js';
+import { IInvoiceStoreDto } from '../../interfaces/stores.interface.js';
+import { PrestashopSyncService } from '../sync/prestashop/prestashop-sync.service.js';
 
 @Processor('store.fetch-invoice-detail', {
 	limiter: {
@@ -27,20 +28,19 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 		private readonly jobDispatcher: JobDispatcher,
 		private readonly logger: WinstonLoggerService,
 		private readonly prestashopAgregator: PrestashopAgregator,
+		private readonly prestashopSyncService: PrestashopSyncService,
 	) {
 		super();
 		console.log('🎯 [WORKER] Instancié avec succès !');
 	}
 
-	async process(job: Job<IJobDescriptor<IPrestashopInvoice>>): Promise<void> {
+	async process(job: Job<IJobDescriptor<IInvoiceStoreDto>>): Promise<void> {
 		console.log(
 			'🚀 [WORKER] Job détecté et en cours de traitement ! ID:',
 			job.id,
 		);
 		// Check the data structure
-		const zodSchema = createJobDescriptorSchema(
-			PrestashopInvoiceSchemaNoCoerce,
-		);
+		const zodSchema = createJobDescriptorSchema(InvoiceStoreDtoSchema);
 		const checkedInvoice = zodSchema.safeParse(job);
 		if (!checkedInvoice.success) {
 			this.logger.error(
@@ -53,11 +53,11 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 		}
 		const invoice = checkedInvoice.data.data.data;
 		this.logger.log(
-			`[Prestashop Invoicing Worker] Handling invoice ID : ${invoice.id} from PrestaShop for processing...`,
+			`[Invoicing Worker] Handling invoice ID : ${invoice.id} from ${invoice.source_system} for processing...`,
 		);
 
 		try {
-			// Agregate and synchronize invoice data from PrestaShop to Mcitys
+			// Agregate invoice data from PrestaShop to Mcitys
 			const mcitysInvoice: ICreateMcitysInvoice | null =
 				await this.prestashopAgregator.agregateInvoiceData(invoice);
 			if (!mcitysInvoice) {

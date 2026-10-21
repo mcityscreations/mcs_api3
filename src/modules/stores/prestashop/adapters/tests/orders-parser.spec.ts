@@ -1,6 +1,6 @@
-import { xmlToJsonConverter } from '../../../../common/utils/XMLToJson.utils.js';
-import { PrestashopOrdersResponseSchema } from '../../schemas/prestashop/order.schema.js';
-import { prestashopOrdersMock } from '../../schemas/prestashop/mocks/orders.mock.js';
+import { xmlToJsonConverter } from '../../../../../common/utils/XMLToJson.utils.js';
+import { PrestashopOrdersResponseSchema } from '../../schemas/order.schema.js';
+import { prestashopOrdersMock } from '../../schemas/mocks/orders.mock.js';
 
 describe('PrestaShop XML Parsing & Validation', () => {
 	it('should convert the XML and validate the Zod schema without errors', () => {

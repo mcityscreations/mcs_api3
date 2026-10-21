@@ -1,5 +1,10 @@
 import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
 
+export interface IInvoiceStoreDto {
+	id: string;
+	source_system: string;
+}
+
 export abstract class StoreAdapter {
 	abstract uploadProduct(): void;
 	abstract updateProduct(): void;
@@ -14,10 +19,4 @@ export abstract class StoreAdapter {
 
 	abstract getLastInvoices(): Promise<unknown>;
 	abstract getInvoicesByDatePeriod(dateFilter: IDateFilter): Promise<unknown>;
-
-	/**
-	 * @param customerID as stored in the third party system
-	 * @return mcitys private ID
-	 */
-	abstract syncCustomerDataToMcitys(payload: unknown): Promise<unknown>;
 }

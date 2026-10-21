@@ -1,48 +1,46 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { AxiosResponse } from 'node_modules/axios/index.cjs';
 import {
 	InternalError,
 	BadRequestError,
-} from '../../../system/errors/index.js';
-import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
-import { getErrorMessage } from '../../../common/utils/error.utils.js';
-import { xmlValidator } from '../../../common/validators/xml.validators.js';
-import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
-import { StoreAdapter } from '../interfaces/stores.interface.js';
-import { StoresRepository } from '../repository/stores.repository.js';
-import { PrestashopConfigService } from '../configs/prestashop/prestashop.config.js';
+} from '../../../../system/errors/index.js';
+import { WinstonLoggerService } from '../../../../system/logger/logger-service/winston-logger.service.js';
+import { getErrorMessage } from '../../../../common/utils/error.utils.js';
+import { xmlValidator } from '../../../../common/validators/xml.validators.js';
+import { IDateFilter } from '../../../../common/dates/datefilter.schema.js';
+import {
+	IInvoiceStoreDto,
+	StoreAdapter,
+} from '../../interfaces/stores.interface.js';
+import { StoresRepository } from '../../repository/stores.repository.js';
+import { PrestashopConfigService } from '../configs/prestashop.config.js';
 // Invoice schemas
 import type {
 	IPrestashopInvoice,
 	IPrestashopInvoiceList,
-	IPrestashopInvoiceListFull,
-} from '../schemas/prestashop/invoices.schema.js';
+} from '../schemas/invoices.schema.js';
 import {
 	PrestashopInvoiceSchema,
 	PrestashopInvoiceListSchema,
 	PrestashopInvoiceListSchemaFull,
-} from '../schemas/prestashop/invoices.schema.js';
+} from '../schemas/invoices.schema.js';
 // Order schemas
-import type { IPrestashopOrderDetailsNormalized } from '../schemas/prestashop/order-detail.schema.js';
-import { PrestashopOrderDetailsResponseSchema } from '../schemas/prestashop/order-detail.schema.js';
-import type { IPrestashopOrder } from '../schemas/prestashop/order.schema.js';
-import { PrestashopOrdersResponseSchema } from '../schemas/prestashop/order.schema.js';
+import type { IPrestashopOrderDetailsNormalized } from '../schemas/order-detail.schema.js';
+import { PrestashopOrderDetailsResponseSchema } from '../schemas/order-detail.schema.js';
+import type { IPrestashopOrder } from '../schemas/order.schema.js';
+import { PrestashopOrdersResponseSchema } from '../schemas/order.schema.js';
 // Address schema
-import type { IPrestashopAddress } from '../schemas/prestashop/address.schema.js';
-import { PrestashopAddressesResponseSchema } from '../schemas/prestashop/address.schema.js';
+import type { IPrestashopAddress } from '../schemas/address.schema.js';
+import { PrestashopAddressesResponseSchema } from '../schemas/address.schema.js';
 // Customer schema
-import type { IPrestashopCustomer } from '../schemas/prestashop/customer.schema.js';
-import {
-	PrestashopCustomerSchema,
-	PrestashopCustomersResponseSchema,
-} from '../schemas/prestashop/customer.schema.js';
+import type { IPrestashopCustomer } from '../schemas/customer.schema.js';
+import { PrestashopCustomersResponseSchema } from '../schemas/customer.schema.js';
 // Person service
-import { PeopleService } from '../../content/people/people.service.js';
+import { PeopleService } from '../../../content/people/people.service.js';
 // Country service
-import { PrestashopCountryListSchema } from '../schemas/prestashop/country.schema.js';
-import { CountryService } from '../../content/taxonomy/country/service/country.service.js';
-import type { ICountry } from '../../content/taxonomy/country/schemas/country.schema.js';
-import { AxiosResponse } from 'node_modules/axios/index.cjs';
+import { PrestashopCountryListSchema } from '../schemas/country.schema.js';
+import { CountryService } from '../../../content/taxonomy/country/service/country.service.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -169,7 +167,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 	}
 
-	async getLastInvoices(): Promise<IPrestashopInvoiceListFull> {
+	async getLastInvoices(): Promise<IInvoiceStoreDto[]> {
 		// Retrieve last invoice ID stored in Postgres
 		const lastInvoiceID =
 			await this.storesRepository.getLastPrestashopInvoiceID();
@@ -182,7 +180,6 @@ export class PrestashopAdapter extends StoreAdapter {
 					{
 						params: {
 							'filter[id]': '[1, 999999]',
-							display: 'full',
 						},
 						paramsSerializer: {
 							indexes: null,
@@ -199,7 +196,14 @@ export class PrestashopAdapter extends StoreAdapter {
 					'invoice list',
 					'PrestaShop',
 				);
-				return parsedResponse;
+				const mappedResponse =
+					parsedResponse.prestashop.order_invoices.order_invoice.map(
+						(invoice) => ({
+							id: String(invoice.id),
+							source_system: 'prestashop',
+						}),
+					);
+				return mappedResponse;
 			} catch (error: unknown) {
 				const errorMessage = getErrorMessage(error);
 				throw new InternalError(
@@ -215,7 +219,6 @@ export class PrestashopAdapter extends StoreAdapter {
 					{
 						params: {
 							'filter[id]': `[${nextInvoiceID}, 999999]`,
-							display: 'full',
 						},
 						headers: {
 							Authorization: this.authorizationKey,
@@ -229,7 +232,14 @@ export class PrestashopAdapter extends StoreAdapter {
 					'invoice list',
 					'PrestaShop',
 				);
-				return parsedResponse;
+				const mappedResponse =
+					parsedResponse.prestashop.order_invoices.order_invoice.map(
+						(invoice) => ({
+							id: String(invoice.id),
+							source_system: 'prestashop',
+						}),
+					);
+				return mappedResponse;
 			} catch (error: unknown) {
 				const errorMessage = getErrorMessage(error);
 				throw new InternalError(
@@ -355,114 +365,6 @@ export class PrestashopAdapter extends StoreAdapter {
 			throw new InternalError(
 				`Error fetching customer data from PrestaShop for customer ID ${customerID}: ${errorMessage}`,
 			);
-		}
-	}
-
-	public async syncCustomerDataToMcitys(payload: {
-		customerData: IPrestashopCustomer;
-		addressData: IPrestashopAddress;
-		countryData: ICountry;
-	}): Promise<string | null> {
-		console.log(payload);
-		const { customerData, addressData } = payload;
-		if (!PrestashopCustomerSchema.safeParse(customerData).success) {
-			throw new InternalError(
-				`PrestashopAdapter - Wrong type for customer data.`,
-			);
-		}
-		// Is the customer already in Mcitys?
-		const customerID: string =
-			typeof customerData.id === 'number'
-				? String(customerData.id)
-				: (customerData.id as unknown as string);
-		const existingMcitysID = await this.peopleService.getMcitysID(
-			customerID,
-			'prestashop',
-		);
-		// 1. If yes, return the existing Mcitys ID
-		if (existingMcitysID) return existingMcitysID;
-
-		// 2. If no, create a new person in Mcitys and return the new Mcitys ID
-
-		// Get country data
-		const idCountry = payload.countryData.id;
-		const isCompany: boolean = !!customerData?.siret;
-		if (isCompany) {
-			console.log('company detected : siret = ', customerData.siret);
-
-			// Is company registered in the Mcitys system by its SIRET number?
-			const existingOrganization =
-				await this.peopleService.getOrganizationBySiret(
-					customerData.siret as string,
-				);
-			if (existingOrganization) {
-				await this.peopleService.addPersonToMapper({
-					idPerson: existingOrganization.id,
-					systemSource: 'prestashop',
-					idPersonSource: customerID,
-					isProfessional: true,
-					isAbroad: payload.countryData.iso3 !== 'FRA',
-					sourceData: JSON.stringify(payload),
-				});
-				return existingOrganization.id;
-			}
-
-			// If not stored in the system, add it
-			const newMcitysID = await this.peopleService.addOrganization({
-				type: 'organization',
-				details: {
-					legalName: customerData.company as string,
-					idRegistration: customerData.siret as string,
-					idVAT: addressData.vat_number,
-					category: '019b8a59-1c9f-71bd-b108-3efcbe2cde93', // Default category for companies
-					registrationCountry: idCountry,
-				},
-			});
-			// Add person to person mapper
-			if (!newMcitysID)
-				throw new InternalError(
-					`Unable to synchronize Prestashop customer data :` +
-						JSON.stringify(payload),
-				);
-			const personMapperID = await this.peopleService.addPersonToMapper({
-				idPerson: newMcitysID,
-				systemSource: 'prestashop',
-				idPersonSource: customerID,
-				isProfessional: true,
-				isAbroad: payload.countryData.iso3 !== 'FRA',
-				sourceData: JSON.stringify(payload),
-			});
-			if (!personMapperID)
-				throw new InternalError(
-					`Unable to add person to person mapper for Prestashop customer ${customerID}`,
-				);
-			return newMcitysID;
-		} else {
-			const newMcitysIDs = await this.peopleService.addIndividual({
-				type: 'individual',
-				details: {
-					firstName: customerData.firstname,
-					lastName: customerData.lastname,
-				},
-			});
-			if (!newMcitysIDs)
-				throw new InternalError(
-					`Unable to synchronize Prestashop customer data :` +
-						JSON.stringify(payload),
-				);
-			const personMapperID = await this.peopleService.addPersonToMapper({
-				idPerson: newMcitysIDs.idPublic,
-				systemSource: 'prestashop',
-				idPersonSource: customerID,
-				isProfessional: false,
-				isAbroad: payload.countryData.iso3 !== 'FRA',
-				sourceData: JSON.stringify(payload),
-			});
-			if (!personMapperID)
-				throw new InternalError(
-					`Unable to add person to person mapper for Prestashop customer ${customerID}`,
-				);
-			return newMcitysIDs.idPublic;
 		}
 	}
 

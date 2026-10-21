@@ -1,13 +1,15 @@
 // src/modules/content/contact/contact.service.ts
 import { Inject, Injectable } from '@nestjs/common';
-import z from 'zod';
+import { z } from 'zod';
 import { arrayValidator } from '../../../common/validators/array.validator.js';
+import { isUuidV7 } from '../../../common/validators/isuuidv7.validator.js';
 import { SmsCommunicator } from './communicators/sms.communicator.js';
 import { EmailCommunicator } from './communicators/email.communicator.js';
 import { BaseMessageDto, SendEmailDto, SendSmsDto } from './dto/contact.dto.js';
 import { ContactRepository } from './repository/contact.repository.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
-import { IContact } from './types/contact.interface.js';
+import type { IContact, IAddContact } from './schemas/contact.schema.js';
+import { AddContactSchema } from './schemas/contact.schema.js';
 import {
 	BadRequestError,
 	InternalError,
@@ -95,20 +97,33 @@ export class ContactService {
 		}
 	}
 
+	public async addPersonContact(payload: IAddContact): Promise<string | null> {
+		// Parse payload using Zod schema
+		const parsedPayload = AddContactSchema.safeParse(payload);
+		if (!parsedPayload.success) {
+			throw new BadRequestError(
+				`[Contact Service] Invalid payload: ${parsedPayload.error.message}`,
+			);
+		}
+		const addressID = await this.contactRepository.addContact(
+			parsedPayload.data,
+		);
+		if (!addressID) {
+			throw new InternalError(
+				`[Contact Service] Failed to add contact for person ID ${payload.idPerson} and value ${payload.value}.`,
+			);
+		}
+		return addressID;
+	}
+
 	public async getPersonContacts(
 		personId: number | string,
 	): Promise<IContact[]> {
-		// 1. Is the personId an UUID v7?
-		const isUuid =
-			typeof personId === 'string' &&
-			/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-				personId,
+		// 1. Executing the proper query based on the ID type
+		if (isUuidV7(personId)) {
+			const result = await this.contactRepository.findContactsByPublicId(
+				personId as string,
 			);
-
-		// 2. Executing the proper query based on the ID type
-		if (isUuid) {
-			const result =
-				await this.contactRepository.findContactsByPublicId(personId);
 			if (!result || result.length === 0) {
 				throw new NotFoundError(
 					`[Contact Service] No contacts associated to the given person ID.`,
@@ -117,7 +132,7 @@ export class ContactService {
 			return result;
 		}
 
-		// 3. If not UUID, is it a number?
+		// 2. If not UUID, is it a number?
 		const numericId = Number(personId);
 		if (Number.isNaN(numericId) || numericId <= 0) {
 			throw new BadRequestError(
@@ -136,9 +151,9 @@ export class ContactService {
 
 	/**
 	 * @param contact an array of email or phone numbers
-	 * @returns person private ID
+	 * @returns person public ID
 	 */
-	public async findPersonByContact(contacts: string[]): Promise<number | null> {
+	public async findPersonByContact(contacts: string[]): Promise<string | null> {
 		if (!arrayValidator(z.string(), contacts))
 			throw new BadRequestError('Invalid contacts array provided');
 		for (const contact of contacts) {
@@ -147,8 +162,6 @@ export class ContactService {
 				return result;
 			}
 		}
-		throw new NotFoundError(
-			`No person associated with the given contacts: ${contacts.join(', ')}`,
-		);
+		return null;
 	}
 }

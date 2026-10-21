@@ -92,7 +92,10 @@ export const McitysInvoiceSchema = BaseInvoiceSchema.extend({
 			legal_number: z.string(),
 			company_name: z.string().optional(),
 			email: z.email(),
-			country_code: z.string().length(2).default('FR'),
+			country_code: z.object({
+				alpha_2: z.string().length(2).default('FR'),
+				alpha_3: z.string().length(3).default('FRA'),
+			}),
 		})
 		.optional(),
 	recipient: z.object({

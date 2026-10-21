@@ -185,6 +185,52 @@ export class PeopleRepository {
 		return finalResult;
 	}
 
+	public async addMemberToOrganization(payload: {
+		idOrganization: string;
+		idMember: string;
+	}): Promise<boolean> {
+		const query = `
+		WITH member AS (
+			SELECT
+				cp.id_person AS id_member
+			FROM content.people cp 
+			WHERE cp.id_public = $1
+		),
+		organization AS (
+			SELECT
+				cp.id_person AS id_organization
+			FROM content.people cp 
+			WHERE cp.id_public = $2
+		)
+		INSERT INTO content.people_organization_member (id_member, id_organization) 
+		VALUES ((SELECT id_member FROM member), (SELECT id_organization FROM organization)) 
+		RETURNING id_member AS "idMember";`;
+		const result = await this.dbService.execute<{ idMember: number }>(
+			query,
+			[payload.idMember, payload.idOrganization],
+			'standard',
+		);
+		return result && result.length > 0 ? true : false;
+	}
+
+	public async isMemberOfOrganization(
+		idOrganization: string,
+		idMember: string,
+	): Promise<boolean> {
+		const query = `
+			SELECT 1
+			FROM content.people_organization_member pom
+			INNER JOIN content.people ip ON ip.id_person = pom.id_member
+			INNER JOIN content.people op ON op.id_person = pom.id_organization
+			WHERE ip.id_public = $2 AND op.id_public = $1;`;
+		const result = await this.dbService.execute<{ exists: number }>(
+			query,
+			[idOrganization, idMember],
+			'standard',
+		);
+		return result && result.length > 0 ? true : false;
+	}
+
 	public async getCategoryPrivateID(uuid: string): Promise<number | null> {
 		const sqlRequest = `SELECT cp.id_organization_category 
 		FROM 
@@ -197,7 +243,7 @@ export class PeopleRepository {
 		return result.length > 0 ? result[0].id_organization_category : null;
 	}
 
-	public async addPersonMapper(payload: IPersonMapper): Promise<number | null> {
+	public async addPersonMapper(payload: IPersonMapper): Promise<boolean> {
 		const sqlRequest = `
 		WITH person_data AS (
 			SELECT cp.id_person AS id_person
@@ -219,7 +265,7 @@ export class PeopleRepository {
 			],
 			'standard',
 		);
-		const result = data && data.length > 0 ? data[0].id_person : null;
+		const result = data && data.length > 0 ? Boolean(data[0].id_person) : false;
 		return result;
 	}
 }

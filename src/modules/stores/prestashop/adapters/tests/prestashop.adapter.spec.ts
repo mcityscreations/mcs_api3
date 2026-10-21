@@ -3,10 +3,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import axios from 'axios';
 import { PrestashopAdapter } from '../prestashop.adapter.js';
 import { InternalServerErrorException } from '@nestjs/common';
-import { StoresRepository } from '../../repository/stores.repository.js';
-import { xmlValidator } from '../../../../common/validators/xml.validators.js';
-import { WinstonLoggerService } from '../../../../system/logger/logger-service/winston-logger.service.js';
-import { prestashopInvoiceListMock } from '../../schemas/prestashop/mocks/invoice-list.mock.js';
+import { StoresRepository } from '../../../repository/stores.repository.js';
+import { xmlValidator } from '../../../../../common/validators/xml.validators.js';
+import { WinstonLoggerService } from '../../../../../system/logger/logger-service/winston-logger.service.js';
+import { prestashopInvoiceListMock } from '../../schemas/mocks/invoice-list.mock.js';
 
 describe('PrestashopAdapter', () => {
 	let service: PrestashopAdapter;

@@ -8,9 +8,9 @@ import { AlsService } from '../../../system/als/als.service.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { JobDispatcher } from '../../../system/jobdispatcher/interfaces/jobdispatcher.interface.js';
 import { StoresRepository } from '../repository/stores.repository.js';
-import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
+import { PrestashopAdapter } from '../prestashop/adapters/prestashop.adapter.js';
 import { getErrorMessage } from '../../../common/utils/error.utils.js';
-import type { IPrestashopInvoice } from '../schemas/prestashop/invoices.schema.js';
+import { IInvoiceStoreDto } from '../interfaces/stores.interface.js';
 
 @Injectable()
 export class StoresService {
@@ -27,29 +27,27 @@ export class StoresService {
 		try {
 			// Get invoice list from PrestaShop
 			const invoices = await this.prestashopStoreAdapter.getLastInvoices();
-			if (invoices.prestashop.order_invoices.order_invoice.length === 0) {
+			if (invoices.length === 0) {
 				this.logger.log('No new invoices found in PrestaShop.');
 				return [];
 			}
 			// Prepare bulk jobs for fetching invoice details
 			const correlationId = AlsService.correlationId || uuidv7();
-			const bulkJobs = invoices.prestashop.order_invoices.order_invoice.map(
-				(invoice: IPrestashopInvoice) => ({
-					name: 'fetch-detail',
-					data: {
-						id: uuidv7(),
-						pattern: 'store.fetch-invoice-detail',
-						timestamp: new Date().toISOString(),
-						version: '1.0.0',
-						correlationId: correlationId,
-						data: invoice,
-					},
-					opts: {
-						attempts: 3,
-						backoff: { type: 'exponential', delay: 5000 } as const,
-					},
-				}),
-			);
+			const bulkJobs = invoices.map((invoice: IInvoiceStoreDto) => ({
+				name: 'fetch-detail',
+				data: {
+					id: uuidv7(),
+					pattern: 'store.fetch-invoice-detail',
+					timestamp: new Date().toISOString(),
+					version: '1.0.0',
+					correlationId: correlationId,
+					data: invoice,
+				},
+				opts: {
+					attempts: 3,
+					backoff: { type: 'exponential', delay: 5000 } as const,
+				},
+			}));
 			// Dispatch bulk jobs to the queue for fetching invoice details
 			await this.jobDispatcher.dispatchBulk(
 				'store.fetch-invoice-detail',
