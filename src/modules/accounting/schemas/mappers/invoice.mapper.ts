@@ -13,7 +13,7 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 	prestashopMainOrderData: IPrestashopOrder,
 	prestashopOrderDetails: IPrestashopOrderDetailsNormalized,
 	invoiceType: 'invoice' | 'credit_note' | 'proforma' = 'invoice',
-	modifiedData: { addressID: string; customerID: string },
+	modifiedData: { addressID: string; customerID: string; emailID: string },
 ): ICreateMcitysInvoice {
 	// Secure parsing of invoice totals with fallback to 0 if values are missing or invalid
 	const invoiceTaxIncl = Number(prestashopInvoice.total_paid_tax_incl ?? 0);
@@ -42,6 +42,7 @@ export function mapPrestashopInvoiceToMcitysInvoice(
 		recipient: {
 			id: modifiedData.customerID, // Mcitys person ID
 			id_billing_address: modifiedData.addressID,
+			email: modifiedData.emailID,
 		},
 		order_details: prestashopOrderDetails.items.map((orderDetail) => {
 			const priceExcl = Number(orderDetail.unit_price_tax_excl ?? 0);

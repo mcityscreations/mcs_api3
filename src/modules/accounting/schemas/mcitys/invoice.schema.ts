@@ -121,6 +121,7 @@ export const CreateMcitysInvoiceSchema = BaseInvoiceSchema.extend({
 	recipient: z.object({
 		id: z.uuidv7(),
 		id_billing_address: z.uuidv7(),
+		email: z.uuidv7(),
 	}),
 });
 export type ICreateMcitysInvoice = z.infer<typeof CreateMcitysInvoiceSchema>;
