@@ -18,6 +18,7 @@ import { CountryService } from '../content/taxonomy/country/service/country.serv
 import { AddressModule } from '../content/address/address.module.js';
 import { CountryModule } from '../content/taxonomy/country/country.module.js';
 import { PrestashopSyncService } from './prestashop/sync/prestashop/prestashop-sync.service.js';
+import { ContactModule } from '../content/contact/contact.module.js';
 
 @Module({
 	providers: [
@@ -71,6 +72,7 @@ import { PrestashopSyncService } from './prestashop/sync/prestashop/prestashop-s
 		PeopleModule,
 		AddressModule,
 		CountryModule,
+		ContactModule,
 	],
 	exports: ['PRESTASHOP_STORE'],
 })

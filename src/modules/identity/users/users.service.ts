@@ -8,7 +8,7 @@ import {
 import { UserRepository } from './repository/user.repository.js';
 import { IUser } from './types/user.interface.js';
 import { ContactService } from '../../content/contact/contact.service.js';
-import { IContact } from '../../content/contact/types/contact.interface.js';
+import { IContact } from '../../content/contact/schemas/contact.schema.js';
 
 @Injectable()
 export class UsersService {
