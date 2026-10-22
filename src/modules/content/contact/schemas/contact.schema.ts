@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 const BaseContactSchema = z.object({
+	systemSource: z.string(),
+	idSource: z.string(),
 	idPerson: z.uuidv7(),
 	isPrimary: z.boolean(),
 	isProfessional: z.boolean(),
