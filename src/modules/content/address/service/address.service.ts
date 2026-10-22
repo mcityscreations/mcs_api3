@@ -55,31 +55,31 @@ export class AddressService {
 		}
 	}
 
-	public async saveAddress(
-		payload: ISaveAddress,
-	): Promise<{ idPrivate: number; idPublic: string } | null> {
+	public async saveAddress(payload: ISaveAddress): Promise<string | null> {
 		const parsedPayload = SaveAddressSchema.safeParse(payload);
 		if (!parsedPayload.success)
 			throw new ValidationError(`Invalid payload : ${parsedPayload.error}`);
+		// Save the new address in the database or update the existing one if it already exists
 		const addressIDs = await this.addressRepository.saveAddress(payload);
+		// The SQL request does not return the IDs, so we need to retrieve them again
 		const fallBackIDs = addressIDs
 			? addressIDs
 			: await this.getAddressIDsBySystemSource({
-					systemSource: parsedPayload.data.systemSource!,
-					idSource: parsedPayload.data.idSource!,
+					systemSource: parsedPayload.data.systemSource as string,
+					idSource: parsedPayload.data.idSource as string,
 				});
 		if (!fallBackIDs) {
 			throw new InternalError(
 				`Unable to save address :` + JSON.stringify(payload),
 			);
 		}
-		return fallBackIDs;
+		return fallBackIDs ?? null;
 	}
 
 	public async getAddressIDsBySystemSource(payload: {
 		systemSource: string;
 		idSource: string;
-	}): Promise<{ idPrivate: number; idPublic: string } | null> {
+	}): Promise<string | null> {
 		if (
 			!payload.systemSource ||
 			!payload.idSource ||
@@ -97,6 +97,6 @@ export class AddressService {
 				`[Address Service] Unable to retrieve address : Address with system source ${payload.systemSource} and id source ${payload.idSource} not found`,
 			);
 		}
-		return result;
+		return result.idPublic ?? null;
 	}
 }

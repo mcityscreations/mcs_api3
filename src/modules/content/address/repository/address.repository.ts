@@ -43,9 +43,7 @@ export class AddressRepository {
 		return result.length > 0 ? result[0] : null;
 	}
 
-	public async saveAddress(
-		payload: ISaveAddress,
-	): Promise<{ idPrivate: number; idPublic: string } | null> {
+	public async saveAddress(payload: ISaveAddress): Promise<string | null> {
 		const sqlRequest = payload.isDefault
 			? `
 			WITH target_person AS (
@@ -66,7 +64,7 @@ export class AddressRepository {
 				is_default = EXCLUDED.is_default,
 				is_billing_address = EXCLUDED.is_billing_address,
 				updated_at = NOW()
-			RETURNING id_address AS "idPrivate", id_public AS "idPublic";
+			RETURNING id_public AS "idPublic";
 		`
 			: `
 			INSERT INTO content.address (id_person, name, value, is_default, is_billing_address, system_source, id_source)
@@ -79,7 +77,7 @@ export class AddressRepository {
 				is_default = EXCLUDED.is_default,
 				is_billing_address = EXCLUDED.is_billing_address,
 				updated_at = NOW()
-			RETURNING id_address AS "idPrivate", id_public AS "idPublic";
+			RETURNING id_public AS "idPublic";
 		`;
 
 		const params = payload.isDefault
@@ -102,10 +100,13 @@ export class AddressRepository {
 					payload.idSource,
 				];
 
-		const result: { idPrivate: number; idPublic: string }[] =
-			await this.dbService.execute(sqlRequest, params, 'standard');
+		const result = await this.dbService.execute<{ idPublic: string }>(
+			sqlRequest,
+			params,
+			'standard',
+		);
 
-		return result.length > 0 ? result[0] : null;
+		return result.length > 0 ? result[0].idPublic : null;
 	}
 
 	public async deleteAddressById(id: string): Promise<void> {
@@ -113,10 +114,10 @@ export class AddressRepository {
 		await this.dbService.execute(sqlRequest, [id], 'standard');
 	}
 
-	public async getAddressBySystemSource(
-		systemSource: string,
-		idSource: string,
-	): Promise<IAddress | null> {
+	public async getAddressBySystemSource(payload: {
+		systemSource: string;
+		idSource: string;
+	}): Promise<IAddress | null> {
 		const sqlRequest = `SELECT
 		ca.id_public AS id,
 		ca.name AS name,
@@ -128,7 +129,7 @@ export class AddressRepository {
 		FROM content.address ca WHERE ca.system_source = $1 AND ca.id_source = $2`;
 		const result = await this.dbService.execute<IAddress>(
 			sqlRequest,
-			[systemSource, idSource],
+			[payload.systemSource, payload.idSource],
 			'standard',
 		);
 		return result && result.length > 0 ? result[0] : null;
