@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PostgreSQLService } from '../../../system/database/postgresql/postgresql.service.js';
-import type { ICreateMcitysInvoice, IMcitysInvoice } from '../schemas/mcitys/invoice.schema.js';
+import type {
+	ICreateMcitysInvoice,
+	IMcitysInvoice,
+} from '../schemas/mcitys/invoice.schema.js';
 
 @Injectable()
 export class AccountingRepository {
@@ -48,7 +51,7 @@ export class AccountingRepository {
 		new_invoice AS (
 		INSERT INTO accounting.invoice 
 			(system_source, reference, id_technical_erp, amount_wt, amount_vat, amount_at, 
-			issue_date, due_date, paid_at, emitter, recipient, currency, payment_direction, invoice_type, id_order
+			issue_date, due_date, paid_at, emitter, recipient, currency, payment_direction, invoice_type, id_order, id_contact
 			)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
 			(SELECT id_emitter FROM emitter_data),
@@ -125,10 +128,11 @@ export class AccountingRepository {
 		return result.length > 0 ? result[0].id_invoice : null;
 	}
 
-	findOne(id: string): Promise<IMcitysInvoice | null> {
+	public async findOne(id: string): Promise<IMcitysInvoice | null> {
 		const query = `
 			WITH main_invoice_data AS (
 				SELECT
+					ai.id_invoice,
 					ai.id_technical_erp AS id_technical,
 					ai.reference AS reference,
 					ai.id_order AS id_order,
@@ -141,12 +145,12 @@ export class AccountingRepository {
 					ai.recipient AS recipient,
 					ai.currency AS currency,
 					ai.amount_wt AS total_amount_tax_excl,
-					ai.amount_at AS	total_amount_tax_incl,
+					ai.amount_at AS total_amount_tax_incl,
 					ai.amount_vat AS vat_amount,
 					ai.payment_direction AS payment_direction,
 					ai.id_contact AS id_contact
 				FROM accounting.invoice ai
-				WHERE ai.id_invoice = $1
+				WHERE ai.id_public = $1
 			),
 
 			emitter_data AS (
@@ -154,70 +158,83 @@ export class AccountingRepository {
 					cp.id_public AS id,
 					cpo.id_registration AS legal_number,
 					cpo.legal_name AS company_name,
-					( SELECT 
-					 	cc.value
-					 FROM
-					 	content.contact cc
-					 INNER JOIN
-					 	main_invoice_data ON cc.id_contact = main_invoice_data.id_contact
+					(
+						SELECT cc.value
+						FROM content.contact cc
+						JOIN main_invoice_data mid ON cc.id_contact = mid.id_contact
+						LIMIT 1
 					) AS email,
-					json_build_object(
-						SELECT
-							tc.alpha_2_code AS alpha_2,
-							tc.alpha_3_code AS alpha_3
-						FROM
-							taxonomy.country tc
-						INNER JOIN
-							content.people_organization_detail cpo
-						ON tc.id_country = cpo.registration_country
-						WHERE cpo.id_person = (SELECT recipient FROM main_invoice_data)
+					(
+						SELECT json_build_object(
+							'alpha_2', tc.alpha_2_code,
+							'alpha_3', tc.alpha_3_code
+						)
+						FROM taxonomy.country tc
+						JOIN content.people_organization_detail cpo_sub ON tc.id_country = cpo_sub.registration_country
+						WHERE cpo_sub.id_person = (SELECT recipient FROM main_invoice_data)
 					) AS country_code
-					FROM content.people cp
-					INNER JOIN
-						content.people_organization_detail cpo
-					ON cp.id_person = cpo.id_person
+				FROM content.people cp
+				JOIN content.people_organization_detail cpo ON cp.id_person = cpo.id_person
+				WHERE cp.id_person = (SELECT emitter FROM main_invoice_data)
 			),
+
 			recipient AS (
 				SELECT
+					cp.id_public AS id,
+					cp.id_source_system AS id_source_system,
+					cpi.firstname AS firstname,
+					cpi.lastname AS lastname,
+					cpo.legal_name AS company_name,
+					cc.value AS email,
+					cpo.id_registration AS legal_number,
+					cpo.id_vat AS vat_number,
+					(
+						SELECT json_build_object(
+							'alpha_2', tc.alpha_2_code,
+							'alpha_3', tc.alpha_3_code
+						)
+						FROM taxonomy.country tc
+						JOIN content.people_organization_detail cpo_sub ON tc.id_country = cpo_sub.registration_country
+						WHERE cpo_sub.id_person = (SELECT recipient FROM main_invoice_data)
+					) AS country_code,
+					ca.value::jsonb AS billing_address
+				FROM content.people cp
+				JOIN content.people_organization cpo ON cp.id_person = cpo.id_person
+				JOIN content.people_organization_member cpom ON cpo.id_person = cpom.id_organization
+				JOIN content.individual_detail cpi ON cpom.id_member = cpi.id_person
+				JOIN accounting.invoice ai ON cp.id_person = ai.id_person
+				LEFT JOIN content.contact cc ON cc.id_person = cp.id_person
+				JOIN content.address ca ON ai.id_billing_address = ca.id_address
+				WHERE ai.id_public = $1
 			),
-			order_details AS (
-				json_agg(
-					json_build_object(
-					SELECT
-						aid.label AS label,
-						aid.description AS description,
-						aid.quantity AS quantity,
-						aid.unit_price_tax_excl AS unit_price_tax_excl,
-						aid.discount AS discount::jsonb,
-						aid.unit_price_tax_excl_discount AS unit_price_tax_excl_discount,
-						aid.unit_price_tax_incl AS unit_price_tax_incl,
-						aid.vat_rate AS vat_rate,
-						aid.total_price_tax_excl AS total_price_tax_excl,
-						aid.total_price_tax_incl AS total_price_tax_incl
-					FROM 
-						accounting.invoice_detail aid
-					INNER JOIN
-						accounting.invoice ai
-					ON ai.id_invoice = aid.id_invoice
-					WHERE
-						ai.id_public = $1
 
+			order_details AS (
+				SELECT json_agg(
+					json_build_object(
+						'label', aid.label,
+						'description', aid.description,
+						'quantity', aid.quantity,
+						'unit_price_tax_excl', aid.unit_price_tax_excl,
+						'discount', aid.discount::jsonb,
+						'unit_price_tax_excl_discount', aid.unit_price_tax_excl_discount,
+						'unit_price_tax_incl', aid.unit_price_tax_incl,
+						'vat_rate', aid.vat_rate,
+						'total_price_tax_excl', aid.total_price_tax_excl,
+						'total_price_tax_incl', aid.total_price_tax_incl
 					)
-				)
+				) AS items
+				FROM accounting.invoice_detail aid
+				JOIN accounting.invoice ai ON ai.id_invoice = aid.id_invoice
+				WHERE ai.id_public = $1
 			)
+			SELECT * FROM main_invoice_data, emitter_data, recipient, order_details;
 		`;
+		const result = await this.dbService.execute<IMcitysInvoice>(
+			query,
+			[id],
+			'standard',
+		);
+
+		return result && result.length > 0 ? result[0] : null;
 	}
 }
-
-	recipient: z.object({
-		id: z.uuidv7().nullable().optional(),
-		id_source_system: z.string(),
-		firstname: z.string(),
-		lastname: z.string(),
-		company_name: z.string().optional(),
-		email: z.email(),
-		legal_number: z.string().optional(),
-		vat_number: z.string().optional(),
-		country_code: z.string().length(2).default('FR'),
-		billing_address: AddressSchema,
-	}),
