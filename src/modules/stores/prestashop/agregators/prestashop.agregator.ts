@@ -48,7 +48,7 @@ export class PrestashopAgregator {
 		// Get address //
 		if (!mainOrderData.id_address_invoice)
 			throw new InternalError(
-				`PrestashopInvoiceProcessor - ID address invoice is missing.`,
+				`[Prestashop Agregator] - ID address invoice is missing.`,
 			);
 		const addressData = await this.prestashopStoreAdapter.getAddressDataByID(
 			mainOrderData.id_address_invoice,
@@ -62,7 +62,7 @@ export class PrestashopAgregator {
 		// Get customer //
 		if (!mainOrderData.id_customer) {
 			throw new InternalError(
-				`PrestashopAdapter : Missing customer ID in main order data for invoice ID ${currentInvoice.id}`,
+				`[Prestashop Agregator] - Missing customer ID in main order data for invoice ID ${currentInvoice.id}`,
 			);
 		}
 		const customerData = await this.prestashopStoreAdapter.getCustomerDataByID(
@@ -83,40 +83,64 @@ export class PrestashopAgregator {
 				});
 		if (!mcitysCustomerID)
 			throw new InternalError(
-				`Unable to synchronize customer data for Prestashop customer ${mainOrderData.id_customer}`,
+				`[Prestashop Agregator] - Unable to synchronize customer data for Prestashop customer ${mainOrderData.id_customer}`,
 			);
 
 		// Synchronize contact data with Mcitys system
-		const isContactSynced: boolean = await this.prestashopSyncService.syncContact({
-			customerData: customerData,
-			addressData: addressData,
-		});
+		const emailID = customerData?.email
+			? await this.prestashopSyncService.syncContact({
+					systemSource: 'prestashop',
+					idSource: 'prestamail-' + mainOrderData.id_customer.toString(),
+					idPerson: mcitysCustomerID,
+					isPrimary: true,
+					isProfessional: isCompany,
+					title: 'My email',
+					value: customerData.email,
+					isVerified: true,
+					contactCategory: 1, //Email
+				})
+			: null;
+		if (!emailID)
+			throw new InternalError(
+				`[Prestashop Agregator] - Unable to synchronize Prestashop email data for customer ${mainOrderData.id_customer}`,
+			);
+		if (addressData?.phone) {
+			await this.prestashopSyncService.syncContact({
+				systemSource: 'prestashop',
+				idSource: 'prestaphone-' + mainOrderData.id_customer.toString(),
+				idPerson: mcitysCustomerID,
+				isPrimary: true,
+				isProfessional: isCompany,
+				title: 'My phone',
+				value: addressData.phone,
+				isVerified: true,
+				contactCategory: 2, //Phone
+			});
+		}
+		if (addressData?.phone_mobile) {
+			await this.prestashopSyncService.syncContact({
+				systemSource: 'prestashop',
+				idSource: 'prestamobile-' + mainOrderData.id_customer.toString(),
+				idPerson: mcitysCustomerID,
+				isPrimary: true,
+				isProfessional: isCompany,
+				title: 'My mobile phone',
+				value: addressData.phone_mobile,
+				isVerified: true,
+				contactCategory: 2, //Phone
+			});
+		}
+		// As phone number is optional, we don't throw an error if it fails to synchronize
 
-		// Save address //
-		const addressID = await this.addressService.saveAddress({
+		// Synchronize address data with Mcitys system
+		const addressID = await this.prestashopSyncService.syncAddress({
 			idPerson: mcitysCustomerID,
-			name: 'Invoicing address',
-			systemSource: 'prestashop',
-			idSource: addressData.id ? String(addressData.id) : undefined,
-			isDefault: false,
-			isBillingAddress: true,
-			address: {
-				country: {
-					iso2: countryData.iso2,
-					iso3: countryData.iso3,
-					name: countryData.name,
-				},
-				address1: addressData.address1,
-				address2: addressData.address2 ?? undefined,
-				city: addressData.city,
-				state: addressData.id_state?.toString() ?? undefined,
-				zip_code: String(addressData.postcode),
-				phone: (addressData.phone || addressData.phone_mobile) ?? undefined,
-			},
+			addressData: addressData,
+			countryData: countryData,
 		});
 		if (!addressID)
 			throw new InternalError(
-				`Unable to synchronize address data from Prestashop for invoice : ${currentInvoice.id}.`,
+				`[Prestashop Agregator] - Unable to synchronize Prestashop address data for customer ${mainOrderData.id_customer}`,
 			);
 		// Map invoice
 		const mcitysInvoice = mapPrestashopInvoiceToMcitysInvoice(
@@ -125,12 +149,11 @@ export class PrestashopAgregator {
 			detailedOrderData,
 			'invoice',
 			{
-				addressID: addressID.idPublic,
+				addressID: addressID,
 				customerID: mcitysCustomerID,
+				emailID: emailID,
 			},
 		);
 		return mcitysInvoice;
 	}
-
-	private;
 }
