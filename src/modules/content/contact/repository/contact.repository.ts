@@ -92,11 +92,24 @@ export class ContactRepository {
 			is_professional,
 			title,
 			value,
-			is_verified
-		) VALUES ((SELECT id_person FROM person), $2, $3, $4, $5, $6, $7)
-		RETURNING id_person;
+			is_verified,
+			system_source,
+			id_source
+		) 
+		SELECT 
+			p.id_person, $2, $3, $4, $5, $6, $7, $8, $9
+		FROM person p
+		ON CONFLICT (system_source, id_source) DO UPDATE SET
+			id_contact_category = EXCLUDED.id_contact_category,
+			is_primary = EXCLUDED.is_primary,
+			is_professional = EXCLUDED.is_professional,
+			title = EXCLUDED.title,
+			value = EXCLUDED.value,
+			is_verified = EXCLUDED.is_verified,
+			updated_at = NOW()
+		RETURNING id_public AS "idPublic";
 		`;
-		const result = await this.postgreSQLService.execute<{ idPerson: string }>(
+		const result = await this.postgreSQLService.execute<{ idPublic: string }>(
 			query,
 			[
 				payload.idPerson,
@@ -106,9 +119,11 @@ export class ContactRepository {
 				payload.title,
 				payload.value,
 				payload.isVerified,
+				payload.systemSource,
+				payload.idSource,
 			],
 			'standard',
 		);
-		return result && result.length > 0 ? result[0].idPerson : null;
+		return result && result.length > 0 ? result[0].idPublic : null;
 	}
 }
