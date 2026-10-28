@@ -105,6 +105,7 @@ export class ContactService {
 				`[Contact Service] Invalid payload: ${parsedPayload.error.message}`,
 			);
 		}
+		// Add the new contact
 		const addressID = await this.contactRepository.addContact(
 			parsedPayload.data,
 		);

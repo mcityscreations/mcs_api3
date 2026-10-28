@@ -9,9 +9,10 @@ export class ContactRepository {
 
 	private readonly baseSelect = `
     SELECT
-		c.id_contact AS "idContact",
-		c.id_public AS "idContactPublic",
-		c.id_person AS "idPerson",
+		c.system_source AS "systemSource",
+		c.id_source AS "idSource",
+		c.id_public AS "id",
+		p.id_public AS "idPerson",
 		jsonb_build_object(
 			'id', pc.id_contact_category,
 			'name', pc.name
@@ -24,7 +25,8 @@ export class ContactRepository {
 		c.created_at AS "createdAt",
 		c.updated_at AS "updatedAt"
 	FROM content.contact c
-	JOIN content.contact_category pc ON c.id_contact_category = pc.id_contact_category;
+	JOIN content.contact_category pc ON c.id_contact_category = pc.id_contact_category
+	JOIN content.people p ON c.id_person = p.id_person
     `;
 
 	/**
@@ -52,8 +54,7 @@ export class ContactRepository {
 	): Promise<IContact[] | null> {
 		const sql = `
             ${this.baseSelect}
-            JOIN content.people ps ON c.id_person = ps.id_person
-            WHERE ps.id_public = $1
+            WHERE p.id_public = $1
         `;
 		const result = await this.postgreSQLService.execute<IContact>(
 			sql,
@@ -78,8 +79,58 @@ export class ContactRepository {
 		return result && result.length > 0 ? result[0].id : null;
 	}
 
+	public async findPrimaryContactBySystemSource(payload: {
+		systemSource: string;
+		idSource: string;
+	}): Promise<IContact | null> {
+		const sql = `${this.baseSelect} WHERE c.system_source = $1 AND c.id_source = $2 AND c.is_primary = true`;
+		const result = await this.postgreSQLService.execute<IContact>(
+			sql,
+			[payload.systemSource, payload.idSource],
+			'standard',
+		);
+		return result && result.length > 0 ? result[0] : null;
+	}
+
 	public async addContact(payload: IAddContact): Promise<string | null> {
-		const query = `
+		const query = payload.isPrimary
+			? `
+		WITH person AS (
+			SELECT cp.id_person
+			FROM content.people cp
+			WHERE cp.id_public = $1
+		),
+		reset_primary AS (
+			UPDATE content.contact
+			SET is_primary = false
+			WHERE id_person = (SELECT id_person FROM person)
+			AND is_primary = true
+		)
+		INSERT INTO content.contact (
+			id_person,
+			id_contact_category,
+			is_primary,
+			is_professional,
+			title,
+			value,
+			is_verified,
+			system_source,
+			id_source
+		) 
+		SELECT 
+			p.id_person, $2, $3, $4, $5, $6, $7, $8, $9
+		FROM person p
+		ON CONFLICT (system_source, id_source) DO UPDATE SET
+			id_contact_category = EXCLUDED.id_contact_category,
+			is_primary = EXCLUDED.is_primary,
+			is_professional = EXCLUDED.is_professional,
+			title = EXCLUDED.title,
+			value = EXCLUDED.value,
+			is_verified = EXCLUDED.is_verified,
+			updated_at = NOW()
+		RETURNING id_public AS "idPublic";
+		`
+			: `
 		WITH person AS (
 			SELECT cp.id_person
 			FROM content.people cp

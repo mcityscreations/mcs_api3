@@ -96,10 +96,10 @@ export const PrestashopOrderItemSchema = z.object({
 
 	// Product information
 	product_name: z.string().min(1),
-	product_reference: z.string().nullable().optional(),
-	product_supplier_reference: z.string().nullable().optional(),
-	product_ean13: z.string().nullable().optional(),
-	product_isbn: z.string().nullable().optional(),
+	product_reference: z.coerce.string().nullable().optional(),
+	product_supplier_reference: z.coerce.string().nullable().optional(),
+	product_ean13: z.coerce.string().nullable().optional(),
+	product_isbn: z.coerce.string().nullable().optional(),
 	product_upc: z.string().nullable().optional(),
 	product_mpn: z.string().nullable().optional(),
 	product_weight: z.preprocess((val) => {
@@ -129,7 +129,7 @@ export const PrestashopOrderItemSchema = z.object({
 	reduction_amount_tax_incl: ZodPriceToCents,
 	group_reduction: ZodStringToInteger,
 	discount_quantity_applied: ZodStringToInteger,
-	product_quantity_discount: ZodStringToInteger,
+	product_quantity_discount: ZodPriceToCents,
 
 	// Line totals (Converted to CENTS)
 	total_price_tax_excl: ZodPriceToCents,

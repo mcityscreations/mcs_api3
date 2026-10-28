@@ -33,7 +33,6 @@ export class ProcessInvoiceProcessor extends WorkerHost {
 
 		const invoice = parsedInvoice.data.data.data;
 		const invoiceItems = JSON.stringify(invoice.order_details);
-		console.log(invoiceItems);
 
 		try {
 			// 2. Atomic insertion (Duplicate handling managed directly in the DB via SQL)

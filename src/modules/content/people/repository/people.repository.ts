@@ -63,7 +63,6 @@ export class PeopleRepository {
 		const query = `
 		WITH country_data AS (
 			SELECT json_build_object(
-				'id_country', tc.id_country,
 				'id', tc.id_public,
 				'name', tc.name
 			) as registration_country
@@ -108,7 +107,6 @@ export class PeopleRepository {
 			[siret],
 			'standard',
 		);
-		console.log('getOrganizationBySiret - data:', data);
 		const result = data && data.length > 0 ? data[0] : null;
 		return result;
 	}

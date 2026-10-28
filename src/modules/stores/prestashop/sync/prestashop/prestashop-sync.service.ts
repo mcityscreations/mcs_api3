@@ -34,23 +34,22 @@ export class PrestashopSyncService {
 		addressData: IPrestashopAddress;
 		countryData: ICountry;
 	}): Promise<string | null> {
-		console.log(payload);
 		const { customerData, addressData, countryData } = payload;
 
 		// Validate the types of the provided data
 		if (!PrestashopCustomerSchema.safeParse(customerData).success) {
 			throw new ValidationError(
-				`[PrestashopAdapter] - Wrong type for customer data.`,
+				`[PrestashopSyncService] - Wrong type for customer data.`,
 			);
 		}
 		if (!PrestashopAddressSchema.safeParse(addressData).success) {
 			throw new ValidationError(
-				`[PrestashopAdapter] - Wrong type for address data.`,
+				`[PrestashopSyncService] - Wrong type for address data.`,
 			);
 		}
 		if (!CountrySchema.safeParse(countryData).success) {
 			throw new ValidationError(
-				`[PrestashopAdapter] - Wrong type for country data.`,
+				`[PrestashopSyncService] - Wrong type for country data.`,
 			);
 		}
 
@@ -104,17 +103,17 @@ export class PrestashopSyncService {
 		const { customerData, addressData, countryData } = payload;
 		if (!PrestashopCustomerSchema.safeParse(customerData).success) {
 			throw new ValidationError(
-				`[PrestashopAdapter] - Wrong type for customer data.`,
+				`[PrestashopSyncService] - Wrong type for customer data.`,
 			);
 		}
 		if (!PrestashopAddressSchema.safeParse(addressData).success) {
 			throw new ValidationError(
-				`[PrestashopAdapter] - Wrong type for address data.`,
+				`[PrestashopSyncService] - Wrong type for address data.`,
 			);
 		}
 		if (!CountrySchema.safeParse(countryData).success) {
 			throw new ValidationError(
-				`[PrestashopAdapter] - Wrong type for country data.`,
+				`[PrestashopSyncService] - Wrong type for country data.`,
 			);
 		}
 		// Is company registered in the Mcitys system by its SIRET number?
@@ -132,7 +131,8 @@ export class PrestashopSyncService {
 						idRegistration: customerData.siret as string,
 						idVAT: addressData.vat_number,
 						category: '019b8a59-1c9f-71bd-b108-3efcbe2cde93', // Default category for companies
-						registrationCountry: countryData.iso3 ?? 'FRA',
+						registrationCountry:
+							countryData.id ?? '019ed4e5-fa87-7cbf-9ac3-2e55e3873392', // Default country for France
 					},
 				})
 			: existingOrganization.id;
@@ -155,7 +155,7 @@ export class PrestashopSyncService {
 			await this.peopleService.addMemberToOrganization(mcitysID, member);
 		if (!isLinkedToOrganization) {
 			throw new InternalError(
-				`[PrestashopSync] Unable to link Prestashop member ${customerID} 
+				`[PrestashopSyncService] Unable to link Prestashop member ${customerID} 
 				to organization ${customerData.company} in Mcitys system.`,
 			);
 		}
@@ -171,7 +171,7 @@ export class PrestashopSyncService {
 		});
 		if (!isMapped)
 			throw new InternalError(
-				`[PrestashopSync] Unable to add person to person mapper for Prestashop customer ${customerID}`,
+				`[PrestashopSyncService] Unable to add person to person mapper for Prestashop customer ${customerID}`,
 			);
 		return mcitysID;
 	}
@@ -184,17 +184,17 @@ export class PrestashopSyncService {
 		const { idPerson, addressData, countryData } = payload;
 		if (!isUuidV7(idPerson)) {
 			throw new ValidationError(
-				`[PrestashopSync] - Invalid UUID for idPerson.`,
+				`[PrestashopSyncService] - Invalid UUID for idPerson.`,
 			);
 		}
 		if (!PrestashopAddressSchema.safeParse(addressData).success) {
 			throw new ValidationError(
-				`[PrestashopSync] - Wrong type for address data.`,
+				`[PrestashopSyncService] - Wrong type for address data.`,
 			);
 		}
 		if (!CountrySchema.safeParse(countryData).success) {
 			throw new ValidationError(
-				`[PrestashopSync] - Wrong type for country data.`,
+				`[PrestashopSyncService] - Wrong type for country data.`,
 			);
 		}
 		const isAddressSynced = await this.addressService.saveAddress({
@@ -220,7 +220,7 @@ export class PrestashopSyncService {
 		});
 		if (!isAddressSynced)
 			throw new InternalError(
-				`[PrestashopSync] Unable to synchronize Prestashop address data :` +
+				`[PrestashopSyncService] Unable to synchronize Prestashop address data :` +
 					JSON.stringify(payload),
 			);
 		return isAddressSynced ?? null;
@@ -229,13 +229,13 @@ export class PrestashopSyncService {
 	public async syncContact(payload: IAddContact): Promise<string | null> {
 		if (!AddContactSchema.safeParse(payload).success) {
 			throw new ValidationError(
-				`[PrestashopSync] - Wrong type for contact data.`,
+				`[PrestashopSyncService] - Wrong type for contact data.`,
 			);
 		}
 		const contactID = await this.contactService.addPersonContact(payload);
 		if (!contactID)
 			throw new InternalError(
-				`[PrestashopSync] Unable to synchronize Prestashop contact data :` +
+				`[PrestashopSyncService] Unable to synchronize Prestashop contact data :` +
 					JSON.stringify(payload),
 			);
 		return contactID ?? null;

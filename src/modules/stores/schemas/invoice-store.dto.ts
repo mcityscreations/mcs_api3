@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const InvoiceStoreDtoSchema = z.object({
-	id: z.string(),
+	id: z.coerce.string(),
 	source_system: z.string(),
 });
 

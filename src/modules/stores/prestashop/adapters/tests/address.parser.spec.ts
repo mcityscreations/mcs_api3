@@ -5,7 +5,6 @@ import { prestashopAddressesMock } from '../../schemas/mocks/address.mock.js';
 describe('PrestaShop XML Parsing & Validation', () => {
 	it('should convert the XML and validate the Zod schema without errors', () => {
 		const jsonRaw = xmlToJsonConverter(prestashopAddressesMock);
-		console.log(jsonRaw.prestashop.address.id_customer);
 		const result = PrestashopAddressesResponseSchema.safeParse(jsonRaw);
 
 		if (!result.success) {

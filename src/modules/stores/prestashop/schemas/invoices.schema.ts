@@ -74,10 +74,10 @@ export const PrestashopInvoiceSchema = z.object({
 export type IPrestashopInvoice = z.infer<typeof PrestashopInvoiceSchema>;
 
 export const PrestashopInvoiceSchemaNoCoerce = z.object({
-	id: z.coerce.number(),
-	id_order: z.coerce.number(),
-	number: z.coerce.number(),
-	delivery_number: z.coerce.number().optional(),
+	id: z.number(),
+	id_order: z.number(),
+	number: z.number(),
+	delivery_number: z.number().optional(),
 	delivery_date: z.string().optional(),
 	total_discount_tax_excl: z.number().int().nonnegative().optional(),
 	total_discount_tax_incl: z.number().int().nonnegative().optional(),
@@ -146,3 +146,12 @@ export const PrestashopInvoiceIDSchema = z.object({
 	invoiceID: z.coerce.number(), // Using .coerce to transform the type of the param from string to number
 });
 export type IPrestashopInvoiceID = z.infer<typeof PrestashopInvoiceIDSchema>;
+
+export const PrestashopNestedInvoiceSchema = z.object({
+	prestashop: z.object({
+		order_invoice: PrestashopInvoiceSchema,
+	}),
+});
+export type IPrestashopNestedInvoice = z.infer<
+	typeof PrestashopNestedInvoiceSchema
+>;

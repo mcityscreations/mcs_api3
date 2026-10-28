@@ -35,7 +35,6 @@ export class AccountingRepository {
 		data: ICreateMcitysInvoice,
 		items: string,
 	): Promise<number | null> {
-		console.log(data);
 		const sqlRequest = `
 		WITH
 		emitter_data AS (
@@ -48,14 +47,21 @@ export class AccountingRepository {
 			FROM content.people
 			WHERE content.people.id_public = $11
 		),
+		contact_data AS (
+			SELECT content.contact.id_contact AS id_contact
+			FROM content.contact
+			WHERE content.contact.id_public = $16
+		),
 		new_invoice AS (
 		INSERT INTO accounting.invoice 
 			(system_source, reference, id_technical_erp, amount_wt, amount_vat, amount_at, 
 			issue_date, due_date, paid_at, emitter, recipient, currency, payment_direction, invoice_type, id_order, id_contact
 			)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-			(SELECT id_emitter FROM emitter_data),
-			(SELECT id_recipient FROM recipient_data), $12, $13, $14, $15) 
+				(SELECT id_emitter FROM emitter_data),
+				(SELECT id_recipient FROM recipient_data), $12, $13, $14, $15,
+				(SELECT id_contact FROM contact_data)
+			) 
 			ON CONFLICT (reference, system_source) DO NOTHING
 			RETURNING id_invoice
 		),
@@ -89,7 +95,7 @@ export class AccountingRepository {
 			items.total_price_tax_incl,
 			items.quantity
 		FROM new_invoice
-		CROSS JOIN jsonb_to_recordset($16::jsonb) AS items(
+		CROSS JOIN jsonb_to_recordset($17::jsonb) AS items(
 			id VARCHAR(255),
 			label VARCHAR(255),
 			description TEXT,
@@ -106,22 +112,23 @@ export class AccountingRepository {
 		const result = await this.dbService.execute<{ id_invoice: number }>(
 			sqlRequest,
 			[
-				data.source_system,
-				data.reference,
-				data.id_technical,
-				data.total_amount_tax_excl,
-				data.vat_amount,
-				data.total_amount_tax_incl,
-				data.issue_date,
-				data.due_date,
-				data.paid_at,
-				data.emitter.id,
-				data.recipient.id,
-				data.currency,
-				data.payment_direction,
-				data.document_type,
-				data.id_order,
-				items,
+				data.source_system, //1
+				data.reference, //2
+				data.id_technical, //3
+				data.total_amount_tax_excl, //4
+				data.vat_amount, //5
+				data.total_amount_tax_incl, //6
+				data.issue_date, //7
+				data.due_date, //8
+				data.paid_at, //9
+				data.emitter.id, //10
+				data.recipient.id, //11
+				data.currency, //12
+				data.payment_direction, //13
+				data.document_type, //14
+				data.id_order, //15
+				data.recipient.email, //16
+				items, //17
 			],
 			'standard',
 		);

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { AxiosResponse } from 'node_modules/axios/index.cjs';
 import {
 	InternalError,
@@ -21,7 +21,7 @@ import type {
 	IPrestashopInvoiceList,
 } from '../schemas/invoices.schema.js';
 import {
-	PrestashopInvoiceSchema,
+	PrestashopNestedInvoiceSchema,
 	PrestashopInvoiceListSchema,
 	PrestashopInvoiceListSchemaFull,
 } from '../schemas/invoices.schema.js';
@@ -92,17 +92,15 @@ export class PrestashopAdapter extends StoreAdapter {
 		// The logic to retrieve product attributes from PrestaShop
 	}
 
-	async getMainOrderDataByInvoiceID(
-		invoiceID: number,
-	): Promise<IPrestashopOrder> {
-		if (!invoiceID || Number.isNaN(invoiceID)) {
+	async getMainOrderData(orderID: number): Promise<IPrestashopOrder> {
+		if (!orderID || Number.isNaN(orderID)) {
 			throw new InternalError(
-				`Wrong type for invoice ID. Expecting NUMBER, ${typeof invoiceID} given.`,
+				`Wrong type for order ID. Expecting NUMBER, ${typeof orderID} given.`,
 			);
 		}
 		try {
 			const response = await axios.get<string>(
-				`${this.apiEndpoint}/orders/${invoiceID}`,
+				`${this.apiEndpoint}/orders/${orderID}`,
 				{
 					headers: {
 						Authorization: this.authorizationKey,
@@ -120,7 +118,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			throw new InternalError(
-				`Error fetching main order data from PrestaShop for invoice ID ${invoiceID}: ${errorMessage}`,
+				`Error fetching main order data from PrestaShop for order ID ${orderID}: ${errorMessage}`,
 			);
 		}
 	}
@@ -180,6 +178,7 @@ export class PrestashopAdapter extends StoreAdapter {
 					{
 						params: {
 							'filter[id]': '[1, 999999]',
+							display: 'full',
 						},
 						paramsSerializer: {
 							indexes: null,
@@ -219,6 +218,7 @@ export class PrestashopAdapter extends StoreAdapter {
 					{
 						params: {
 							'filter[id]': `[${nextInvoiceID}, 999999]`,
+							display: 'full',
 						},
 						headers: {
 							Authorization: this.authorizationKey,
@@ -310,12 +310,12 @@ export class PrestashopAdapter extends StoreAdapter {
 			// Parse response
 			const parsedResponse = xmlValidator(
 				response.data,
-				PrestashopInvoiceSchema,
+				PrestashopNestedInvoiceSchema,
 				'invoice',
 				'PrestaShop',
 			);
 			// Send result
-			return parsedResponse;
+			return parsedResponse.prestashop.order_invoice;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			throw new InternalError(
@@ -324,41 +324,60 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 	}
 
-	async getCustomerDataByID(customerID: number): Promise<IPrestashopCustomer> {
+	public async getCustomerDataByID(
+		customerID: number,
+	): Promise<IPrestashopCustomer> {
 		if (!customerID || Number.isNaN(customerID)) {
 			throw new InternalError(
 				`Wrong type for customer ID. Expecting NUMBER, ${typeof customerID} given.`,
 			);
 		}
-		try {
-			let customerData: AxiosResponse;
-			customerData = await axios.get<string>(
-				`${this.apiEndpoint}/customers/${customerID}`,
-				{
-					headers: {
-						Authorization: this.authorizationKey,
-					},
+
+		const fetchCustomerFromPrestaShop = async (
+			id: number,
+		): Promise<AxiosResponse<string>> => {
+			return axios.get<string>(`${this.apiEndpoint}/customers/${id}`, {
+				headers: {
+					Authorization: this.authorizationKey,
 				},
-			);
-			console.log('axios response : ', customerData.data);
-			// If empty response (user deleted), replace the customer by a default Anonymous customer object
-			if (!customerData.data) {
-				customerData = await axios.get<string>(
-					`${this.apiEndpoint}/customers/1`,
-					{
-						headers: {
-							Authorization: this.authorizationKey,
-						},
-					},
-				);
+			});
+		};
+
+		let customerData: AxiosResponse<string>;
+
+		try {
+			try {
+				// 1. Trying to fetch the requested customer data from PrestaShop
+				customerData = await fetchCustomerFromPrestaShop(customerID);
+			} catch (error) {
+				const axiosError = error as AxiosError;
+
+				// 2. If the customer no longer exists (404), fall back to ID 1 (Anonymous)
+				if (axiosError?.response && axiosError.response.status === 404) {
+					console.warn(
+						`Customer ID ${customerID} not found (404). Falling back to anonymous customer (ID: 1).`,
+					);
+					customerData = await fetchCustomerFromPrestaShop(1);
+				} else {
+					// For any other error (500, network issue, etc.), propagate it
+					throw error;
+				}
 			}
-			// Parse XML response
+
+			// 3. Parse XML response
 			const parsedResponse = xmlValidator(
-				customerData.data as string,
+				customerData.data,
 				PrestashopCustomersResponseSchema,
 				'customer',
 				'PrestaShop',
 			);
+
+			if (!parsedResponse?.customers || parsedResponse.customers.length === 0) {
+				throw new Error(
+					`Customer data could not be parsed or is empty for ID ${customerID}`,
+				);
+			}
+
 			return parsedResponse.customers[0];
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);

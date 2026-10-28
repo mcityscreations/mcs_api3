@@ -41,7 +41,9 @@ export class PrestashopAgregator {
 		const mainInvoiceData: IPrestashopInvoice =
 			await this.prestashopStoreAdapter.getInvoiceDetail(invoiceID);
 		const mainOrderData: IPrestashopOrder =
-			await this.prestashopStoreAdapter.getMainOrderDataByInvoiceID(invoiceID);
+			await this.prestashopStoreAdapter.getMainOrderData(
+				mainInvoiceData.id_order,
+			);
 		const detailedOrderData: IPrestashopOrderDetailsNormalized =
 			await this.prestashopStoreAdapter.getOrderDetails(invoiceID, 'invoice');
 
@@ -90,7 +92,7 @@ export class PrestashopAgregator {
 		const emailID = customerData?.email
 			? await this.prestashopSyncService.syncContact({
 					systemSource: 'prestashop',
-					idSource: 'prestamail-' + mainOrderData.id_customer.toString(),
+					idSource: 'prestamail-' + customerData?.id?.toString(),
 					idPerson: mcitysCustomerID,
 					isPrimary: true,
 					isProfessional: isCompany,
@@ -109,7 +111,7 @@ export class PrestashopAgregator {
 				systemSource: 'prestashop',
 				idSource: 'prestaphone-' + mainOrderData.id_customer.toString(),
 				idPerson: mcitysCustomerID,
-				isPrimary: true,
+				isPrimary: false,
 				isProfessional: isCompany,
 				title: 'My phone',
 				value: addressData.phone,
@@ -122,7 +124,7 @@ export class PrestashopAgregator {
 				systemSource: 'prestashop',
 				idSource: 'prestamobile-' + mainOrderData.id_customer.toString(),
 				idPerson: mcitysCustomerID,
-				isPrimary: true,
+				isPrimary: false,
 				isProfessional: isCompany,
 				title: 'My mobile phone',
 				value: addressData.phone_mobile,

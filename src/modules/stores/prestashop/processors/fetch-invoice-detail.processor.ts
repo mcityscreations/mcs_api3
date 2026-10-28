@@ -42,6 +42,7 @@ export class FetchInvoiceDetailProcessor extends WorkerHost {
 		// Check the data structure
 		const zodSchema = createJobDescriptorSchema(InvoiceStoreDtoSchema);
 		const checkedInvoice = zodSchema.safeParse(job);
+
 		if (!checkedInvoice.success) {
 			this.logger.error(
 				`[Prestashop Invoicing Worker] Invalid invoice data structure for invoice Job : ${job.id} in queue : ${job.queueName}.`,

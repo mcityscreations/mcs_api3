@@ -114,7 +114,6 @@ export class PeopleService {
 				'[People Service] Payload is required to add an organization.',
 			);
 		}
-		console.log(payload);
 		// Check for required fields in the payload
 		if (!CreateOrganizationSchema.safeParse(payload).success) {
 			console.error(CreateOrganizationSchema.safeParse(payload).error);
