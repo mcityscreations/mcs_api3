@@ -11,6 +11,7 @@ import { IPrestashopInvoice } from '../schemas/invoices.schema.js';
 import type { ICreateMcitysInvoice } from '../../../accounting/schemas/mcitys/invoice.schema.js';
 import type { IPrestashopOrder } from '../schemas/order.schema.js';
 import type { IPrestashopOrderDetailsNormalized } from '../schemas/order-detail.schema.js';
+import type { IPrestashopPayment } from '../schemas/payment.schema.js';
 import { mapPrestashopInvoiceToMcitysInvoice } from '../../../accounting/schemas/mappers/invoice.mapper.js';
 import { PrestashopSyncService } from '../sync/prestashop/prestashop-sync.service.js';
 
@@ -46,6 +47,16 @@ export class PrestashopAgregator {
 			);
 		const detailedOrderData: IPrestashopOrderDetailsNormalized =
 			await this.prestashopStoreAdapter.getOrderDetails(invoiceID, 'invoice');
+		const orderPayments: IPrestashopPayment[] =
+			await this.prestashopStoreAdapter.getOrderPayments(
+				mainOrderData.reference as string,
+			);
+		// Synchronize payment data with Mcitys system
+		if (orderPayments.length > 0) {
+			for (const payment of orderPayments) {
+				await this.prestashopSyncService.syncPayment(payment);
+			}
+		}
 
 		// Get address //
 		if (!mainOrderData.id_address_invoice)

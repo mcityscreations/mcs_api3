@@ -3,43 +3,8 @@
  * must be mapped to the following data structure before processing. */
 import { z } from 'zod';
 import { AddressSchema } from '../../../content/address/schemas/address.schema.js';
-
-const currenciesEnum = z.enum([
-	'EUR',
-	'AED',
-	'AUD',
-	'BGN',
-	'CAD',
-	'CHF',
-	'CNY',
-	'CZK',
-	'DKK',
-	'GBP',
-	'GHS',
-	'HKD',
-	'HUF',
-	'ILS',
-	'MXN',
-	'NOK',
-	'NZD',
-	'PEN',
-	'PLN',
-	'RON',
-	'RSD',
-	'SAR',
-	'SEK',
-	'SGD',
-	'TRY',
-	'USD',
-	'ZAR',
-	'ZMW',
-]);
-
-// 1. Reusable schemas
-const utcDateSchema = z.coerce
-	.date()
-	.transform((date) => date.toISOString())
-	.pipe(z.iso.datetime());
+import { currenciesEnum } from './currencies.schema.js';
+import { UtcDateSchema } from '../../../../common/dates/utcDate.schema.js';
 
 const orderDetailSchema = z.object({
 	id: z.string().min(1),
@@ -68,9 +33,9 @@ const BaseInvoiceSchema = z.object({
 	reference: z.string(),
 	id_order: z.string(),
 	source_system: z.enum(['qonto', 'prestashop']),
-	issue_date: utcDateSchema,
-	due_date: utcDateSchema,
-	paid_at: utcDateSchema.optional(),
+	issue_date: UtcDateSchema,
+	due_date: UtcDateSchema,
+	paid_at: UtcDateSchema.optional(),
 	currency: currenciesEnum,
 	document_type: z
 		.enum(['invoice', 'credit_note', 'proforma'])
@@ -82,6 +47,18 @@ const BaseInvoiceSchema = z.object({
 	discount_amount: z.number().int().nonnegative(),
 	payment_status: z.enum(['paid', 'unpaid', 'draft']),
 	payment_direction: z.enum(['debit', 'credit']),
+	payments: z
+		.array(
+			z.object({
+				id_transaction: z.string().nullable().optional(),
+				payment_method: z.string(),
+				amount: z.number().int().nonnegative(),
+				currency: currenciesEnum,
+				payment_date: UtcDateSchema,
+			}),
+		)
+		.nullable()
+		.optional(),
 });
 
 // 3. Extension for the complete invoice (McitysInvoice)

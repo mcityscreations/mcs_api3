@@ -41,6 +41,8 @@ import { PeopleService } from '../../../content/people/people.service.js';
 // Country service
 import { PrestashopCountryListSchema } from '../schemas/country.schema.js';
 import { CountryService } from '../../../content/taxonomy/country/service/country.service.js';
+import type { IPrestashopPayment } from '../schemas/payment.schema.js';
+import { PrestashopPaymentListSchema } from '../schemas/payment.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -452,6 +454,44 @@ export class PrestashopAdapter extends StoreAdapter {
 			const errorMessage = getErrorMessage(error);
 			throw new InternalError(
 				`Unable to get country ISO code 2 from Prestashop: ${errorMessage}`,
+			);
+		}
+	}
+
+	public async getOrderPayments(
+		orderReference: string,
+	): Promise<IPrestashopPayment[]> {
+		if (!orderReference || typeof orderReference !== 'string') {
+			throw new BadRequestError(
+				`Prestashop order reference must be a string. ${typeof orderReference} given.`,
+			);
+		}
+		try {
+			const response = await axios.get<string>(
+				`${this.apiEndpoint}/order_invoices`,
+				{
+					params: {
+						['filter[order_reference]']: orderReference,
+						display: 'full',
+					},
+					headers: {
+						Authorization: this.authorizationKey,
+					},
+				},
+			);
+			// Parse response
+			const parsedResponse = xmlValidator(
+				response.data,
+				PrestashopPaymentListSchema,
+				'order_payment',
+				'PrestaShop',
+			);
+			// Send result
+			return parsedResponse.prestashop.order_payments || [];
+		} catch (error) {
+			const errorMessage = getErrorMessage(error);
+			throw new InternalError(
+				`Error fetching invoice details from PrestaShop for order reference ${orderReference}: ${errorMessage}`,
 			);
 		}
 	}
