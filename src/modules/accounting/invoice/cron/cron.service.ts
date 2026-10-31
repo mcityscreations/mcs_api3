@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import axios from 'axios';
-import { DateService } from '../../../common/dates/dates.service.js';
-import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
-import { getErrorMessage } from '../../../common/utils/error.utils.js';
+import { DateService } from '../../../../common/dates/dates.service.js';
+import { WinstonLoggerService } from '../../../../system/logger/logger-service/winston-logger.service.js';
+import { getErrorMessage } from '../../../../common/utils/error.utils.js';
 
 @Injectable()
-export class AccountingCronService {
+export class InvoiceCronService {
 	constructor(
 		private readonly dateService: DateService,
 		private readonly logger: WinstonLoggerService,
@@ -16,7 +16,7 @@ export class AccountingCronService {
 	// Ereporting and einvoicing procedures will start September 1st 2026
 	// First execution will be on November 2nd 2026, then January 2nd 2027, etc.
 	@Cron('0 0 2 */2 *', { timeZone: 'Europe/Paris' })
-	async sendInvoices():Promise<void> {
+	async sendInvoices(): Promise<void> {
 		const now = new Date();
 		const serviceStartDate = new Date(2026, 10, 2); // November 2nd 2026 (months are 0-indexed)
 		if (now < serviceStartDate) {

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PostgreSQLService } from '../../../system/database/postgresql/postgresql.service.js';
+import { PostgreSQLService } from '../../../../system/database/postgresql/postgresql.service.js';
 import type {
 	ICreateMcitysInvoice,
 	IMcitysInvoice,
 } from '../schemas/mcitys/invoice.schema.js';
 
 @Injectable()
-export class AccountingRepository {
+export class InvoiceRepository {
 	constructor(private readonly dbService: PostgreSQLService) {}
 
 	public async doesInvoiceExist({
@@ -243,5 +243,22 @@ export class AccountingRepository {
 		);
 
 		return result && result.length > 0 ? result[0] : null;
+	}
+
+	public async getInvoiceIdByOrderId(payload: {
+		orderId: string;
+		systemSource: string;
+	}): Promise<string | null> {
+		const query = `
+			SELECT id_public
+			FROM accounting.invoice
+			WHERE id_order = $1 AND system_source = $2
+		`;
+		const result = await this.dbService.execute<{ id_public: string }>(
+			query,
+			[payload.orderId, payload.systemSource],
+			'standard',
+		);
+		return result && result.length > 0 ? result[0].id_public : null;
 	}
 }

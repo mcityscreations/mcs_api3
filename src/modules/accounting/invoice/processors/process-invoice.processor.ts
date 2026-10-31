@@ -1,17 +1,17 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job, UnrecoverableError } from 'bullmq';
-import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
-import { AccountingRepository } from '../repository/accounting.repository.js';
-import { createJobDescriptorSchema } from '../../../system/jobdispatcher/schemas/job.schema.js';
-import type { IJobDescriptor } from '../../../system/jobdispatcher/schemas/job.schema.js';
-import { CreateMcitysInvoiceSchema } from '../../accounting/schemas/mcitys/invoice.schema.js';
-import type { ICreateMcitysInvoice } from '../../accounting/schemas/mcitys/invoice.schema.js';
-import { InternalError } from '../../../system/errors/index.js';
+import { WinstonLoggerService } from '../../../../system/logger/logger-service/winston-logger.service.js';
+import { InvoiceRepository } from '../repository/invoice.repository.js';
+import { createJobDescriptorSchema } from '../../../../system/jobdispatcher/schemas/job.schema.js';
+import type { IJobDescriptor } from '../../../../system/jobdispatcher/schemas/job.schema.js';
+import { CreateMcitysInvoiceSchema } from '../schemas/mcitys/invoice.schema.js';
+import type { ICreateMcitysInvoice } from '../schemas/mcitys/invoice.schema.js';
+import { InternalError } from '../../../../system/errors/index.js';
 
 @Processor('accounting.process-invoice', {})
 export class ProcessInvoiceProcessor extends WorkerHost {
 	constructor(
-		private readonly accountingRepository: AccountingRepository,
+		private readonly accountingRepository: InvoiceRepository,
 		private readonly logger: WinstonLoggerService,
 	) {
 		super();
@@ -58,13 +58,15 @@ export class ProcessInvoiceProcessor extends WorkerHost {
 				this.logger.warn(
 					`[Accounting Invoice Processor] Duplicate entry detected for invoice ${invoice.reference}. Job completed as duplicate.`,
 				);
-				return;
+				throw new UnrecoverableError(
+					`Duplicate entry detected for invoice ${invoice.reference}. Job completed as duplicate.`,
+				);
+			} else {
+				// For all other real errors (network, DB inaccessible), rethrow to trigger BullMQ retry
+				throw new InternalError(
+					`Unable to save invoice n° ${invoice.id_technical} from ${invoice.source_system}: ${(error as { message: string }).message}`,
+				);
 			}
-
-			// For all other real errors (network, DB inaccessible), rethrow to trigger BullMQ retry
-			throw new InternalError(
-				`Unable to save invoice n° ${invoice.id_technical} from ${invoice.source_system}: ${(error as { message: string }).message}`,
-			);
 		}
 	}
 }

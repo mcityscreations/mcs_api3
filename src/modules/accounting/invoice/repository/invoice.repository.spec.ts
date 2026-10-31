@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { jest, describe, beforeEach, it, expect } from '@jest/globals';
-import { AccountingRepository } from './accounting.repository.js';
-import { PostgreSQLService } from '../../../system/database/postgresql/postgresql.service.js';
+import { InvoiceRepository } from './invoice.repository.js';
+import { PostgreSQLService } from '../../../../system/database/postgresql/postgresql.service.js';
 
-describe('AccountingRepository', () => {
-	let repository: AccountingRepository;
+describe('InvoiceRepository', () => {
+	let repository: InvoiceRepository;
 	let dbService: PostgreSQLService;
 	const mockDbService = {
 		execute: jest.fn(),
@@ -16,7 +16,7 @@ describe('AccountingRepository', () => {
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
-				AccountingRepository,
+				InvoiceRepository,
 				{
 					provide: PostgreSQLService,
 					useValue: mockDbService,
@@ -24,7 +24,7 @@ describe('AccountingRepository', () => {
 			],
 		}).compile();
 
-		repository = module.get<AccountingRepository>(AccountingRepository);
+		repository = module.get<InvoiceRepository>(InvoiceRepository);
 		dbService = module.get<PostgreSQLService>(PostgreSQLService);
 	});
 
