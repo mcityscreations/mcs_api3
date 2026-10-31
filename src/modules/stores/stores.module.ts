@@ -65,8 +65,19 @@ import { ContactModule } from '../content/contact/contact.module.js';
 				removeOnFail: 500, // Keep the last 500 failed jobs for debugging
 			},
 		}),
+		BullModule.registerQueue({
+			name: 'store.fetch-payment-detail',
+			defaultJobOptions: {
+				removeOnComplete: 100, // Keep only the last 100 successful jobs in Redis
+				removeOnFail: 500, // Keep the last 500 failed jobs for debugging
+			},
+		}),
 		BullBoardModule.forFeature({
 			name: 'store.fetch-invoice-detail',
+			adapter: BullMQAdapter,
+		}),
+		BullBoardModule.forFeature({
+			name: 'store.fetch-payment-detail',
 			adapter: BullMQAdapter,
 		}),
 		PeopleModule,

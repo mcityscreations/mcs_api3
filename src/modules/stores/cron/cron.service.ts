@@ -15,11 +15,16 @@ export class StoresCronService {
 	// This task will execute every Monday at 2 AM
 	@Cron('0 2 * * 1', { timeZone: 'Europe/Paris' })
 	async getLastInvoices() {
-		await this.storesService.downloadLastInvoices();
+		await this.storesService.getLastInvoices();
 	}
 	// This task will execute every 5 minutes
 	@Cron('*/5 * * * *', { timeZone: 'Europe/Paris' })
 	async checkForNewInvoices() {
-		await this.storesService.downloadLastInvoices();
+		await this.storesService.getLastInvoices();
+	}
+
+	@Cron('*/5 * * * *', { timeZone: 'Europe/Paris' })
+	async getLastPayments() {
+		await this.storesService.getPayments();
 	}
 }

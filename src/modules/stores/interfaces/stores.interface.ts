@@ -1,10 +1,5 @@
 import { IDateFilter } from '../../../common/dates/datefilter.schema.js';
 
-export interface IInvoiceStoreDto {
-	id: string;
-	source_system: string;
-}
-
 export abstract class StoreAdapter {
 	abstract uploadProduct(): void;
 	abstract updateProduct(): void;

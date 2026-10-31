@@ -9,10 +9,8 @@ import { WinstonLoggerService } from '../../../../system/logger/logger-service/w
 import { getErrorMessage } from '../../../../common/utils/error.utils.js';
 import { xmlValidator } from '../../../../common/validators/xml.validators.js';
 import { IDateFilter } from '../../../../common/dates/datefilter.schema.js';
-import {
-	IInvoiceStoreDto,
-	StoreAdapter,
-} from '../../interfaces/stores.interface.js';
+import { StoreAdapter } from '../../interfaces/stores.interface.js';
+import type { IStoreProcessorDto } from '../../schemas/store-processor.dto.js';
 import { StoresRepository } from '../../repository/stores.repository.js';
 import { PrestashopConfigService } from '../configs/prestashop.config.js';
 // Invoice schemas
@@ -41,7 +39,7 @@ import { PeopleService } from '../../../content/people/people.service.js';
 // Country service
 import { PrestashopCountryListSchema } from '../schemas/country.schema.js';
 import { CountryService } from '../../../content/taxonomy/country/service/country.service.js';
-import type { IPrestashopPayment } from '../schemas/payment.schema.js';
+import type { IPrestashopEnvelopePayment } from '../schemas/payment.schema.js';
 import { PrestashopPaymentListSchema } from '../schemas/payment.schema.js';
 
 @Injectable()
@@ -167,7 +165,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 	}
 
-	async getLastInvoices(): Promise<IInvoiceStoreDto[]> {
+	async getLastInvoices(): Promise<IStoreProcessorDto[]> {
 		// Retrieve last invoice ID stored in Postgres
 		const lastInvoiceID =
 			await this.storesRepository.getLastPrestashopInvoiceID();
@@ -460,7 +458,7 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	public async getOrderPayments(
 		orderReference: string,
-	): Promise<IPrestashopPayment[]> {
+	): Promise<IPrestashopEnvelopePayment[]> {
 		if (!orderReference || typeof orderReference !== 'string') {
 			throw new BadRequestError(
 				`Prestashop order reference must be a string. ${typeof orderReference} given.`,
@@ -468,7 +466,7 @@ export class PrestashopAdapter extends StoreAdapter {
 		}
 		try {
 			const response = await axios.get<string>(
-				`${this.apiEndpoint}/order_invoices`,
+				`${this.apiEndpoint}/order_payments`,
 				{
 					params: {
 						['filter[order_reference]']: orderReference,
@@ -491,7 +489,82 @@ export class PrestashopAdapter extends StoreAdapter {
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			throw new InternalError(
-				`Error fetching invoice details from PrestaShop for order reference ${orderReference}: ${errorMessage}`,
+				`Error fetching payment details from PrestaShop for order reference ${orderReference}: ${errorMessage}`,
+			);
+		}
+	}
+
+	public async getPayment(
+		paymentId: string,
+	): Promise<IPrestashopEnvelopePayment | null> {
+		if (!paymentId || typeof paymentId !== 'string') {
+			throw new BadRequestError(
+				`Prestashop payment ID must be a string. ${typeof paymentId} given.`,
+			);
+		}
+		try {
+			const response = await axios.get<string>(
+				`${this.apiEndpoint}/order_payments/${paymentId}`,
+				{
+					params: {
+						display: 'full',
+					},
+					headers: {
+						Authorization: this.authorizationKey,
+					},
+				},
+			);
+			// Parse response
+			const parsedResponse = xmlValidator(
+				response.data,
+				PrestashopPaymentListSchema,
+				'order_payment',
+				'PrestaShop',
+			);
+			// Send result
+			return parsedResponse.prestashop.order_payments[0] ?? null;
+		} catch (error) {
+			const errorMessage = getErrorMessage(error);
+			throw new InternalError(
+				`Error fetching payment details from PrestaShop for payment ID ${paymentId}: ${errorMessage}`,
+			);
+		}
+	}
+
+	public async getLastPayments(
+		lastPaymentID: number,
+	): Promise<IPrestashopEnvelopePayment[] | null> {
+		if (!lastPaymentID || typeof lastPaymentID !== 'number')
+			throw new BadRequestError(`
+				[Prestashop Adapter] Wrong format for lastPaymentID.
+			`);
+		const nextPaymentID = lastPaymentID + 1;
+		try {
+			const response = await axios.get<string>(
+				`${this.apiEndpoint}/order_payments`,
+				{
+					params: {
+						['filter[id]']: `[${nextPaymentID}, 999999]`,
+						display: 'full',
+					},
+					headers: {
+						Authorization: this.authorizationKey,
+					},
+				},
+			);
+			// Parse response
+			const parsedResponse = xmlValidator(
+				response.data,
+				PrestashopPaymentListSchema,
+				'order_payment',
+				'PrestaShop',
+			);
+			// Send result
+			return parsedResponse.prestashop.order_payments || [];
+		} catch (error) {
+			const errorMessage = getErrorMessage(error);
+			throw new InternalError(
+				`Error fetching payment details from PrestaShop for payments between n°${nextPaymentID} and n°999999: ${errorMessage}`,
 			);
 		}
 	}

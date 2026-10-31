@@ -20,8 +20,8 @@ import {
 	AddContactSchema,
 	type IAddContact,
 } from '../../../../content/contact/schemas/contact.schema.js';
-import type { IPrestashopPayment } from '../../schemas/payment.schema.js'
-import { PrestashopPaymentSchema } from '../../schemas/payment.schema.js';
+// Invoice
+import { InvoiceService } from '../../../../accounting/invoice/services/invoice.service.js';
 
 @Injectable()
 export class PrestashopSyncService {
@@ -29,6 +29,7 @@ export class PrestashopSyncService {
 		private readonly peopleService: PeopleService,
 		private readonly contactService: ContactService,
 		private readonly addressService: AddressService,
+		private readonly invoiceService: InvoiceService,
 	) {}
 
 	public async syncCustomerIndividual(payload: {
@@ -241,22 +242,5 @@ export class PrestashopSyncService {
 					JSON.stringify(payload),
 			);
 		return contactID ?? null;
-	}
-
-	public async syncPayment(
-		payload: IPrestashopPayment,
-	): Promise<string | null> {
-		if (!PrestashopPaymentSchema.safeParse(payload).success) {
-			throw new ValidationError(
-				`[PrestashopSyncService] - Wrong type for payment data.`,
-			);
-		}
-		const isPaymentSynced = await this.paymentService.savePayment(payload);
-		if (!isPaymentSynced)
-			throw new InternalError(
-				`[PrestashopSyncService] Unable to synchronize Prestashop payment data :` +
-					JSON.stringify(payload),
-			);
-		return isPaymentSynced ?? null;
 	}
 }

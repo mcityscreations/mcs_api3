@@ -25,30 +25,35 @@ import { ZodPriceToCents } from '../../../../common/utils/priceToCents.js';
  */
 
 export const PrestashopPaymentSchema = z.object({
-	order_payment: z.object({
-		id: z.coerce.string().optional(),
-		order_reference: z.coerce.string(),
-		id_currency: z.number(),
-		amount: ZodPriceToCents,
-		payment_method: z.string(),
-		conversion_rate: ZodStringToInteger,
-		transaction_id: z.string().optional(),
-		card_number: z.coerce.string().optional(),
-		card_brand: z.string().optional(),
-		card_expiration: z.string().optional(),
-		card_holder: z.string().optional(),
-		date_add: z.string().optional(),
-		id_employee: z.string().optional(),
-	}),
+	id: z.coerce.string().optional(),
+	order_reference: z.coerce.string(),
+	id_currency: z.number(),
+	amount: ZodPriceToCents,
+	payment_method: z.string(),
+	conversion_rate: ZodStringToInteger,
+	transaction_id: z.string().optional(),
+	card_number: z.coerce.string().optional(),
+	card_brand: z.string().optional(),
+	card_expiration: z.string().optional(),
+	card_holder: z.string().optional(),
+	date_add: z.string().optional(),
+	id_employee: z.string().optional(),
 });
 export type IPrestashopPayment = z.infer<typeof PrestashopPaymentSchema>;
+
+export const PrestaShopEnvelopePaymentSchema = z.object({
+	order_payment: PrestashopPaymentSchema,
+});
+export type IPrestashopEnvelopePayment = z.infer<
+	typeof PrestaShopEnvelopePaymentSchema
+>;
 
 export const PrestashopPaymentListSchema = z.object({
 	prestashop: z.object({
 		order_payments: z
 			.preprocess(
 				(val): unknown[] => (Array.isArray(val) ? val : [val]),
-				z.array(PrestashopPaymentSchema),
+				z.array(PrestaShopEnvelopePaymentSchema),
 			)
 			.optional()
 			.default([]),
