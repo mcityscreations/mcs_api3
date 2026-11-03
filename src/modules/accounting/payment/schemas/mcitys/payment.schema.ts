@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { currenciesEnum } from '../../../invoice/schemas/mcitys/currencies.schema.js';
+import { currenciesEnum } from '../../../currency/schemas/currency.enum.js';
 import { UtcDateSchema } from '../../../../../common/dates/utcDate.schema.js';
 
 export const McitysPaymentSchema = z.object({

@@ -3,7 +3,7 @@
  * must be mapped to the following data structure before processing. */
 import { z } from 'zod';
 import { AddressSchema } from '../../../../content/address/schemas/address.schema.js';
-import { currenciesEnum } from './currencies.schema.js';
+import { currenciesEnum } from '../../../currency/schemas/currency.enum.js';
 import { UtcDateSchema } from '../../../../../common/dates/utcDate.schema.js';
 
 const orderDetailSchema = z.object({

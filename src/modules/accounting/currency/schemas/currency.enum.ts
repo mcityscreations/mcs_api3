@@ -30,3 +30,4 @@ export const currenciesEnum = z.enum([
 	'ZAR',
 	'ZMW',
 ]);
+export type ICurrencyEnum = z.infer<typeof currenciesEnum>;
