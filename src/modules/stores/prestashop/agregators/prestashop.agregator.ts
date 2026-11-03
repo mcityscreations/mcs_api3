@@ -15,6 +15,8 @@ import { mapPrestashopInvoiceToMcitysInvoice } from '../../../accounting/invoice
 import { PrestashopSyncService } from '../sync/prestashop/prestashop-sync.service.js';
 import type { ICreateMcitysPayment } from '../../../accounting/payment/schemas/mcitys/payment.schema.js';
 import { PaymentService } from '../../../accounting/payment/services/payment.service.js';
+import { CurrencyService } from '../../../accounting/currency/service/currency.service.js';
+import type { ICurrencyEnum } from '../../../accounting/currency/schemas/currency.enum.js';
 
 @Injectable()
 export class PrestashopAgregator {
@@ -25,6 +27,7 @@ export class PrestashopAgregator {
 		private readonly addressService: AddressService,
 		private readonly countryService: CountryService,
 		private readonly paymentService: PaymentService,
+		private readonly currencyService: CurrencyService,
 	) {}
 
 	/**
@@ -173,23 +176,34 @@ export class PrestashopAgregator {
 		const mcitysPaymentMethodID =
 			await this.paymentService.getPaymentMethodByExternalID({
 				systemSource: 'prestashop',
-				externalPaymentMethodId: prestashopPayment?.order_payment
-					.payment_method as string,
+				externalPaymentMethodId: prestashopPayment?.payment_method as string,
 			});
 		if (!mcitysPaymentMethodID) {
 			throw new NotFoundError(
-				`[Prestashop Agregator] - Unable to find Mcitys payment method ID for Prestashop payment method ${prestashopPayment?.order_payment.payment_method}`,
+				`[Prestashop Agregator] - Unable to find Mcitys payment method ID for Prestashop payment method ${prestashopPayment?.payment_method}`,
+			);
+		}
+		// Get the currency ID from Mcitys system
+		const mcitysCurrencyID = await this.currencyService.findOneByExternalId({
+			systemSource: 'prestashop',
+			externalCurrencyId: prestashopPayment?.id_currency.toString() as string,
+		});
+		if (!mcitysCurrencyID) {
+			throw new NotFoundError(
+				`[Prestashop Agregator] - Unable to find Mcitys currency ID for Prestashop currency ID ${prestashopPayment?.id_currency}`,
 			);
 		}
 		// Generate the Mcitys payment object
 		const mcitysPayment: ICreateMcitysPayment = {
 			system_source: 'prestashop',
-			id_payment_source: prestashopPayment?.order_payment.id?.toString() as string,
-			source_data: JSON.stringify(prestashopPayment?.order_payment),
+			id_payment_source:
+				prestashopPayment?.order_reference?.toString() as string,
+			source_data: JSON.stringify(prestashopPayment),
 			payment_method: mcitysPaymentMethodID,
-			amount: prestashopPayment?.order_payment.amount as number,
-			currency: prestashopPayment?.order_payment.currency as string,
-			paid_at: new Date(prestashopPayment?.order_payment.date_add as string),
+			amount: prestashopPayment?.amount as number,
+			currency: mcitysCurrencyID.id_currency as ICurrencyEnum,
+			paid_at: prestashopPayment?.date_add as string,
 		};
 		return mcitysPayment;
 	}
+}

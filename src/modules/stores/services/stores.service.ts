@@ -72,7 +72,7 @@ export class StoresService {
 			const lastPrestashopPayment =
 				await this.paymentService.getLastPayment('prestashop');
 			const lastPrestashopPaymentID = lastPrestashopPayment
-				? Number.parseInt(lastPrestashopPayment.id_source)
+				? Number.parseInt(lastPrestashopPayment.id_payment_source)
 				: 1;
 			const payments = await this.prestashopStoreAdapter.getLastPayments(
 				lastPrestashopPaymentID,
@@ -92,7 +92,7 @@ export class StoresService {
 					version: '1.0.0',
 					correlationId: correlationId,
 					data: {
-						id_payment: payment.order_payment,
+						id_payment: payment.id,
 						system_source: 'prestashop',
 					},
 				},

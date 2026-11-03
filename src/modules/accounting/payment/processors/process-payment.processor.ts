@@ -5,7 +5,7 @@ import { PaymentRepository } from '../repository/payment.repository.js';
 import { PaymentService } from '../services/payment.service.js';
 import { createJobDescriptorSchema } from '../../../../system/jobdispatcher/schemas/job.schema.js';
 import type { IJobDescriptor } from '../../../../system/jobdispatcher/schemas/job.schema.js';
-import { CreateMcitysPaymentSchema } from '../schemas/mcitys/payment.schema.js';
+import { McitysCreatePaymentSchema } from '../schemas/mcitys/payment.schema.js';
 import type { ICreateMcitysPayment } from '../schemas/mcitys/payment.schema.js';
 import { InternalError } from '../../../../system/errors/index.js';
 
@@ -20,7 +20,7 @@ export class ProcessPaymentProcessor extends WorkerHost {
 	}
 	async process(job: Job<IJobDescriptor<ICreateMcitysPayment>>): Promise<void> {
 		// 1. Validating job structure
-		const zodSchema = createJobDescriptorSchema(CreateMcitysPaymentSchema);
+		const zodSchema = createJobDescriptorSchema(McitysCreatePaymentSchema);
 		const parsedPayment = zodSchema.safeParse(job);
 
 		if (!parsedPayment.success) {
@@ -37,38 +37,32 @@ export class ProcessPaymentProcessor extends WorkerHost {
 
 		try {
 			// 2. Atomic insertion (Duplicate handling managed directly in the DB via SQL)
-			const invoiceID = await this.paymentRepository.addPayment(
-				invoice,
-				invoiceItems,
-			);
+			const paymentID = await this.paymentService.addPayment(payment);
 
 			// If the DB query uses ON CONFLICT DO NOTHING and returns no ID
-			if (!invoiceID) {
+			if (!paymentID) {
 				this.logger.warn(
-					`[Payment Processor] Invoice reference ${invoice.reference} from ${invoice.source_system} already exists. Job skipped.`,
+					`[Payment Processor] Payment reference ${payment.id_payment_source} from ${payment.system_source} already exists. Job skipped.`,
 				);
 				return; // Do not throw an error otherwise BullMQ will retry this task (idempotence)
 			}
 
 			this.logger.log(
-				`[Payment Processor] Invoice ${invoice.reference} (${invoice.source_system}) saved successfully with ID: ${invoiceID}`,
+				`[Payment Processor] Payment ${payment.id_payment_source} (${payment.system_source}) saved successfully with ID: ${paymentID}`,
 			);
 		} catch (error: unknown) {
 			// If the DB raises a unique constraint error (e.g., Postgres code 23505)
 			if ((error as { code?: string }).code === '23505') {
 				this.logger.warn(
-					`[Payment Processor] Duplicate entry detected for invoice ${invoice.reference}. Job completed as duplicate.`,
+					`[Payment Processor] Duplicate entry detected for payment ${payment.id_payment_source}. Job completed as duplicate.`,
 				);
 				throw new UnrecoverableError(
-					`Duplicate entry detected for invoice ${invoice.reference}. Job completed as duplicate.`,
+					`Duplicate entry detected for payment ${payment.id_payment_source}. Job completed as duplicate.`,
 				);
 			}
-				return;
-			}
-
 			// For all other real errors (network, DB inaccessible), rethrow to trigger BullMQ retry
 			throw new InternalError(
-				`Unable to save invoice n° ${invoice.id_technical} from ${invoice.source_system}: ${(error as { message: string }).message}`,
+				`Unable to save payment n° ${payment.id_payment_source} from ${payment.system_source}: ${(error as { message: string }).message}`,
 			);
 		}
 	}

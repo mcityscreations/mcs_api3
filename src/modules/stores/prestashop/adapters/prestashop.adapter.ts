@@ -39,7 +39,7 @@ import { PeopleService } from '../../../content/people/people.service.js';
 // Country service
 import { PrestashopCountryListSchema } from '../schemas/country.schema.js';
 import { CountryService } from '../../../content/taxonomy/country/service/country.service.js';
-import type { IPrestashopEnvelopePayment } from '../schemas/payment.schema.js';
+import type { IPrestashopPayment } from '../schemas/payment.schema.js';
 import { PrestashopPaymentListSchema } from '../schemas/payment.schema.js';
 
 @Injectable()
@@ -458,7 +458,7 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	public async getOrderPayments(
 		orderReference: string,
-	): Promise<IPrestashopEnvelopePayment[]> {
+	): Promise<IPrestashopPayment[]> {
 		if (!orderReference || typeof orderReference !== 'string') {
 			throw new BadRequestError(
 				`Prestashop order reference must be a string. ${typeof orderReference} given.`,
@@ -485,7 +485,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				'PrestaShop',
 			);
 			// Send result
-			return parsedResponse.prestashop.order_payments || [];
+			return parsedResponse.prestashop.order_payments.order_payment || [];
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			throw new InternalError(
@@ -496,7 +496,7 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	public async getPayment(
 		paymentId: string,
-	): Promise<IPrestashopEnvelopePayment | null> {
+	): Promise<IPrestashopPayment | null> {
 		if (!paymentId || typeof paymentId !== 'string') {
 			throw new BadRequestError(
 				`Prestashop payment ID must be a string. ${typeof paymentId} given.`,
@@ -522,7 +522,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				'PrestaShop',
 			);
 			// Send result
-			return parsedResponse.prestashop.order_payments[0] ?? null;
+			return parsedResponse.prestashop.order_payments.order_payment[0] ?? null;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			throw new InternalError(
@@ -533,7 +533,7 @@ export class PrestashopAdapter extends StoreAdapter {
 
 	public async getLastPayments(
 		lastPaymentID: number,
-	): Promise<IPrestashopEnvelopePayment[] | null> {
+	): Promise<IPrestashopPayment[] | null> {
 		if (!lastPaymentID || typeof lastPaymentID !== 'number')
 			throw new BadRequestError(`
 				[Prestashop Adapter] Wrong format for lastPaymentID.
@@ -560,7 +560,7 @@ export class PrestashopAdapter extends StoreAdapter {
 				'PrestaShop',
 			);
 			// Send result
-			return parsedResponse.prestashop.order_payments || [];
+			return parsedResponse.prestashop.order_payments.order_payment || [];
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			throw new InternalError(

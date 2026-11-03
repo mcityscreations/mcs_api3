@@ -19,7 +19,7 @@ export class StoresController {
 
 	@Get('prestashop/invoices/last')
 	async getLastInvoice() {
-		return this.storesService.downloadLastInvoices();
+		return this.storesService.getLastInvoices();
 	}
 
 	@Get('prestashop/invoices/:invoiceID')

@@ -41,22 +41,17 @@ export const PrestashopPaymentSchema = z.object({
 });
 export type IPrestashopPayment = z.infer<typeof PrestashopPaymentSchema>;
 
-export const PrestaShopEnvelopePaymentSchema = z.object({
-	order_payment: PrestashopPaymentSchema,
-});
-export type IPrestashopEnvelopePayment = z.infer<
-	typeof PrestaShopEnvelopePaymentSchema
->;
-
 export const PrestashopPaymentListSchema = z.object({
 	prestashop: z.object({
-		order_payments: z
-			.preprocess(
-				(val): unknown[] => (Array.isArray(val) ? val : [val]),
-				z.array(PrestaShopEnvelopePaymentSchema),
-			)
-			.optional()
-			.default([]),
+		order_payments: z.object({
+			order_payment: z
+				.preprocess(
+					(val): unknown[] => (Array.isArray(val) ? val : [val]),
+					z.array(PrestashopPaymentSchema),
+				)
+				.optional()
+				.default([]),
+		}),
 	}),
 });
 export type IPrestashopPaymentListSchema = z.infer<

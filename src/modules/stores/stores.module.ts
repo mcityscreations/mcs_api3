@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { FetchInvoiceDetailProcessor } from './prestashop/processors/fetch-invoice-detail.processor.js';
+import { FetchPaymentDetailProcessor } from './prestashop/processors/fetch-payment-detail.processor.js';
 import { BullModule } from '@nestjs/bullmq';
 import { BullBoardModule } from '@bull-board/nestjs';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
@@ -19,6 +20,7 @@ import { AddressModule } from '../content/address/address.module.js';
 import { CountryModule } from '../content/taxonomy/country/country.module.js';
 import { PrestashopSyncService } from './prestashop/sync/prestashop/prestashop-sync.service.js';
 import { ContactModule } from '../content/contact/contact.module.js';
+import { AccountingModule } from '../accounting/accounting.module.js';
 
 @Module({
 	providers: [
@@ -52,6 +54,7 @@ import { ContactModule } from '../content/contact/contact.module.js';
 		StoresRepository,
 		StoresService,
 		FetchInvoiceDetailProcessor,
+		FetchPaymentDetailProcessor,
 		PrestashopAgregator,
 		PrestashopSyncService,
 	],
@@ -84,6 +87,7 @@ import { ContactModule } from '../content/contact/contact.module.js';
 		AddressModule,
 		CountryModule,
 		ContactModule,
+		AccountingModule,
 	],
 	exports: ['PRESTASHOP_STORE'],
 })

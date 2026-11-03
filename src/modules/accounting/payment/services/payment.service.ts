@@ -36,10 +36,12 @@ export class PaymentService {
 				orderId: payload.id_order as string,
 				systemSource: 'prestashop',
 			}));
-		if (!idInvoice)
-			throw new NotFoundError(
-				`[PrestashopSyncService] Unable to find invoice ID for ${payload.system_source} order reference ${payload.id_order}`,
-			);
+		const paymentId = await this.paymentRepository.addPayment({
+			...payload,
+			id_invoice: idInvoice ?? null,
+			id_order: payload.id_order ?? null,
+		});
+		return paymentId;
 	}
 
 	public async getPaymentMethodByExternalID(payload: {
@@ -67,6 +69,9 @@ export class PaymentService {
 		const lastPayment = systemSource
 			? await this.paymentRepository.getLastPaymentBySource(systemSource)
 			: await this.paymentRepository.getLastPayment();
+		if (lastPayment?.id_invoice) {
+			lastPayment.id_invoice = lastPayment?.id_invoice ?? 'Not allocated';
+		}
 		return lastPayment;
 	}
 }
