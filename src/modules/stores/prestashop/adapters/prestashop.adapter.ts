@@ -23,6 +23,11 @@ import {
 	PrestashopInvoiceListSchema,
 	PrestashopInvoiceListSchemaFull,
 } from '../schemas/invoices.schema.js';
+// Payment schemas
+import {
+	PrestashopPaymentListSchema,
+	PrestashopSinglePaymentSchema,
+} from '../schemas/payment.schema.js';
 // Order schemas
 import type { IPrestashopOrderDetailsNormalized } from '../schemas/order-detail.schema.js';
 import { PrestashopOrderDetailsResponseSchema } from '../schemas/order-detail.schema.js';
@@ -40,7 +45,6 @@ import { PeopleService } from '../../../content/people/people.service.js';
 import { PrestashopCountryListSchema } from '../schemas/country.schema.js';
 import { CountryService } from '../../../content/taxonomy/country/service/country.service.js';
 import type { IPrestashopPayment } from '../schemas/payment.schema.js';
-import { PrestashopPaymentListSchema } from '../schemas/payment.schema.js';
 
 @Injectable()
 export class PrestashopAdapter extends StoreAdapter {
@@ -517,12 +521,12 @@ export class PrestashopAdapter extends StoreAdapter {
 			// Parse response
 			const parsedResponse = xmlValidator(
 				response.data,
-				PrestashopPaymentListSchema,
+				PrestashopSinglePaymentSchema,
 				'order_payment',
 				'PrestaShop',
 			);
 			// Send result
-			return parsedResponse.prestashop.order_payments.order_payment[0] ?? null;
+			return parsedResponse.prestashop.order_payment[0] ?? null;
 		} catch (error) {
 			const errorMessage = getErrorMessage(error);
 			throw new InternalError(

@@ -9,7 +9,7 @@ import type {
 } from '../schemas/mcitys/payment.schema.js';
 import { InvoiceService } from '../../invoice/services/invoice.service.js';
 import { PaymentRepository } from '../repository/payment.repository.js';
-import { CreateMcitysInvoiceSchema } from '../../invoice/schemas/mcitys/invoice.schema.js';
+import { McitysCreatePaymentSchema } from '../../payment/schemas/mcitys/payment.schema.js';
 
 @Injectable()
 export class PaymentService {
@@ -20,8 +20,9 @@ export class PaymentService {
 	public async addPayment(
 		payload: ICreateMcitysPayment,
 	): Promise<string | null> {
+		console.log(payload);
 		// Parse payload
-		if (!CreateMcitysInvoiceSchema.safeParse(payload).success) {
+		if (!McitysCreatePaymentSchema.safeParse(payload).success) {
 			throw new ValidationError(`
 				[PaymentService] Unable to process payment : The payload format is wrong.`);
 		}

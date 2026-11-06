@@ -57,3 +57,18 @@ export const PrestashopPaymentListSchema = z.object({
 export type IPrestashopPaymentListSchema = z.infer<
 	typeof PrestashopPaymentListSchema
 >;
+
+export const PrestashopSinglePaymentSchema = z.object({
+	prestashop: z.object({
+		order_payment: z
+			.preprocess(
+				(val): unknown[] => (Array.isArray(val) ? val : [val]),
+				z.array(PrestashopPaymentSchema),
+			)
+			.optional()
+			.default([]),
+	}),
+});
+export type IPrestashopSinglePayment = z.infer<
+	typeof PrestashopSinglePaymentSchema
+>;

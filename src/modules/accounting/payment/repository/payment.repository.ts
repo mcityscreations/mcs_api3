@@ -12,7 +12,7 @@ export class PaymentRepository {
         ap.id_public AS "id_payment",
         ai.id_public AS "id_invoice",
         ap.system_source AS "system_source",
-        ap.id_payment_source AS "id_source",
+        ap.id_payment_source AS "id_payment_source",
         json_build_object(
             'id', apm.id_public,
             'label', apm.name
@@ -51,7 +51,9 @@ export class PaymentRepository {
 		) VALUES (
 			(SELECT id_payment_method FROM payment_method),
 			$2, $3, $4, $5, $6, $7, $8, $9, $10
-		) RETURNING id_public AS "id_payment";
+		) 
+			ON CONFLICT(system_source, id_payment_source) DO NOTHING
+		RETURNING id_public AS "id_payment";
 		`;
 		const result = await this.dbService.execute<{ id_payment: string }>(
 			query,

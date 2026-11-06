@@ -196,13 +196,14 @@ export class PrestashopAgregator {
 		// Generate the Mcitys payment object
 		const mcitysPayment: ICreateMcitysPayment = {
 			system_source: 'prestashop',
-			id_payment_source:
-				prestashopPayment?.order_reference?.toString() as string,
+			id_payment_source: prestashopPayment?.id as string,
 			source_data: JSON.stringify(prestashopPayment),
 			payment_method: mcitysPaymentMethodID,
 			amount: prestashopPayment?.amount as number,
 			currency: mcitysCurrencyID.id_currency as ICurrencyEnum,
 			paid_at: prestashopPayment?.date_add as string,
+			id_order: prestashopPayment?.order_reference,
+			id_transaction: prestashopPayment?.transaction_id || null,
 		};
 		return mcitysPayment;
 	}

@@ -92,8 +92,8 @@ export class StoresService {
 					version: '1.0.0',
 					correlationId: correlationId,
 					data: {
-						id_payment: payment.id,
-						system_source: 'prestashop',
+						id: payment.id,
+						source_system: 'prestashop',
 					},
 				},
 				opts: {
