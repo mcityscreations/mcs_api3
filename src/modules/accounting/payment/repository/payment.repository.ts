@@ -36,7 +36,7 @@ export class PaymentRepository {
 			SELECT apm.id_payment_method
 			FROM accounting.payment_method apm
 			WHERE apm.id_public = $1
-		),
+		)
         INSERT INTO accounting.payment (
 			id_payment_method,
 			amount,
