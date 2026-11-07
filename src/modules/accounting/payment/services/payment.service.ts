@@ -31,15 +31,9 @@ export class PaymentService {
 				[PaymentService] Unable to process payment, invoice or order ID missing.
 				`);
 
-		const idInvoice =
-			payload.id_invoice ??
-			(await this.invoiceService.getInvoiceIdByOrderId({
-				orderId: payload.id_order as string,
-				systemSource: 'prestashop',
-			}));
 		const paymentId = await this.paymentRepository.addPayment({
 			...payload,
-			id_invoice: idInvoice ?? null,
+			id_invoice: payload.id_invoice ?? null,
 			id_order: payload.id_order ?? null,
 		});
 		return paymentId;
