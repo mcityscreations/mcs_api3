@@ -7,20 +7,15 @@ import type {
 	ICreateMcitysPayment,
 	IMcitysPayment,
 } from '../schemas/mcitys/payment.schema.js';
-import { InvoiceService } from '../../invoice/services/invoice.service.js';
 import { PaymentRepository } from '../repository/payment.repository.js';
 import { McitysCreatePaymentSchema } from '../../payment/schemas/mcitys/payment.schema.js';
 
 @Injectable()
 export class PaymentService {
-	constructor(
-		private readonly invoiceService: InvoiceService,
-		private readonly paymentRepository: PaymentRepository,
-	) {}
+	constructor(private readonly paymentRepository: PaymentRepository) {}
 	public async addPayment(
 		payload: ICreateMcitysPayment,
 	): Promise<string | null> {
-		console.log(payload);
 		// Parse payload
 		if (!McitysCreatePaymentSchema.safeParse(payload).success) {
 			throw new ValidationError(`

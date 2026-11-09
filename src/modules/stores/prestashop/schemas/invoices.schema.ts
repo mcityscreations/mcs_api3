@@ -121,18 +121,31 @@ export type IPrestashopInvoiceList = z.infer<
 /** Full schema for a list of PrestaShop invoices, including all invoice details */
 export const PrestashopInvoiceListSchemaFull = z.object({
 	prestashop: z.object({
-		order_invoices: z.object({
-			// If there is only one invoice, Prestashop will return an object
-			// instead of an array of objects. For an easier data parsing, it's
-			// better to store a single object into an array.
-			order_invoice: z
-				.preprocess(
-					(val): unknown[] => (Array.isArray(val) ? val : [val]),
-					z.array(PrestashopInvoiceSchema),
-				)
-				.optional()
-				.default([]),
-		}),
+		// If there is only one invoice, Prestashop will return an object
+		// instead of an array of objects. For an easier data parsing, it's
+		// better to store a single object into an array. If no invoices are present,
+		// it will normalize to an empty array.
+		order_invoices: z
+			.preprocess(
+				(val) => {
+					// Si le nœud order_invoices est vide, "" ou absent, on normalise
+					if (!val || val === '' || typeof val !== 'object') {
+						return { order_invoice: [] };
+					}
+					return val;
+				},
+				z.object({
+					order_invoice: z
+						.preprocess((val: unknown): unknown[] => {
+							// If no invoices are present (val is null or undefined), return an empty array
+							if (!val) return [];
+							// If it's a single invoice object, wrap it in an array, otherwise keep the array as is.
+							return Array.isArray(val) ? val : [val];
+						}, z.array(PrestashopInvoiceSchema))
+						.default([]),
+				}),
+			)
+			.default({ order_invoice: [] }),
 	}),
 });
 export type IPrestashopInvoiceListFull = z.infer<

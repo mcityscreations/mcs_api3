@@ -43,15 +43,27 @@ export type IPrestashopPayment = z.infer<typeof PrestashopPaymentSchema>;
 
 export const PrestashopPaymentListSchema = z.object({
 	prestashop: z.object({
-		order_payments: z.object({
-			order_payment: z
-				.preprocess(
-					(val): unknown[] => (Array.isArray(val) ? val : [val]),
-					z.array(PrestashopPaymentSchema),
-				)
-				.optional()
-				.default([]),
-		}),
+		order_payments: z
+			.preprocess(
+				(val) => {
+					// Si l'API renvoie une chaîne vide "" ou rien, on normalise vers un objet vide
+					if (!val || val === '' || typeof val !== 'object') {
+						return { order_payment: [] };
+					}
+					return val;
+				},
+				z.object({
+					order_payment: z
+						.preprocess((val: unknown): unknown[] => {
+							// Si order_payment est absent, vide ou null, on renvoie un tableau vide
+							if (!val) return [];
+							// Si c'est un objet unique, on le transforme en tableau, sinon on garde le tableau
+							return Array.isArray(val) ? val : [val];
+						}, z.array(PrestashopPaymentSchema))
+						.default([]),
+				}),
+			)
+			.default({ order_payment: [] }),
 	}),
 });
 export type IPrestashopPaymentListSchema = z.infer<

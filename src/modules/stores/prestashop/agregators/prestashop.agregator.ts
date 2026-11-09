@@ -5,7 +5,6 @@ import {
 } from '../../../../system/errors/index.js';
 import type { IStoreProcessorDto } from '../../schemas/store-processor.dto.js';
 import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
-import { AddressService } from '../../../content/address/service/address.service.js';
 import { CountryService } from '../../../content/taxonomy/country/service/country.service.js';
 import { IPrestashopInvoice } from '../schemas/invoices.schema.js';
 import type { ICreateMcitysInvoice } from '../../../accounting/invoice/schemas/mcitys/invoice.schema.js';
@@ -24,7 +23,6 @@ export class PrestashopAgregator {
 		@Inject('PRESTASHOP_STORE')
 		private readonly prestashopStoreAdapter: PrestashopAdapter,
 		private readonly prestashopSyncService: PrestashopSyncService,
-		private readonly addressService: AddressService,
 		private readonly countryService: CountryService,
 		private readonly paymentService: PaymentService,
 		private readonly currencyService: CurrencyService,

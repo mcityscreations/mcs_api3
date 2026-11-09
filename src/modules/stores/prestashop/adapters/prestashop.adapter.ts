@@ -543,22 +543,42 @@ export class PrestashopAdapter extends StoreAdapter {
 				[Prestashop Adapter] Wrong format for lastPaymentID.
 			`);
 		const nextPaymentID = lastPaymentID + 1;
-		try {
-			const response = await axios.get<string>(
-				`${this.apiEndpoint}/order_payments`,
-				{
-					params: {
-						['filter[id]']: `[${nextPaymentID}, 999999]`,
-						display: 'full',
-					},
-					headers: {
-						Authorization: this.authorizationKey,
-					},
+
+		let paymentsData: AxiosResponse<string>;
+
+		const fetchLastPaymentsData = async () => {
+			return axios.get<string>(`${this.apiEndpoint}/order_payments`, {
+				params: {
+					['filter[id]']: `[${nextPaymentID}, 999999]`,
+					display: 'full',
 				},
-			);
+				headers: {
+					Authorization: this.authorizationKey,
+				},
+			});
+		};
+		// Execute request and intercept errors, handling 404 separately
+		try {
+			try {
+				paymentsData = await fetchLastPaymentsData();
+			} catch (error) {
+				const axiosError = error as AxiosError;
+
+				// 2. If no payments recorded (404), return an empty array
+				if (axiosError?.response && axiosError.response.status === 404) {
+					console.warn(
+						`Payments starting from ID ${nextPaymentID} not found (404). Returning empty array.`,
+					);
+					return [];
+				} else {
+					// For any other error (500, network issue, etc.), propagate it
+					throw error;
+				}
+			}
+
 			// Parse response
 			const parsedResponse = xmlValidator(
-				response.data,
+				paymentsData.data,
 				PrestashopPaymentListSchema,
 				'order_payment',
 				'PrestaShop',
