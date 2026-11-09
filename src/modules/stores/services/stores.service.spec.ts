@@ -2,7 +2,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InternalServerErrorException } from '@nestjs/common';
 import { StoresService } from './stores.service.js';
-import { PrestashopAdapter } from '../adapters/prestashop.adapter.js';
+import { PrestashopAdapter } from '../prestashop/adapters/prestashop.adapter.js';
 import { StoresRepository } from '../repository/stores.repository.js';
 import { WinstonLoggerService } from '../../../system/logger/logger-service/winston-logger.service.js';
 import { BullMqAdapter } from '../../../system/jobdispatcher/adapters/bullmq.adapter.js';

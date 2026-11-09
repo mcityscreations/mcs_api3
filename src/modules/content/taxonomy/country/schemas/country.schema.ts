@@ -1,8 +1,7 @@
 import z from 'zod';
 
 export const CountrySchema = z.object({
-	id: z.number().int().nonnegative(),
-	id_public: z.uuidv7(),
+	id: z.uuidv7(),
 	iso2: z.string().length(2),
 	iso3: z.string().length(3).optional(),
 	name: z.string(),

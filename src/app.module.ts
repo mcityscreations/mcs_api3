@@ -4,6 +4,8 @@ import {
 	MiddlewareConsumer,
 	RequestMethod,
 } from '@nestjs/common';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { ExpressAdapter } from '@bull-board/express';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller.js';
@@ -41,6 +43,11 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.prod' : '.env';
 		ContentModule,
 		StoresModule,
 		AccountingModule,
+		// Delete on production, this is only for testing purposes
+		BullBoardModule.forRoot({
+			route: '/queues',
+			adapter: ExpressAdapter,
+		}),
 	],
 	controllers: [AppController],
 	providers: [

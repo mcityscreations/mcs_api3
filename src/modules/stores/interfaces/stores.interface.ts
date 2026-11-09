@@ -14,10 +14,4 @@ export abstract class StoreAdapter {
 
 	abstract getLastInvoices(): Promise<unknown>;
 	abstract getInvoicesByDatePeriod(dateFilter: IDateFilter): Promise<unknown>;
-
-	/**
-	 * @param customerID as stored in the third party system
-	 * @return mcitys private ID
-	 */
-	abstract syncCustomerDataToMcitys(payload: unknown): Promise<unknown>;
 }

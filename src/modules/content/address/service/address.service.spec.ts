@@ -37,6 +37,26 @@ describe('AddressService', () => {
 		isBillingAddress: true,
 	};
 
+	const mockOrganizationAddress = {
+		idPerson: '01a0572d-51f6-7513-8b70-10e1f554fa81',
+		name: 'Headquarters',
+		systemSource: 'prestashop',
+		idSource: 'prestashop-123456',
+		address: {
+			country: { iso2: 'FR', name: 'France', iso3: 'FRA' },
+			id: undefined,
+			address1: '456 Corporate Blvd',
+			address2: 'Suite 100',
+			address3: '',
+			city: 'Paris',
+			state: 'Île-de-France',
+			zip_code: '75002',
+			phone: '+33 1 98 76 54 32',
+		},
+		isDefault: true,
+		isBillingAddress: false,
+	};
+
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -66,5 +86,18 @@ describe('AddressService', () => {
 		await expect(service.saveAddress(mockIndividualAddress)).rejects.toThrow(
 			InternalError,
 		);
+	});
+
+	it('should save an address and return ids when payload is valid', async () => {
+		const expectedIds = {
+			idPrivate: 123,
+			idPublic: '01a12345-1234-7234-9234-123456789abc',
+		};
+		repository.saveAddress.mockResolvedValue(expectedIds);
+
+		const result = await service.saveAddress(mockOrganizationAddress);
+
+		expect(repository.saveAddress).toHaveBeenCalledWith(mockOrganizationAddress);
+		expect(result).toEqual(expectedIds);
 	});
 });

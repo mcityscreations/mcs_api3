@@ -1,0 +1,264 @@
+import { Injectable } from '@nestjs/common';
+import { PostgreSQLService } from '../../../../system/database/postgresql/postgresql.service.js';
+import type {
+	ICreateMcitysInvoice,
+	IMcitysInvoice,
+} from '../schemas/mcitys/invoice.schema.js';
+
+@Injectable()
+export class InvoiceRepository {
+	constructor(private readonly dbService: PostgreSQLService) {}
+
+	public async doesInvoiceExist({
+		reference,
+		systemSource,
+	}: {
+		reference: string;
+		systemSource: string;
+	}): Promise<boolean> {
+		const sqlRequest = `
+            SELECT EXISTS (
+                SELECT 1 
+                FROM accounting.invoice 
+                WHERE reference = $1 AND system_source = $2
+            ) as "exists";
+        `;
+		const result = await this.dbService.execute<{ exists: boolean }>(
+			sqlRequest,
+			[reference, systemSource],
+			'standard',
+		);
+		return result.length > 0 ? result[0].exists : false;
+	}
+
+	public async saveInvoice(
+		data: ICreateMcitysInvoice,
+		items: string,
+	): Promise<number | null> {
+		const sqlRequest = `
+		WITH
+		emitter_data AS (
+			SELECT content.people.id_person AS id_emitter
+			FROM content.people
+			WHERE content.people.id_public = $10
+		),
+		recipient_data AS (
+			SELECT content.people.id_person AS id_recipient
+			FROM content.people
+			WHERE content.people.id_public = $11
+		),
+		contact_data AS (
+			SELECT content.contact.id_contact AS id_contact
+			FROM content.contact
+			WHERE content.contact.id_public = $16
+		),
+		new_invoice AS (
+		INSERT INTO accounting.invoice 
+			(system_source, reference, id_technical_erp, amount_wt, amount_vat, amount_at, 
+			issue_date, due_date, paid_at, emitter, recipient, currency, payment_direction, invoice_type, id_order, id_contact
+			)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
+				(SELECT id_emitter FROM emitter_data),
+				(SELECT id_recipient FROM recipient_data), $12, $13, $14, $15,
+				(SELECT id_contact FROM contact_data)
+			) 
+			ON CONFLICT (reference, system_source) DO NOTHING
+			RETURNING id_invoice
+		),
+		new_payment_status AS (
+		INSERT INTO accounting.invoice_status_history
+			(id_invoice, id_invoice_status)
+			SELECT id_invoice, 5 
+    		FROM new_invoice
+		),
+		new_sync_status AS (
+		INSERT INTO accounting.invoice_sync_history (id_invoice, id_sync_status)
+			SELECT id_invoice, 1 
+    		FROM new_invoice
+		)
+
+		INSERT INTO accounting.invoice_detail
+			(id_invoice, id_item, label, description, unit_price_tax_excl, discount, 
+			unit_price_tax_excl_discount, unit_price_tax_incl, vat_rate, total_price_tax_excl, 
+			total_price_tax_incl, quantity)
+		SELECT 
+			new_invoice.id_invoice,
+			items.id,
+			items.label,
+			items.description,
+			items.unit_price_tax_excl,
+			items.discount,
+			items.unit_price_tax_excl_discount,
+			items.unit_price_tax_incl,
+			items.vat_rate,
+			items.total_price_tax_excl,
+			items.total_price_tax_incl,
+			items.quantity
+		FROM new_invoice
+		CROSS JOIN jsonb_to_recordset($17::jsonb) AS items(
+			id VARCHAR(255),
+			label VARCHAR(255),
+			description TEXT,
+			quantity INT,
+			unit_price_tax_excl INT,
+			discount JSONB ,
+			unit_price_tax_excl_discount INT,
+			unit_price_tax_incl INT,
+			vat_rate INT,
+			total_price_tax_excl INT,
+			total_price_tax_incl INT
+		);`;
+
+		const result = await this.dbService.execute<{ id_invoice: number }>(
+			sqlRequest,
+			[
+				data.source_system, //1
+				data.reference, //2
+				data.id_technical, //3
+				data.total_amount_tax_excl, //4
+				data.vat_amount, //5
+				data.total_amount_tax_incl, //6
+				data.issue_date, //7
+				data.due_date, //8
+				data.paid_at, //9
+				data.emitter.id, //10
+				data.recipient.id, //11
+				data.currency, //12
+				data.payment_direction, //13
+				data.document_type, //14
+				data.id_order, //15
+				data.recipient.email, //16
+				items, //17
+			],
+			'standard',
+		);
+		return result.length > 0 ? result[0].id_invoice : null;
+	}
+
+	public async findOne(id: string): Promise<IMcitysInvoice | null> {
+		const query = `
+			WITH main_invoice_data AS (
+				SELECT
+					ai.id_invoice,
+					ai.id_technical_erp AS id_technical,
+					ai.reference AS reference,
+					ai.id_order AS id_order,
+					ai.source_system AS source_system,
+					ai.invoice_type AS invoice_type,
+					ai.issue_date AS issue_date,
+					ai.due_date AS due_date,
+					ai.paid_at AS paid_at,
+					ai.emitter AS emitter,
+					ai.recipient AS recipient,
+					ai.currency AS currency,
+					ai.amount_wt AS total_amount_tax_excl,
+					ai.amount_at AS total_amount_tax_incl,
+					ai.amount_vat AS vat_amount,
+					ai.payment_direction AS payment_direction,
+					ai.id_contact AS id_contact
+				FROM accounting.invoice ai
+				WHERE ai.id_public = $1
+			),
+
+			emitter_data AS (
+				SELECT
+					cp.id_public AS id,
+					cpo.id_registration AS legal_number,
+					cpo.legal_name AS company_name,
+					(
+						SELECT cc.value
+						FROM content.contact cc
+						JOIN main_invoice_data mid ON cc.id_contact = mid.id_contact
+						LIMIT 1
+					) AS email,
+					(
+						SELECT json_build_object(
+							'alpha_2', tc.alpha_2_code,
+							'alpha_3', tc.alpha_3_code
+						)
+						FROM taxonomy.country tc
+						JOIN content.people_organization_detail cpo_sub ON tc.id_country = cpo_sub.registration_country
+						WHERE cpo_sub.id_person = (SELECT recipient FROM main_invoice_data)
+					) AS country_code
+				FROM content.people cp
+				JOIN content.people_organization_detail cpo ON cp.id_person = cpo.id_person
+				WHERE cp.id_person = (SELECT emitter FROM main_invoice_data)
+			),
+
+			recipient AS (
+				SELECT
+					cp.id_public AS id,
+					cp.id_source_system AS id_source_system,
+					cpi.firstname AS firstname,
+					cpi.lastname AS lastname,
+					cpo.legal_name AS company_name,
+					cc.value AS email,
+					cpo.id_registration AS legal_number,
+					cpo.id_vat AS vat_number,
+					(
+						SELECT json_build_object(
+							'alpha_2', tc.alpha_2_code,
+							'alpha_3', tc.alpha_3_code
+						)
+						FROM taxonomy.country tc
+						JOIN content.people_organization_detail cpo_sub ON tc.id_country = cpo_sub.registration_country
+						WHERE cpo_sub.id_person = (SELECT recipient FROM main_invoice_data)
+					) AS country_code,
+					ca.value::jsonb AS billing_address
+				FROM content.people cp
+				JOIN content.people_organization cpo ON cp.id_person = cpo.id_person
+				JOIN content.people_organization_member cpom ON cpo.id_person = cpom.id_organization
+				JOIN content.individual_detail cpi ON cpom.id_member = cpi.id_person
+				JOIN accounting.invoice ai ON cp.id_person = ai.id_person
+				LEFT JOIN content.contact cc ON cc.id_person = cp.id_person
+				JOIN content.address ca ON ai.id_billing_address = ca.id_address
+				WHERE ai.id_public = $1
+			),
+
+			order_details AS (
+				SELECT json_agg(
+					json_build_object(
+						'label', aid.label,
+						'description', aid.description,
+						'quantity', aid.quantity,
+						'unit_price_tax_excl', aid.unit_price_tax_excl,
+						'discount', aid.discount::jsonb,
+						'unit_price_tax_excl_discount', aid.unit_price_tax_excl_discount,
+						'unit_price_tax_incl', aid.unit_price_tax_incl,
+						'vat_rate', aid.vat_rate,
+						'total_price_tax_excl', aid.total_price_tax_excl,
+						'total_price_tax_incl', aid.total_price_tax_incl
+					)
+				) AS items
+				FROM accounting.invoice_detail aid
+				JOIN accounting.invoice ai ON ai.id_invoice = aid.id_invoice
+				WHERE ai.id_public = $1
+			)
+			SELECT * FROM main_invoice_data, emitter_data, recipient, order_details;
+		`;
+		const result = await this.dbService.execute<IMcitysInvoice>(
+			query,
+			[id],
+			'standard',
+		);
+
+		return result && result.length > 0 ? result[0] : null;
+	}
+
+	public async getInvoiceIdByOrderId(payload: {
+		orderId: string;
+		systemSource: string;
+	}): Promise<string | null> {
+		const query = `
+			SELECT id_public
+			FROM accounting.invoice
+			WHERE id_order = $1 AND system_source = $2
+		`;
+		const result = await this.dbService.execute<{ id_public: string }>(
+			query,
+			[payload.orderId, payload.systemSource],
+			'standard',
+		);
+		return result && result.length > 0 ? result[0].id_public : null;
+	}
+}

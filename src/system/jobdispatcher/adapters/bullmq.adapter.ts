@@ -67,12 +67,12 @@ export class BullMqAdapter extends JobDispatcher {
 	): Promise<void> {
 		const queue = this.resolveQueue(queueName);
 
-		const bulkJobs = jobs.map(({ jobName, payload, options }) => ({
-			name: jobName,
-			data: payload,
+		const bulkJobs = jobs.map(({ name, data, opts }) => ({
+			name: name,
+			data: data,
 			opts: {
-				attempts: options?.attempts || 3,
-				backoff: options?.backoff || { type: 'exponential', delay: 5000 },
+				attempts: opts?.attempts || 3,
+				backoff: opts?.backoff || { type: 'exponential', delay: 5000 },
 			},
 		}));
 

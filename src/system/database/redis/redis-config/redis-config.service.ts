@@ -6,6 +6,7 @@ export interface IRedisConfig {
 	host: string;
 	port: number;
 	password?: string;
+	maxRetriesPerRequest: null;
 }
 
 @Injectable()
@@ -31,6 +32,7 @@ export class RedisConfigService {
 			host: host,
 			port: port,
 			password: password,
+			maxRetriesPerRequest: null,
 		};
 	}
 }

@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common';
+import { FetchInvoiceDetailProcessor } from './prestashop/processors/fetch-invoice-detail.processor.js';
+import { FetchPaymentDetailProcessor } from './prestashop/processors/fetch-payment-detail.processor.js';
 import { BullModule } from '@nestjs/bullmq';
-import { PrestashopConfigService } from './configs/prestashop/prestashop.config.js';
-import { PrestashopAdapter } from './adapters/prestashop.adapter.js';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { PrestashopConfigService } from './prestashop/configs/prestashop.config.js';
+import { PrestashopAdapter } from './prestashop/adapters/prestashop.adapter.js';
+import { PrestashopAgregator } from './prestashop/agregators/prestashop.agregator.js';
 import { WinstonLoggerService } from '../../system/logger/logger-service/winston-logger.service.js';
-import { PrestashopCronService } from './cron/cron.service.js';
+import { StoresCronService } from './cron/cron.service.js';
 import { StoresRepository } from './repository/stores.repository.js';
 import { SystemModule } from '../../system/system.module.js';
 import { StoresController } from './controllers/stores.controller.js';
@@ -13,6 +18,9 @@ import { PeopleService } from '../content/people/people.service.js';
 import { CountryService } from '../content/taxonomy/country/service/country.service.js';
 import { AddressModule } from '../content/address/address.module.js';
 import { CountryModule } from '../content/taxonomy/country/country.module.js';
+import { PrestashopSyncService } from './prestashop/sync/prestashop/prestashop-sync.service.js';
+import { ContactModule } from '../content/contact/contact.module.js';
+import { AccountingModule } from '../accounting/accounting.module.js';
 
 @Module({
 	providers: [
@@ -42,9 +50,13 @@ import { CountryModule } from '../content/taxonomy/country/country.module.js';
 				CountryService,
 			],
 		},
-		PrestashopCronService,
+		StoresCronService,
 		StoresRepository,
 		StoresService,
+		FetchInvoiceDetailProcessor,
+		FetchPaymentDetailProcessor,
+		PrestashopAgregator,
+		PrestashopSyncService,
 	],
 	controllers: [StoresController],
 	imports: [
@@ -56,9 +68,26 @@ import { CountryModule } from '../content/taxonomy/country/country.module.js';
 				removeOnFail: 500, // Keep the last 500 failed jobs for debugging
 			},
 		}),
+		BullModule.registerQueue({
+			name: 'store.fetch-payment-detail',
+			defaultJobOptions: {
+				removeOnComplete: 100, // Keep only the last 100 successful jobs in Redis
+				removeOnFail: 500, // Keep the last 500 failed jobs for debugging
+			},
+		}),
+		BullBoardModule.forFeature({
+			name: 'store.fetch-invoice-detail',
+			adapter: BullMQAdapter,
+		}),
+		BullBoardModule.forFeature({
+			name: 'store.fetch-payment-detail',
+			adapter: BullMQAdapter,
+		}),
 		PeopleModule,
 		AddressModule,
 		CountryModule,
+		ContactModule,
+		AccountingModule,
 	],
 	exports: ['PRESTASHOP_STORE'],
 })

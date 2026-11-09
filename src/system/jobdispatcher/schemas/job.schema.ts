@@ -8,9 +8,9 @@ export const createJobDescriptorSchema = <T extends z.ZodTypeAny>(
 	payloadSchema: T,
 ) =>
 	z.object({
-		jobName: z.string().min(1, { message: 'Job name cannot be empty' }),
-		payload: createMessageEnvelopeSchema(payloadSchema),
-		options: JobOptionsSchema.optional(),
+		name: z.string().min(1, { message: 'Job name cannot be empty' }),
+		data: createMessageEnvelopeSchema(payloadSchema),
+		opts: JobOptionsSchema.optional(),
 	});
 
 // 2. Default schema (for cases where the payload is not yet specialized)
@@ -18,7 +18,7 @@ export const JobDescriptorSchema = createJobDescriptorSchema(z.unknown());
 
 // 3. TypeScript type for a job descriptor with a specific payload type
 export type IJobDescriptor<T = unknown> = {
-	jobName: string;
-	payload: IMessageEnvelope<T>;
-	options?: z.infer<typeof JobOptionsSchema>;
+	name: string;
+	data: IMessageEnvelope<T>;
+	opts?: z.infer<typeof JobOptionsSchema>;
 };

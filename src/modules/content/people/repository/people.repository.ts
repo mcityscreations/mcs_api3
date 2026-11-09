@@ -40,14 +40,73 @@ export class PeopleRepository {
 	public async getMcitysID(
 		externalID: string,
 		systemSource: string,
-	): Promise<IIds | null> {
-		const sqlRequest = `SELECT id_person as idPrivate, id_public as idPublic FROM content.people_mapper WHERE id_person_source = $1 AND system_source = $2;`;
-		const data: { idPrivate: number; idPublic: string }[] =
-			await this.dbService.execute(
-				sqlRequest,
-				[externalID, systemSource],
-				'standard',
-			);
+	): Promise<string | null> {
+		const sqlRequest = `
+		SELECT 
+			cp.id_public as "id" 
+		FROM 
+			content.people cp
+		INNER JOIN content.people_mapper cpm ON cpm.id_person = cp.id_person
+		WHERE 
+			cpm.id_person_source = $1 AND cpm.system_source = $2;
+		`;
+		const data: { id: string }[] = await this.dbService.execute(
+			sqlRequest,
+			[externalID, systemSource],
+			'standard',
+		);
+		const result = data && data.length > 0 ? data[0].id : null;
+		return result;
+	}
+
+	public async getOrganizationBySiret(siret: string): Promise<IPerson | null> {
+		const query = `
+		WITH country_data AS (
+			SELECT json_build_object(
+				'id', tc.id_public,
+				'name', tc.name
+			) as registration_country
+			FROM taxonomy.country tc
+			INNER JOIN content.people_organization_detail cpo
+			ON tc.id_country = cpo.registration_country
+			WHERE cpo.id_registration = $1
+		),
+		category_data AS (
+			SELECT json_build_object(
+				'id', cpc.id_public,
+				'name', cpc.name
+			) AS category
+			FROM content.people_organization_category cpc
+			INNER JOIN content.people_organization_detail cpo
+			ON cpc.id_organization_category = cpo.id_organization_category
+			WHERE cpo.id_registration = $1
+		),
+		details_data AS (
+			SELECT json_build_object(
+				'category', (SELECT category FROM category_data),
+				'legalName', cpo.legal_name,
+				'registrationCountry', (SELECT registration_country FROM country_data),
+				'idRegistration', cpo.id_registration,
+				'idVAT', cpo.id_vat
+				
+			) AS details_obj
+			FROM content.people_organization_detail cpo
+			WHERE cpo.id_registration = $1
+		)
+		SELECT 
+			cp.id_public AS "id",
+			'organization' AS "type",
+			(SELECT details_obj FROM details_data) AS "details"
+		FROM content.people cp
+		INNER JOIN content.people_organization_detail cpo 
+		ON cp.id_person = cpo.id_person
+		WHERE cpo.id_registration = $1;
+		`;
+		const data: IPerson[] = await this.dbService.execute(
+			query,
+			[siret],
+			'standard',
+		);
 		const result = data && data.length > 0 ? data[0] : null;
 		return result;
 	}
@@ -86,15 +145,26 @@ export class PeopleRepository {
 	public async addOrganization(
 		idPerson: number,
 		legalName: string,
-		registrationCountry: number,
+		registrationCountry: string,
 		idRegistration: string,
 		idVAT: string,
-		idOrganizationCategory: number,
+		idOrganizationCategory: string,
 		transactionClient: PoolClient,
 	): Promise<number | null> {
-		const sqlRequest = `INSERT INTO content.people_organization_detail 
+		const sqlRequest = `
+		WITH country_data AS (
+			SELECT id_country AS registration_country_id
+			FROM taxonomy.country tc
+			WHERE tc.id_public = $3
+		),
+		organization_category_data AS (
+			SELECT id_organization_category AS organization_category_id
+			FROM content.people_organization_category cpoc
+			WHERE cpoc.id_public = $6
+		)
+		INSERT INTO content.people_organization_detail 
 		(id_person, legal_name, registration_country, id_registration, id_vat, id_organization_category) 
-		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_person;`;
+		VALUES ($1, $2, (SELECT registration_country_id FROM country_data), $4, $5, (SELECT organization_category_id FROM organization_category_data)) RETURNING id_person;`;
 		const result: { id_person: number }[] = await this.dbService.execute(
 			sqlRequest,
 			[
@@ -113,6 +183,52 @@ export class PeopleRepository {
 		return finalResult;
 	}
 
+	public async addMemberToOrganization(payload: {
+		idOrganization: string;
+		idMember: string;
+	}): Promise<boolean> {
+		const query = `
+		WITH member AS (
+			SELECT
+				cp.id_person AS id_member
+			FROM content.people cp 
+			WHERE cp.id_public = $1
+		),
+		organization AS (
+			SELECT
+				cp.id_person AS id_organization
+			FROM content.people cp 
+			WHERE cp.id_public = $2
+		)
+		INSERT INTO content.people_organization_member (id_member, id_organization) 
+		VALUES ((SELECT id_member FROM member), (SELECT id_organization FROM organization)) 
+		RETURNING id_member AS "idMember";`;
+		const result = await this.dbService.execute<{ idMember: number }>(
+			query,
+			[payload.idMember, payload.idOrganization],
+			'standard',
+		);
+		return result && result.length > 0 ? true : false;
+	}
+
+	public async isMemberOfOrganization(
+		idOrganization: string,
+		idMember: string,
+	): Promise<boolean> {
+		const query = `
+			SELECT 1
+			FROM content.people_organization_member pom
+			INNER JOIN content.people ip ON ip.id_person = pom.id_member
+			INNER JOIN content.people op ON op.id_person = pom.id_organization
+			WHERE ip.id_public = $2 AND op.id_public = $1;`;
+		const result = await this.dbService.execute<{ exists: number }>(
+			query,
+			[idOrganization, idMember],
+			'standard',
+		);
+		return result && result.length > 0 ? true : false;
+	}
+
 	public async getCategoryPrivateID(uuid: string): Promise<number | null> {
 		const sqlRequest = `SELECT cp.id_organization_category 
 		FROM 
@@ -125,24 +241,29 @@ export class PeopleRepository {
 		return result.length > 0 ? result[0].id_organization_category : null;
 	}
 
-	public async addPersonMapper(payload: IPersonMapper): Promise<number | null> {
-		const sqlRequest = `INSERT INTO content.people_mapper 
-		(id_person, id_public, system_source, id_person_source, is_professional, is_abroad, source_data, is_verified)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, true) RETURNING id_person;`;
+	public async addPersonMapper(payload: IPersonMapper): Promise<boolean> {
+		const sqlRequest = `
+		WITH person_data AS (
+			SELECT cp.id_person AS id_person
+			FROM content.people cp
+			WHERE cp.id_public = $1
+		)
+		INSERT INTO content.people_mapper 
+		(id_person, system_source, id_person_source, is_professional, is_abroad, source_data, is_verified)
+		VALUES ((SELECT id_person FROM person_data), $2, $3, $4, $5, $6, true) RETURNING id_person;`;
 		const data: { id_person: number }[] = await this.dbService.execute(
 			sqlRequest,
 			[
 				payload.idPerson,
-				payload.idPublic,
 				payload.systemSource,
 				payload.idPersonSource,
 				payload.isProfessional,
 				payload.isAbroad,
-				payload.sourceData,
+				JSON.stringify(payload.sourceData),
 			],
 			'standard',
 		);
-		const result = data && data.length > 0 ? data[0].id_person : null;
+		const result = data && data.length > 0 ? Boolean(data[0].id_person) : false;
 		return result;
 	}
 }

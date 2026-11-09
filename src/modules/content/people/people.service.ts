@@ -53,17 +53,17 @@ export class PeopleService {
 	async getMcitysID(
 		externalID: string,
 		systemSource: string, // mcitys, prestashop, qonto
-	): Promise<IIds | null> {
+	): Promise<string | null> {
 		if (!externalID || !systemSource) {
 			throw new InternalError(
 				'[People Service] Both externalID and systemSource are required to retrieve the Mcitys ID.',
 			);
 		}
-		const mcitysIDs = await this.peopleRepository.getMcitysID(
+		const mcitysID = await this.peopleRepository.getMcitysID(
 			externalID,
 			systemSource,
 		);
-		return mcitysIDs;
+		return mcitysID;
 	}
 
 	async addIndividual(payload: ICreateIndividual): Promise<IIds | null> {
@@ -108,7 +108,7 @@ export class PeopleService {
 		}
 	}
 
-	async addOrganization(payload: ICreateOrganization): Promise<IIds | null> {
+	async addOrganization(payload: ICreateOrganization): Promise<string | null> {
 		if (!payload) {
 			throw new InternalError(
 				'[People Service] Payload is required to add an organization.',
@@ -116,6 +116,7 @@ export class PeopleService {
 		}
 		// Check for required fields in the payload
 		if (!CreateOrganizationSchema.safeParse(payload).success) {
+			console.error(CreateOrganizationSchema.safeParse(payload).error);
 			throw new InternalError(
 				'[People Service] Invalid payload. Please ensure that all required fields are provided and meet the required criteria.',
 			);
@@ -123,25 +124,18 @@ export class PeopleService {
 		//Start transaction
 		const transaction: PoolClient = await this.dbService.beginTransaction();
 		try {
+			// Check if the company is already registered in the system by its SIRET number
+			const existingOrganization =
+				await this.peopleRepository.getOrganizationBySiret(
+					payload.details.idRegistration as string,
+				);
+			if (existingOrganization) return existingOrganization.id;
 			const personIDs = await this.peopleRepository.addPerson(
 				true,
 				transaction,
 			);
 
-			// Convert public IDs to private IDs
-			const registrationCountryID =
-				getIDType(payload.details.registrationCountry) === 'private'
-					? (payload.details.registrationCountry as number)
-					: await this.countryService.convertPublicIDtoPrivateID(
-							payload.details.registrationCountry as string,
-						);
-			const categoryID =
-				getIDType(payload.details.category) === 'private'
-					? (payload.details.category as number)
-					: await this.peopleRepository.getCategoryPrivateID(
-							payload.details.category as string,
-						);
-			if (!registrationCountryID || !categoryID || !personIDs?.idPrivate)
+			if (!personIDs?.idPrivate)
 				throw new InternalError(
 					`[People Service] Failed to add organization ${payload.details.legalName}. Please try again later.`,
 				);
@@ -149,18 +143,19 @@ export class PeopleService {
 			await this.peopleRepository.addOrganization(
 				personIDs.idPrivate,
 				payload.details.legalName,
-				registrationCountryID,
+				payload.details.registrationCountry,
 				payload.details.idRegistration || 'N/A',
 				payload.details.idVAT || 'N/A',
-				categoryID,
+				payload.details.category,
 				transaction,
 			);
 			await this.dbService.commit(transaction);
-			return personIDs;
+			return personIDs.idPublic;
 		} catch (error) {
 			if (transaction) {
 				await this.dbService.rollback(transaction);
 			}
+			console.error(error);
 			throw new InternalError(
 				`[People Service] Failed to add organization ${payload.details.legalName}. Please try again later.` +
 					getErrorMessage(error),
@@ -168,9 +163,48 @@ export class PeopleService {
 		}
 	}
 
-	public async addPersonToMapper(
-		payload: IPersonMapper,
-	): Promise<number | null> {
+	public async getOrganizationBySiret(siret: string): Promise<IPerson | null> {
+		if (!siret) {
+			throw new BadRequestError(
+				'[People Service] Siret is required to get organization by siret.',
+			);
+		}
+		return this.peopleRepository.getOrganizationBySiret(siret);
+	}
+
+	public async addMemberToOrganization(
+		idOrganization: string,
+		idMember: string,
+	): Promise<boolean> {
+		if (!idOrganization || !idMember) {
+			throw new BadRequestError(
+				'[People Service] Both idOrganization and idMember are required to add a member to an organization.',
+			);
+		}
+		// Is the member already part of the organization?
+		const isAlreadyMember: boolean =
+			await this.peopleRepository.isMemberOfOrganization(
+				idOrganization,
+				idMember,
+			);
+		if (isAlreadyMember) return true;
+
+		// If not, add the member to the organization
+		const result: boolean = await this.peopleRepository.addMemberToOrganization(
+			{
+				idOrganization: idOrganization,
+				idMember: idMember,
+			},
+		);
+		if (!result) {
+			throw new InternalError(
+				`[People Service] Failed to add member ${idMember} to organization ${idOrganization}. Please try again later.`,
+			);
+		}
+		return result;
+	}
+
+	public async addPersonToMapper(payload: IPersonMapper): Promise<boolean> {
 		if (!PersonMapperSchema.safeParse(payload))
 			throw new BadRequestError(
 				`[People Service] Wrong payload type for addPersonMapper.`,
@@ -180,12 +214,18 @@ export class PeopleService {
 			typeof payload.idPerson === 'string'
 				? payload.idPerson
 				: String(payload.idPerson);
+		// Is the person already mapped to the systemSource?
+		const isAlreadyMapped = await this.peopleRepository.getMcitysID(
+			payload.idPersonSource,
+			payload.systemSource,
+		);
+		if (isAlreadyMapped) return true;
 		// Save Person
 		const addPerson = await this.peopleRepository.addPersonMapper(payload);
 		// Handle error
 		if (!addPerson) {
 			throw new InternalError(
-				`[People Service] Failed to add person to mapper for idPerson: ${payload.idPerson}, idPublic: ${payload.idPublic}, systemSource: ${payload.systemSource}`,
+				`[People Service] Failed to add person to mapper for idPerson: ${payload.idPerson}, systemSource: ${payload.systemSource}`,
 			);
 		}
 		return addPerson;
