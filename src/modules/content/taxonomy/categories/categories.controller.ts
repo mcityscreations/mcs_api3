@@ -1,6 +1,5 @@
 // src/modules/content/taxonomy/categories/categories.controller.ts
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service.js';
 import { LanguageQueryDto } from '../../../../common/dtos/language.dto.js';
 import { UuidDto } from '../../../../common/dtos/uuid.dto.js';
