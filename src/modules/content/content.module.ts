@@ -13,6 +13,7 @@ import { AddressModule } from './address/address.module.js';
 import { TechniquesRepository } from './taxonomy/techniques/techniques.repository.js';
 import { LanguagesModule } from './taxonomy/languages/languages.module.js';
 import { SubjectModule } from './taxonomy/subject/subject.module.js';
+import { ArtistModule } from './artist/artist.module.js';
 
 /** Module wrapper for content */
 @Module({
@@ -30,6 +31,7 @@ import { SubjectModule } from './taxonomy/subject/subject.module.js';
 		LanguagesModule,
 		SubjectModule,
 		EntitiesModule,
+		ArtistModule,
 	],
 	providers: [TechniquesRepository],
 })
