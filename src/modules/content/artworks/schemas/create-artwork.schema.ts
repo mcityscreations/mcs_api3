@@ -22,8 +22,8 @@ const CreateArtworkSchema = z.object({
 	description: CreateDescriptionSchema,
 	price: z
 		.object({
-			price: z.number(),
-			priceWithFrame: z.number(),
+			withoutFrame: z.number(),
+			withFrame: z.number(),
 		})
 		.optional(),
 	keywords: z.array(z.uuidv7('Keyword ID must be a string')),
