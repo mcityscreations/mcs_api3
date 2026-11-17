@@ -8,19 +8,19 @@ export class LanguagesRepository {
 	public async findOne(id: string): Promise<ILanguage | null> {
 		const query = `
         SELECT
-            tl.id_public AS id,
+            tl.id_language AS id,
             tl.name AS name,
             json_agg(json_build_object(
                 'idLanguage', tl.id_language,
                 'title', tli18n.name
-            ) ORDER BY tl.id_public) AS i18n,
+            ) ORDER BY tl.id_language) AS i18n,
             tl.slug AS slug,
             tl.created_at AS "createdAt"
         FROM taxonomy.language tl
         INNER JOIN taxonomy.language_i18n tli18n ON tl.id_language = tli18n.id_language
-        WHERE tl.id_public = $1
+        WHERE tl.id_language = $1
         GROUP BY 
-            tl.id_public,
+            tl.id_language,
             tl.name,
             tl.slug,
             tl.created_at;`;
