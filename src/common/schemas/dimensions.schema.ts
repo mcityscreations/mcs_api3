@@ -3,19 +3,17 @@ import z from 'zod';
 const DimensionsSchema = z.object({
 	width: z
 		.number('Width must be a number')
-		.int('Width must be an integer')
-		.positive('Width must be a positive number')
+		.nonnegative('Width must be a non-negative number')
 		.describe('Width in millimeters'),
 	height: z
 		.number('Height must be a number')
-		.int('Height must be an integer')
-		.positive('Height must be a positive number')
+		.nonnegative('Height must be a non-negative number')
 		.describe('Height in millimeters'),
-	depth: z
+	depth: z.coerce
 		.number('Depth must be a number')
-		.int('Depth must be an integer')
-		.positive('Depth must be a positive number')
+		.nonnegative('Depth must be a non-negative number')
 		.optional()
+		.default(0)
 		.describe('Depth in millimeters'), // Optional for 2D artworks
 });
 
