@@ -52,7 +52,7 @@ export class UserRepository {
 	): Promise<{ idPersonPublic: string }[] | null> {
 		const sqlRequest = `
             SELECT 
-            u.id_public AS "idPersonPublic"
+            u.id_person AS "idPersonPublic"
             FROM security.user u
             WHERE u.username = $1;`;
 		const result = await this.postgreSQLService.execute<{
