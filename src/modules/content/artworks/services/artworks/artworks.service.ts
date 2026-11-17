@@ -13,6 +13,8 @@ import { CreateArtworkSchema } from '../../schemas/create-artwork.schema.js';
 import { ArtworksRepository } from '../../repository/artworks.repository.js';
 import { KeywordsService } from '../../../taxonomy/keywords/service/keywords.service.js';
 import { LanguagesService } from '../../../taxonomy/languages/languages.service.js';
+import { UsersService } from '../../../../identity/users/users.service.js';
+import { ArtistService } from '../../../artist/service/artist.service.js';
 
 @Injectable()
 export class ArtworksService {
@@ -24,37 +26,56 @@ export class ArtworksService {
 		private readonly artworksRepository: ArtworksRepository,
 		private readonly keywordsService: KeywordsService,
 		private readonly languagesService: LanguagesService,
+		private readonly userService: UsersService,
+		private readonly artistService: ArtistService,
 	) {}
 
-	public async addArtwork(artworkPayload: ICreateArtwork) {
+	public async addArtwork(username: string, artworkPayload: ICreateArtwork) {
+		// Get person ID from the username
+		const personID = await this.userService.getPersonIDByUsername(username);
+		if (!personID)
+			throw new NotFoundError('[ Artwork Service ] Artist not found');
+		// Get artist ID from person ID
+		const artist = await this.artistService.findOneByPersonId(personID);
+		if (!artist)
+			throw new NotFoundError('[ Artwork Service ] Artist not found');
+		console.log(artworkPayload);
+		artworkPayload.idArtist = artist.id;
 		// Parse the payload and validate it against the ICreateArtwork schema
 		const parsedArtwork = CreateArtworkSchema.safeParse(artworkPayload);
-		if (!parsedArtwork.success)
+		if (!parsedArtwork.success) {
+			console.log(parsedArtwork.error);
 			throw new ValidationError('[ Artwork Service ] Invalid artwork payload');
-		if (artworkPayload.idArtist !== '019b902e-d7e5-75d5-92a7-8d257c91c375')
-			throw new ValidationError('[ Artwork Service ] Unknown artist ID');
+		}
+		// Validate category ID
 		const categoryData = await this.categoriesService.findOne(
 			artworkPayload.idCategory,
 		);
 		if (!categoryData)
 			throw new ValidationError('[ Artwork Service ] Invalid category ID');
-		const techniqueData = await this.techniquesService.findOne(
-			artworkPayload.idTechnique,
-		);
-		if (!techniqueData)
-			throw new ValidationError('[ Artwork Service ] Invalid technique ID');
+		// Validate technique IDs
+		const techniqueData: string[] = [];
+		for (const currentTechnique of artworkPayload.idTechnique) {
+			const technique = await this.techniquesService.findOne(currentTechnique);
+			if (!technique)
+				throw new ValidationError('[ Artwork Service ] Invalid technique ID');
+			techniqueData.push(technique.id);
+		}
+		// Validate subject ID
 		const subjectData = await this.subjectService.findOne(
 			artworkPayload.idSubject,
 		);
 		if (!subjectData)
 			throw new ValidationError('[ Artwork Service ] Invalid subject ID');
+		// Validate keywords
 		if (!artworkPayload.keywords)
 			throw new ValidationError('[ Artwork Service ] Invalid keywords');
-		const keywords = artworkPayload.keywords || [];
-		for (const keywordId of keywords) {
+		const keywords: string[] = [];
+		for (const keywordId of artworkPayload.keywords) {
 			const keywordData = await this.keywordsService.findOne(keywordId);
 			if (!keywordData)
 				throw new NotFoundError('[ Artwork Service ] Invalid keyword ID');
+			keywords.push(keywordData.id);
 		}
 		// Start transaction
 		await this.transactionManager.run(async () => {

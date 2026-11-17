@@ -3,7 +3,7 @@ import { PostgreSQLService } from '../../../../system/database/postgresql/postgr
 import { IArtist, IArtistI18n } from '../schemas/artist.schema.js';
 
 @Injectable()
-export class ArtistRepositoryService {
+export class ArtistRepository {
 	constructor(private readonly dbService: PostgreSQLService) {}
 
 	public async findOne(id: string): Promise<IArtist | null> {

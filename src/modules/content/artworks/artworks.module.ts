@@ -9,6 +9,8 @@ import { LanguagesModule } from '../taxonomy/languages/languages.module.js';
 import { KeywordsModule } from '../taxonomy/keywords/keywords.module.js';
 import { TransactionManager } from '../../../system/database/postgresql/transactions/transaction-manager.service.js';
 import { SecurityModule } from '../../security/security.module.js';
+import { ArtistModule } from '../artist/artist.module.js';
+import { UsersModule } from '../../identity/users/users.module.js';
 
 @Module({
 	providers: [ArtworksService, ArtworksRepository, TransactionManager],
@@ -20,6 +22,8 @@ import { SecurityModule } from '../../security/security.module.js';
 		LanguagesModule,
 		KeywordsModule,
 		SecurityModule,
+		ArtistModule,
+		UsersModule,
 	],
 })
 export class ArtworksModule {}
