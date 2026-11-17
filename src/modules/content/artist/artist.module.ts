@@ -6,5 +6,6 @@ import { ArtistRepositoryService } from './repository/artist.repository.js';
 @Module({
 	controllers: [ArtistController],
 	providers: [ArtistService, ArtistRepositoryService],
+	exports: [ArtistService],
 })
 export class ArtistModule {}
