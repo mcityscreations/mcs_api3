@@ -73,4 +73,16 @@ export class UsersService {
 			throw new NotFoundError(`Wrong password or ID.`);
 		return user[0].idPersonPublic;
 	}
+
+	public async getPersonIDByUserID(userID: string): Promise<string | null> {
+		if (!userID || userID.trim() === '') {
+			throw new ValidationError('A valid user ID must be provided.');
+		}
+		const personId = await this.userRepository.getPersonIDByUserID(userID);
+		if (!personId)
+			throw new NotFoundError(
+				`[ Users Service ] No person associated to the given user ID.`,
+			);
+		return personId;
+	}
 }
