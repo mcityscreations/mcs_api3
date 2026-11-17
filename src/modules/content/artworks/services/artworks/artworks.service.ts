@@ -85,11 +85,11 @@ export class ArtworksService {
 						'[ Artwork Service ] Invalid language ID for title',
 					);
 				const slugI18n =
-					artworkReference.reference + '-' + slugGenerator(artworkTitle.title);
+					artworkReference.reference + '-' + slugGenerator(artworkTitle.value);
 				i18nPayload.push({
 					idArtwork: artworkReference.idArtwork,
 					idLanguage: artworkTitle.idLanguage,
-					title: artworkTitle.title,
+					title: artworkTitle.value,
 					slug: slugI18n,
 				});
 			}
@@ -99,7 +99,7 @@ export class ArtworksService {
 					(entry) => entry.idLanguage === artworkDescription.idLanguage,
 				);
 				if (existingEntry) {
-					existingEntry.description = artworkDescription.description;
+					existingEntry.description = artworkDescription.value;
 				}
 			}
 		});
