@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { ICreateArtworkI18n } from '../../../artworks/schemas/create-i18n.schema.js';
 import { slugGenerator } from '../../../../../common/utils/slugGenerator.utils.js';
 import {
 	ValidationError,
@@ -88,7 +89,7 @@ export class ArtworksService {
 				);
 			// Handle i18n titles and descriptions //
 			const i18nPayload: {
-				idArtwork: string;
+				idArtwork: number;
 				idLanguage: string;
 				title: string;
 				description?: string;
@@ -105,8 +106,7 @@ export class ArtworksService {
 					throw new NotFoundError(
 						'[ Artwork Service ] Invalid language ID for title',
 					);
-				const slugI18n =
-					artworkReference.reference + '-' + slugGenerator(artworkTitle.value);
+				const slugI18n = slugGenerator(artworkTitle.value);
 				i18nPayload.push({
 					idArtwork: artworkReference.idArtwork,
 					idLanguage: artworkTitle.idLanguage,
@@ -123,6 +123,10 @@ export class ArtworksService {
 					existingEntry.description = artworkDescription.value;
 				}
 			}
+			await this.artworksRepository.addArtworkI18n(
+				i18nPayload as ICreateArtworkI18n[],
+			);
+			return artworkReference.idArtwork;
 		});
 	}
 	/*

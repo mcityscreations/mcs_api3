@@ -14,7 +14,7 @@ export class ArtworksRepository {
 	}
 
 	public async addArtwork(artwork: ICreateArtwork): Promise<{
-		idArtwork: string;
+		idArtwork: number;
 		reference: string;
 	} | null> {
 		const sqlRequest = `
@@ -52,7 +52,7 @@ export class ArtworksRepository {
         `;
 
 		const result = await this.dbService.execute<{
-			idArtwork: string;
+			idArtwork: number;
 			reference: string;
 		}>(sqlRequest, [
 			artwork.idArtist,
