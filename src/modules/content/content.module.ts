@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ContactModule } from './contact/contact.module.js';
 import { PeopleModule } from './people/people.module.js';
+import { EntitiesModule } from './taxonomy/entities/entities.module.js';
 import { CategoriesModule } from './taxonomy/categories/categories.module.js';
 import { TechniquesModule } from './taxonomy/techniques/techniques.module.js';
 import { KeywordsModule } from './taxonomy/keywords/keywords.module.js';
@@ -12,6 +13,7 @@ import { AddressModule } from './address/address.module.js';
 import { TechniquesRepository } from './taxonomy/techniques/techniques.repository.js';
 import { LanguagesModule } from './taxonomy/languages/languages.module.js';
 import { SubjectModule } from './taxonomy/subject/subject.module.js';
+import { ArtistModule } from './artist/artist.module.js';
 
 /** Module wrapper for content */
 @Module({
@@ -28,6 +30,8 @@ import { SubjectModule } from './taxonomy/subject/subject.module.js';
 		AddressModule,
 		LanguagesModule,
 		SubjectModule,
+		EntitiesModule,
+		ArtistModule,
 	],
 	providers: [TechniquesRepository],
 })

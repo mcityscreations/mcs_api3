@@ -14,7 +14,7 @@ export class ArtworksRepository {
 	}
 
 	public async addArtwork(artwork: ICreateArtwork): Promise<{
-		idArtwork: string;
+		idArtwork: number;
 		reference: string;
 	} | null> {
 		const sqlRequest = `
@@ -38,33 +38,34 @@ export class ArtworksRepository {
 			INSERT INTO content.artwork_techniques (id_artwork, id_technique)
 			SELECT new_artwork."idArtwork", tt.id_technique
 			FROM new_artwork
-			INNER JOIN taxonomy.technique tt ON tt.id_public = $10::uuid
+			CROSS JOIN unnest($10::uuid[]) AS techniques(id_public)
+			INNER JOIN taxonomy.technique tt ON tt.id_public = techniques.id_public::uuid
 		),
 		ins_keywords AS (
 			INSERT INTO content.artwork_keywords (id_artwork, id_keyword)
 			SELECT new_artwork."idArtwork", tk.id_keyword
 			FROM new_artwork
-			CROSS JOIN jsonb_array_elements_text($11::jsonb) AS keywords(id_public)
+			CROSS JOIN unnest($11::uuid[]) AS keywords(id_public)
 			INNER JOIN taxonomy.keyword tk ON tk.id_public = keywords.id_public::uuid
 		)
 		SELECT "idArtwork", reference FROM new_artwork
         `;
 
 		const result = await this.dbService.execute<{
-			idArtwork: string;
+			idArtwork: number;
 			reference: string;
 		}>(sqlRequest, [
 			artwork.idArtist,
 			artwork.releaseDate,
 			artwork.idCategory,
 			artwork.idSubject,
-			(artwork?.price?.price ?? 0) > 0,
+			(artwork?.price?.withoutFrame ?? 0) > 0,
 			2, // draft status
 			artwork.dimensions.height,
 			artwork.dimensions.width,
 			artwork.dimensions.depth,
 			artwork.idTechnique,
-			JSON.stringify(artwork.keywords),
+			artwork.keywords,
 		]);
 		return result[0] ?? null;
 	}

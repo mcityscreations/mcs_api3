@@ -1,14 +1,13 @@
 // src/modules/content/artworks/types/create-artwork.dto.ts
 
 import { z } from 'zod';
-import { CreateTitleSchema } from '../../../../common/schemas/title.schema.js';
-import { CreateDescriptionSchema } from '../../../../common/schemas/description.schema.js';
+import { I18nSchema } from '../../../../common/schemas/i18n.schema.js';
 import { DimensionsSchema } from '../../../../common/schemas/dimensions.schema.js';
 
 const CreateArtworkSchema = z.object({
-	idArtist: z.uuidv7('An artist ID must be provided'),
+	idArtist: z.uuidv7('An artist UUIDv7 ID must be provided').optional(),
 	idCategory: z.uuidv7('A category ID must be provided'),
-	idTechnique: z.uuidv7('A technique ID must be provided'),
+	idTechnique: z.array(z.uuidv7('A technique ID must be provided')),
 	idSubject: z.uuidv7('A subject ID must be provided'),
 	releaseDate: z
 		.string()
@@ -18,15 +17,15 @@ const CreateArtworkSchema = z.object({
 			message: 'Invalid date',
 		}),
 	dimensions: DimensionsSchema,
-	title: CreateTitleSchema,
-	description: CreateDescriptionSchema,
+	title: z.array(I18nSchema),
+	description: z.array(I18nSchema),
 	price: z
 		.object({
-			price: z.number(),
-			priceWithFrame: z.number(),
+			withoutFrame: z.number().optional(),
+			withFrame: z.number().optional(),
 		})
 		.optional(),
-	keywords: z.array(z.uuidv7('Keyword ID must be a string')),
+	keywords: z.array(z.uuidv7('Keyword parameter must be an UUIDv7 array')),
 });
 
 type ICreateArtwork = z.infer<typeof CreateArtworkSchema>;

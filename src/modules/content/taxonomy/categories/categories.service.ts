@@ -16,26 +16,42 @@ import {
 export class CategoriesService {
 	constructor(private readonly categoriesRepository: CategoriesRepository) {}
 
-	public async findAll() {
-		const result = await this.categoriesRepository.findAll();
+	public async findAll(entityId: string | null) {
+		let result = await this.categoriesRepository.findAll();
 		if (!result || result.length === 0)
 			throw new NotFoundError(
 				`[Category Service] No categories found in the database.`,
 			);
+		// Filter by entityId if provided
+		if (entityId) {
+			result = result.filter((category) => category.entity.id === entityId);
+			if (result.length === 0)
+				throw new NotFoundError(
+					`[Category Service] No categories found for the given entity ID.`,
+				);
+		}
 		return result;
 	}
 
-	public async findAlli18n(languageId: string) {
+	public async findAlli18n(languageId: string, entityId: string | null) {
 		// Validate content
 		const parsedLanguageId = LanguageParamSchema.safeParse(languageId);
 		if (!parsedLanguageId.success)
 			throw new ValidationError(`[Category Service] Wrong language ID format.`);
 		// Get data from repository
-		const result = await this.categoriesRepository.findAlli18n(languageId);
+		let result = await this.categoriesRepository.findAlli18n(languageId);
 		if (!result || result.length === 0)
 			throw new NotFoundError(
 				`[Category Service] No categories found in the database for the given language.`,
 			);
+		// Filter by entityId if provided
+		if (entityId) {
+			result = result.filter((category) => category.entity.id === entityId);
+			if (result.length === 0)
+				throw new NotFoundError(
+					`[Category Service] No categories found for the given entity ID and language.`,
+				);
+		}
 		// Return result
 		return result;
 	}

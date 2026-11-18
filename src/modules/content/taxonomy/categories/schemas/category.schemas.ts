@@ -51,6 +51,7 @@ export const PublicReadCategorySchema = z.object({
 	entity: z.object({
 		id: z.uuidv7().describe('Unique identifier for the entity'),
 		name: z.string().min(3).max(150).describe('Name of the entity'),
+		slug: z.string().min(3).max(150).describe('Slug for the entity'),
 	}),
 	name: z.string().min(3).max(150).describe('Name of the category'),
 	slug: z.string().min(3).max(150).describe('Slug for the category'),

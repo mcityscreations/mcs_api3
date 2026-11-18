@@ -52,12 +52,29 @@ export class UserRepository {
 	): Promise<{ idPersonPublic: string }[] | null> {
 		const sqlRequest = `
             SELECT 
-            u.id_public AS "idPersonPublic"
+            u.id_person AS "idPersonPublic"
             FROM security.user u
             WHERE u.username = $1;`;
 		const result = await this.postgreSQLService.execute<{
 			idPersonPublic: string;
 		}>(sqlRequest, [username], 'security');
 		return result.length > 0 ? result : null;
+	}
+
+	public async getPersonIDByUserID(userID: string): Promise<string | null> {
+		const query = `
+			SELECT
+				u.id_person AS id_person
+			FROM
+				security.user u
+			WHERE
+				u.id_public = $1;
+		`;
+		const result = await this.postgreSQLService.execute<{ id_person: string }>(
+			query,
+			[userID],
+			'security',
+		);
+		return result.length > 0 ? result[0].id_person : null;
 	}
 }

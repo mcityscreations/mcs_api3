@@ -137,8 +137,8 @@ export class CategoriesRepository {
 				json_agg(json_build_object(
 					'idLanguage', tei18n.id_language,
 					'value', tei18n.title,
-					'value', tei18n.slug
-				) ORDER BY tcl.id_public) AS i18n
+					'slug', tei18n.slug
+				) ORDER BY tei18n.id_language) AS i18n
 			FROM taxonomy.entity_i18n tei18n
 			GROUP BY tei18n.id_entity
 		),
@@ -149,7 +149,7 @@ export class CategoriesRepository {
 					'idLanguage', tci18n.id_language,
 					'value', tci18n.title,
 					'slug', tci18n.slug
-				) ORDER BY tcl.id_public) AS i18n
+				) ORDER BY tci18n.id_language) AS i18n
 			FROM taxonomy.category_i18n tci18n
 			GROUP BY tci18n.id_category
 		)

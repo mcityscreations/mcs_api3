@@ -1,7 +1,14 @@
-import { Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Post,
+	UseGuards,
+	UseInterceptors,
+} from '@nestjs/common';
 import { ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { MandatoryAuthGuard } from '../../../../modules/security/guards/mandatory-auth/mandatory-auth.guard.js';
 import { ThrottlerInterceptor } from '../../../../modules/security/interceptors/throttler/throttler.interceptor.js';
+import { GetUser } from '../../../../common/decorators/get-user.decorator.js';
 import type { ICreateArtwork } from '../schemas/create-artwork.schema.js';
 import { ArtworksService } from '../services/artworks/artworks.service.js';
 
@@ -14,8 +21,12 @@ export class ArtworksController {
 	@UseGuards(MandatoryAuthGuard)
 	@UseInterceptors(ThrottlerInterceptor)
 	@Post()
-	addArtwork(artworkPayload: ICreateArtwork) {
-		return this.artworksService.addArtwork(artworkPayload);
+	addArtwork(
+		@GetUser('username') username: string,
+		@Body() artworkPayload: ICreateArtwork,
+	) {
+		console.log('Adding artwork for user:', username);
+		return this.artworksService.addArtwork(username, artworkPayload);
 	}
 
 	/*

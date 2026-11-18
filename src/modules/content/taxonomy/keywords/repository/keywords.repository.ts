@@ -83,7 +83,8 @@ export class KeywordsRepository {
             tk.created_at,
             tk.updated_at
         FROM taxonomy.keyword tk
-        LEFT JOIN keyword_translations tkt ON tk.id_keyword = tkt.id_keyword;
+        LEFT JOIN keyword_translations tkt ON tk.id_keyword = tkt.id_keyword
+        ORDER BY tk.title ASC;
         `;
 		const result = await this.dbService.execute<IReadAdminKeywordDto>(
 			query,
@@ -108,6 +109,7 @@ export class KeywordsRepository {
             LEFT JOIN
                 taxonomy.keyword_i18n tki18n ON tk.id_keyword = tki18n.id_keyword
                 AND tki18n.id_language = $1
+            ORDER BY tki18n.title ASC;
         `;
 		const result = await this.dbService.execute<IReadPublicKeywordDto>(
 			query,

@@ -87,7 +87,8 @@ export class SubjectRepository {
 			ts.updated_at AS "updatedAt"
 		FROM taxonomy.subject ts
 		LEFT JOIN subject_translations
-			ON ts.id_subject = subject_translations.id_subject;`;
+			ON ts.id_subject = subject_translations.id_subject
+		ORDER BY tsi18n.title ASC;`;
 		const result = await this.dbService.execute<IReadAdminSubject>(
 			query,
 			[],
@@ -110,7 +111,8 @@ export class SubjectRepository {
             AND tsi18n.id_language = $1
         LEFT JOIN taxonomy.subject_i18n fallback_subject
             ON ts.id_subject = fallback_subject.id_subject
-            AND fallback_subject.id_language = $2;`;
+            AND fallback_subject.id_language = $2
+		ORDER BY tsi18n.title ASC;`;
 		const result = await this.dbService.execute<IReadPublicSubject>(
 			query,
 			[lang, 'en'], // Assuming 'en' as the fallback language

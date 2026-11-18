@@ -92,7 +92,8 @@ export class TechniquesRepository {
 			tt.updated_at AS "updatedAt"
 		FROM taxonomy.technique tt
 		LEFT JOIN technique_translations
-			ON tt.id_technique = technique_translations.id_technique;`;
+			ON tt.id_technique = technique_translations.id_technique
+		ORDER BY tt.name ASC;`;
 
 		const result = await this.dbService.execute<IAdminReadTechnique>(
 			query,
@@ -119,7 +120,8 @@ export class TechniquesRepository {
 			AND tti18n.id_language = $1
 		LEFT JOIN taxonomy.technique_i18n fallback_tech
 			ON tt.id_technique = fallback_tech.id_technique 
-			AND fallback_tech.id_language = $2;`;
+			AND fallback_tech.id_language = $2
+		ORDER BY tti18n.title ASC;`;
 
 		const result = await this.dbService.execute<IPublicReadTechnique>(
 			query,
