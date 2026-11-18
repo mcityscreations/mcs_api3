@@ -21,6 +21,7 @@ import { CountryModule } from '../content/taxonomy/country/country.module.js';
 import { PrestashopSyncService } from './prestashop/sync/prestashop/prestashop-sync.service.js';
 import { ContactModule } from '../content/contact/contact.module.js';
 import { AccountingModule } from '../accounting/accounting.module.js';
+import { SecurityModule } from '../security/security.module.js';
 
 @Module({
 	providers: [
@@ -88,6 +89,7 @@ import { AccountingModule } from '../accounting/accounting.module.js';
 		CountryModule,
 		ContactModule,
 		AccountingModule,
+		SecurityModule,
 	],
 	exports: ['PRESTASHOP_STORE'],
 })
