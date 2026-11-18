@@ -1,0 +1,16 @@
+import { xmlToJsonConverter } from '../../../../../common/utils/XMLToJson.utils.js';
+import { PrestashopAddressesResponseSchema } from '../../schemas/address.schema.js';
+import { prestashopAddressesMock } from '../../schemas/mocks/address.mock.js';
+
+describe('PrestaShop XML Parsing & Validation', () => {
+	it('should convert the XML and validate the Zod schema without errors', () => {
+		const jsonRaw = xmlToJsonConverter(prestashopAddressesMock);
+		const result = PrestashopAddressesResponseSchema.safeParse(jsonRaw);
+
+		if (!result.success) {
+			console.log(result.error);
+		}
+
+		expect(result.success).toBe(true);
+	});
+});

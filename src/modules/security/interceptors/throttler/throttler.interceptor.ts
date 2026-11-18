@@ -13,17 +13,14 @@ import { RedisService } from '../../../../system/database/redis/redis.service.js
 
 @Injectable()
 export class ThrottlerInterceptor implements NestInterceptor {
-	constructor(
-		private readonly alsService: AlsService,
-		private readonly redisService: RedisService,
-	) {}
+	constructor(private readonly redisService: RedisService) {}
 
 	async intercept(
 		context: ExecutionContext,
 		next: CallHandler,
 	): Promise<Observable<any>> {
 		// 1. Retrieve IP from ALS
-		const ip = this.alsService.getIP() || 'unknown';
+		const ip = AlsService.ipAddress || 'unknown';
 
 		// 2. Generate a unique key for this IP + route class name + handler name
 		const handler = context.getHandler().name;

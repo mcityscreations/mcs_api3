@@ -23,10 +23,18 @@ import { GlobalExceptionFilter } from './http/filters/global-exception/global-ex
 import { SuccessInterceptor } from './http/interceptors/success/success.interceptor.js';
 // Event Bus
 import { EventBusModule } from './eventbus/eventbus.module.js';
+// Job Dispatcher
+import { JobDispatcherModule } from './jobdispatcher/jobdispatcher.module.js';
 
 @Global()
 @Module({
-	imports: [ConfigModule, ScheduleModule, DatabaseModule, EventBusModule],
+	imports: [
+		ConfigModule,
+		ScheduleModule,
+		DatabaseModule,
+		EventBusModule,
+		JobDispatcherModule,
+	],
 	providers: [
 		// Logging
 		LoggerConfigService,
@@ -52,6 +60,7 @@ import { EventBusModule } from './eventbus/eventbus.module.js';
 		WinstonLoggerService,
 		DatabaseModule,
 		EventBusModule,
+		JobDispatcherModule,
 	],
 })
 export class SystemModule {}

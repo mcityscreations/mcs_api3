@@ -45,6 +45,6 @@ import { ContactModule } from '../content/contact/contact.module.js';
 			inject: [RecaptchaConfigService],
 		},
 	],
-	exports: [ JwtService, JwtRepository],
+	exports: [JwtService, JwtRepository],
 })
 export class SecurityModule {}

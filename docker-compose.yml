@@ -32,7 +32,7 @@ services:
       - "traefik.http.routers.traefik-secure.tls.certresolver=letsencrypt"
       - "traefik.http.routers.traefik-secure.middlewares=admin-auth"
       - "traefik.http.middlewares.admin-auth.basicauth.users=${TRAEFIK_AUTH_HASH}"
-  
+ 
   # Mcitys API
   api:
     image: mcityscreations/mcsapi3:latest
@@ -60,7 +60,6 @@ services:
     networks:
       - mcitys-net
 
-
   # PostgreSQL
   postgres:
     image: postgres:18-alpine
@@ -68,21 +67,19 @@ services:
     env_file:
       - .env.prod
     environment:
-      # Variables read by PostgreSQL to initialize the main database and admin user
       - POSTGRES_USER=${POSTGRES_MAIN_USER}
       - POSTGRES_PASSWORD=${POSTGRES_MAIN_PASSWORD}
       - POSTGRES_DB=${POSTGRES_MAIN_DATABASE}
-      # Variables read by the init script to create the standard and security users
       - POSTGRES_STANDARD_USER=${POSTGRES_STANDARD_USER}
       - POSTGRES_STANDARD_PASSWORD=${POSTGRES_STANDARD_PASSWORD}
       - POSTGRES_SECURITY_USER=${POSTGRES_SECURITY_USER}
       - POSTGRES_SECURITY_PASSWORD=${POSTGRES_SECURITY_PASSWORD}
     volumes:
       - /home/leo/postgresdata:/var/lib/postgresql
-      # Script to create the standard and security users after the main database is initialized
       - ./init-db:/docker-entrypoint-initdb.d
     networks:
-      - mcitys-net
+      mcitys-net:
+        ipv4_address: 172.18.0.5
 
   # Redis
   redis:
@@ -96,7 +93,7 @@ services:
       - /home/leo/redisdata:/data
     networks:
       - mcitys-net
-  
+ 
   # RabbitMQ
   rabbitmq:
     image: rabbitmq:3-management
@@ -108,7 +105,7 @@ services:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
     volumes:
-      - /home/leo/rabbitmqdata:/var/lib/rabbitmq # To store data persistently
+      - /home/leo/rabbitmqdata:/var/lib/rabbitmq
     networks:
       - mcitys-net
 
@@ -125,14 +122,18 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./portainer-data:/data"
     labels:
-      - traefik.enable=true
-      - traefik.docker.network=mcitys-net
-      - traefik.http.routers.portainer-secure.entrypoints=websecure
-      - traefik.http.routers.portainer-secure.rule=Host(`portainer.mcitys.com`)
-      - traefik.http.routers.portainer-secure.service=portainer
-      - traefik.http.routers.portainer.tls.certresolver=letsencrypt
-      - traefik.http.services.portainer.loadbalancer.server.port=9000
+      - "traefik.enable=true"
+      - "traefik.docker.network=mcitys-net"
+      - "traefik.http.routers.portainer-secure.entrypoints=websecure"
+      - "traefik.http.routers.portainer-secure.rule=Host(`portainer.mcitys.com`)"
+      - "traefik.http.routers.portainer-secure.service=portainer"
+      - "traefik.http.routers.portainer-secure.tls=true"
+      - "traefik.http.routers.portainer-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
 
 networks:
   mcitys-net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16

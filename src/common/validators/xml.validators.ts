@@ -10,7 +10,9 @@ export function xmlValidator<T>(
 ): T {
 	const parsedResponse = xmlToJsonConverter(xmlData);
 	const parseResult = schema.safeParse(parsedResponse);
+
 	if (!parseResult.success) {
+		console.error(parseResult.error);
 		throw new InternalServerErrorException({
 			message: `Invalid ${entity} data format received from ${source}`,
 			details: parseResult.error,

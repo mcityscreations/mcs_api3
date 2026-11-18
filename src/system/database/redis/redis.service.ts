@@ -9,14 +9,11 @@ import {
 import { Redis } from 'ioredis';
 import type { IRedisConfig } from './redis-config/redis-config.service.js';
 import { WinstonLoggerService } from '../../logger/logger-service/winston-logger.service.js';
-import { isErrorWithMessage } from '../../../common/validators/error.validators.js';
+import { getErrorMessage } from '../../../common/utils/error.utils.js';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-	private client: Redis;
-	private readonly host: string;
-	private readonly port: number;
-	private readonly password?: string;
+	private client!: Redis;
 
 	constructor(
 		@Inject('REDIS_CONFIG')
@@ -34,7 +31,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 			await this.client.ping();
 			this.logger.log('✅ Redis client connected and operational.');
 		} catch (error) {
-			this.logger.error('❌ REDIS CONNECTION FAILURE:', error);
+			const errorMessage = getErrorMessage(error);
+			this.logger.error('❌ REDIS CONNECTION FAILURE:', errorMessage);
 			throw new InternalServerErrorException(
 				'Critical: Failed to connect to Redis.',
 			);
@@ -68,7 +66,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 		try {
 			await this.client.set(key, value, 'EX', ttlSeconds);
 		} catch (error) {
-			this.logger.error(`Redis SET error for key ${key}:`, error);
+			const errorMessage = getErrorMessage(error);
+			this.logger.error(`Redis SET error for key ${key}:`, errorMessage);
 			throw new InternalServerErrorException('Redis service is unavailable.');
 		}
 	}
@@ -78,9 +77,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 		try {
 			return await this.client.get(key);
 		} catch (error) {
-			const errorMessage = isErrorWithMessage(error)
-				? error.message
-				: 'Unknown error';
+			const errorMessage = getErrorMessage(error);
 			this.logger.error(`Redis GET error for key ${key}:`, errorMessage);
 			throw new InternalServerErrorException('Redis service is unavailable.');
 		}
@@ -91,9 +88,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 		try {
 			await this.client.del(key);
 		} catch (error) {
-			const errorMessage = isErrorWithMessage(error)
-				? error.message
-				: 'Unknown error';
+			const errorMessage = getErrorMessage(error);
 			this.logger.error(`Redis DEL error for key ${key}:`, errorMessage);
 			throw new InternalServerErrorException('Redis service is unavailable.');
 		}
@@ -114,9 +109,14 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 			const result = await this.client.set(key, value, 'EX', ttlSeconds, 'NX');
 			return result === 'OK';
 		} catch (error) {
-			this.logger.error(`Redis SETNX error for key ${key}:`, error);
+			const errorMessage = getErrorMessage(error);
+			this.logger.error(`Redis SETNX error for key ${key}:`, errorMessage);
 			// If Redis is down or there's an error, we let it pass by default to not block the user
 			return true;
 		}
+	}
+
+	public createRedisClient(): Redis {
+		return new Redis(this.redisConfig);
 	}
 }

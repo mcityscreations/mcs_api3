@@ -64,21 +64,20 @@ export class SecurityController {
 		if (isWebClient(clientPlatform)) {
 			// If this is a web client, we set the token in an HttpOnly cookie and return a simple success message
 			response.cookie('auth_token', result.jwt_token, {
-				httpOnly: true,   // Prevent Angular (and attackers) from reading the cookie
-				secure: true,     // Only transmit cookie over HTTPS
+				httpOnly: true, // Prevent Angular (and attackers) from reading the cookie
+				secure: true, // Only transmit cookie over HTTPS
 				sameSite: 'strict', // Protection against CSRF
-				path: '/',        // Enable cookie for all routes
-				maxAge: 3600000,  // Expires within 1 hour (in ms)
+				path: '/', // Enable cookie for all routes
+				maxAge: 3600000, // Expires within 1 hour (in ms)
 			});
-			return { 
-				message: 'Login successful', 
-				username: result.username, 
-				role: result.role 
+			return {
+				message: 'Login successful',
+				username: result.username,
+				role: result.role,
 			};
 		} else {
 			return result;
 		}
-
 	}
 
 	// ---------------------------------------------------------------------
