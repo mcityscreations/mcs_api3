@@ -38,6 +38,8 @@ services:
     image: mcityscreations/mcsapi3:latest
     container_name: mcsapi3
     restart: always
+    volumes:
+      - ${GOOGLE_APPLICATION_DATA_PATH}:/app/config/google-credentials.json
     env_file:
       - .env.prod
     environment:
